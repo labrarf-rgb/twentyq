@@ -12,6 +12,6 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
-  test: { include: ["src/**/*.test.ts"] },
+  test: { include: ["src/**/*.test.ts", "scripts/**/*.test.ts"] },
   server: { port: Number(process.env.PORT) || 5173 },
 }));
