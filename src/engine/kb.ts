@@ -44,6 +44,18 @@ export function compileKB(kb: KB): CompiledKB {
   return { kb, N, Q, values, lik, c: kb.engine, qIndex, tIndex };
 }
 
+/** v7: the category questions, in the order they are asked. */
+export const CATEGORY_ORDER = 3; // animal, vegetable, mineral: kb.categories[0..2]
+
+/** cv(i, c): yes if the thing is in category c, maybe if c is one of its altCategories, else no. */
+export function categoryValue(kb: KB, thingIndex: number, c: number): number {
+  const t = kb.things[thingIndex];
+  const id = kb.categories[c];
+  if (t.category === id) return V_YES;
+  if (t.altCategories?.includes(id)) return V_MAYBE;
+  return V_NO;
+}
+
 export function valueName(code: number): Value {
   return VALUE_ORDER[code];
 }

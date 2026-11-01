@@ -1,14 +1,16 @@
-import { compileKB, type CompiledKB } from "./kb";
+import { categoryValue, CATEGORY_ORDER, compileKB, type CompiledKB } from "./kb";
 import { mulberry32 } from "./rng";
 import type {
   AnswerToken,
-  Category,
   CurrentTurn,
   GameView,
   KB,
   Outcome,
   RecapEntry,
 } from "./types";
+
+/** yes, maybe, no -> row of the likelihood table; skip -> -1 (no weight change). */
+const ANSWER_INDEX: Record<string, number | undefined> = { yes: 0, maybe: 1, no: 2, skip: -1 };
 
 /** Two gains closer than this are tied (SPECS §4): absorbs last-ulp float differences. */
 export const TIE_EPSILON = 1e-9;
@@ -41,7 +43,7 @@ export class Session {
   ) {
     this.w = new Float64Array(ckb.N).fill(1 / ckb.N);
     this.rng = mulberry32(seed);
-    this.current = { turn: 1, kind: "category" };
+    this.current = { turn: 1, kind: "category", cat: 0 };
   }
 
   /** Apply the player's answer to the current turn and advance. */
@@ -52,18 +54,21 @@ export class Session {
     const { kb, c } = ckb;
 
     if (cur.kind === "category") {
-      if (answer !== "skip") {
-        if (!(kb.categories as string[]).includes(answer)) throw new Error(`Bad category answer "${answer}"`);
-        const cat = answer as Category;
-        for (let i = 0; i < ckb.N; i++) {
-          const t = kb.things[i];
-          const m =
-            t.category === cat ? c.category.match : t.altCategories?.includes(cat) ? c.category.alt : c.category.other;
-          w[i] *= m;
-        }
+      // v7: a category question is scored like a normal question, with cv(i, c) as the value.
+      const a = ANSWER_INDEX[answer];
+      if (a === undefined) throw new Error(`Bad category answer "${answer}"`);
+      if (a >= 0) {
+        for (let i = 0; i < ckb.N; i++) w[i] *= ckb.lik[a][categoryValue(kb, i, cur.cat)];
         this.normalize();
       }
-      this.entries.push({ turn: 1, kind: "category", answer });
+      this.entries.push({ turn: cur.turn, kind: "category", id: kb.categories[cur.cat], answer });
+      // YES settles the category and UNKNOWN stops asking; NO or SOMETIMES moves on, until mineral.
+      if (!this.result && (answer === "yes" || answer === "skip" || cur.cat + 1 >= CATEGORY_ORDER)) {
+        this.current = this.decide(cur.turn + 1);
+      } else if (!this.result) {
+        this.current = { turn: cur.turn + 1, kind: "category", cat: cur.cat + 1 };
+      }
+      return;
     } else if (cur.kind === "question") {
       let a: number;
       if (answer === "yes") a = 0;

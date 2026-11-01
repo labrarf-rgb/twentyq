@@ -28,7 +28,8 @@ export function checkKB(kb: Raw): CheckResult {
   const err = (m: string) => errors.push(m);
   const warn = (m: string) => warnings.push(m);
 
-  if (kb?.schemaVersion !== 1) err(`schemaVersion must be 1 (got ${JSON.stringify(kb?.schemaVersion)})`);
+  if (kb?.schemaVersion !== 2) err(`schemaVersion must be 2 (got ${JSON.stringify(kb?.schemaVersion)})`);
+  if (kb?.engine && "category" in kb.engine) err("engine.category was removed in schema 2 (category questions use the likelihood table)");
   if (!Array.isArray(kb?.questions) || !Array.isArray(kb?.things) || !Array.isArray(kb?.categories)) {
     err("questions, things and categories must be arrays");
     return { errors, warnings };

@@ -47,17 +47,22 @@ const specs: Spec[] = [
   { name: "bread-with-skips", thing: "bread", seed: 606, skipEvery: 3 },
   { name: "car-several-backs", thing: "car", seed: 1999, detourTurns: [3, 5, 9] },
   { name: "lion-back-across-guess", thing: "lion", seed: 2112, backAcrossGuess: true },
-  { name: "potato-category-skip", thing: "potato", seed: 64, categoryAnswer: "skip" },
+  { name: "potato-unknown-on-q2", thing: "potato", seed: 64, categoryScript: ["no", "skip"] },
   { name: "moon-right-then-back", thing: "moon", seed: 1337, rightThenBack: true },
   {
     name: "all-skip-uniform",
     thing: "rain",
     seed: 3,
-    categoryAnswer: "skip",
+    categoryScript: ["skip"],
     allQuestions: "skip",
     check: (r) => must(r.session.result?.outcome === "stumped", "all-skip game should stump"),
   },
   { name: "sun-noisy-10pct", thing: "sun", seed: 555, noise: 0.1 },
+  // sun is "other" with altCategories mineral: SOMETIMES on "Is it a mineral?", then the phase ends
+  { name: "sun-sometimes-on-mineral", thing: "sun", seed: 2468, maybe: "maybe" },
+  // house is "other" with altCategories mineral and vegetable: SOMETIMES on Q2, then on Q3
+  { name: "house-sometimes-on-q2-and-q3", thing: "house", seed: 1357, maybe: "maybe" },
+  { name: "car-category-backs", thing: "car", seed: 9001, detourTurns: [1, 2, 3] },
   { name: "bicycle-skips-and-backs", thing: "bicycle", seed: 12, skipEvery: 4, detourTurns: [4, 6] },
 ];
 
@@ -70,12 +75,12 @@ function prngVectors() {
 
 function buildGame(name: string, seed: number, tokens: (AnswerToken | "back")[]) {
   const s = replay(ckb, seed, applyBacks(tokens));
-  const expectTurns = s.entries.map((e) => (e.kind === "category" ? { turn: e.turn, kind: e.kind } : { turn: e.turn, kind: e.kind, id: e.id }));
+  const expectTurns = s.entries.map((e) => ({ turn: e.turn, kind: e.kind, id: e.id }));
   if (s.current) {
     const c = s.current;
     const e =
       c.kind === "category"
-        ? { turn: c.turn, kind: c.kind }
+        ? { turn: c.turn, kind: c.kind, id: kb.categories[c.cat] }
         : c.kind === "question"
           ? { turn: c.turn, kind: c.kind, id: kb.questions[c.q].id }
           : { turn: c.turn, kind: c.kind, id: kb.things[c.thing].id };
@@ -92,7 +97,7 @@ function buildGame(name: string, seed: number, tokens: (AnswerToken | "back")[])
   };
 }
 
-const games = [];
+const games: ReturnType<typeof buildGame>[] = [];
 for (const spec of specs) {
   const { name, thing, findRecovery, check, ...opts } = spec;
   let r: ReturnType<typeof play>;
@@ -118,10 +123,22 @@ for (const spec of specs) {
 
 // Coverage assertions from SPECS §5.
 must(games.length >= 12, "at least 12 games");
-must(games.some((g) => g.answers.includes("skip") && g.answers[0] !== "skip"), "a game with Skips");
+// Category phase of each game: the answers given to the category questions, in order.
+const catPhase = (g: (typeof games)[number]) =>
+  g.expect.filter((e) => e.kind === "category").map((e, i) => ({ id: e.id, answer: g.answers.filter((a) => a !== "back")[i] }));
+const phases = games.map((g) => ({ g, cats: catPhase(g) }));
+must(games.some((g) => g.answers.filter((a) => a === "skip").length > 0 && g.answers[0] !== "skip" && g.name.includes("skips")), "a game with Skips");
 must(games.some((g) => g.answers.filter((a) => a === "back").length >= 3), "a game with several Backs");
-must(games.some((g) => g.answers[0] === "skip"), "a category Skip");
-for (const c of kb.categories) must(games.some((g) => g.answers[0] === c && g.result.outcome === "win"), `a truthful ${c} win`);
+must(phases.some(({ cats }) => cats[0]?.answer === "yes"), "a category settled at Q1");
+must(phases.some(({ cats }) => cats[1]?.answer === "yes"), "a category settled at Q2");
+must(phases.some(({ cats }) => cats[2]?.answer === "yes"), "a category settled at Q3");
+must(phases.some(({ cats }) => cats.length === 3 && cats.every((c) => c.answer === "no")), "three NOs");
+must(phases.some(({ cats }) => cats.some((c) => c.answer === "maybe")), "a SOMETIMES on a category question");
+must(phases.some(({ cats }) => cats.some((c) => c.answer === "skip")), "an UNKNOWN on a category question");
+for (const [name, cat] of [["cat-truthful", "animal"], ["apple-truthful", "vegetable"], ["spoon-truthful", "mineral"], ["rain-truthful", "other"]] as const) {
+  const g = games.find((x) => x.name === name);
+  must(!!g && g.result.outcome === "win", `a truthful ${cat} win (${name})`);
+}
 must(games.some((g) => g.name === "dog-wrong-guess-recovery" && g.answers.includes("wrong") && g.result.outcome === "win"), "wrong guess then recovery");
 must(
   games.some((g) => {

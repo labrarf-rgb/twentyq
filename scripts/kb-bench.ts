@@ -8,7 +8,7 @@ import { compileKB } from "../src/engine/kb";
 import { mulberry32 } from "../src/engine/rng";
 import type { AnswerToken } from "../src/engine/types";
 import { loadKB } from "./lib/kb-io";
-import { flip, truthfulAnswer } from "./lib/player";
+import { categoryAnswer, flip, truthfulAnswer } from "./lib/player";
 
 const RUNS = 5;
 const NOISE = 0.1;
@@ -32,8 +32,12 @@ function simulate(ckb: ReturnType<typeof compileKB>, thing: number, run: number,
   while (s.current) {
     const cur = s.current;
     let a: AnswerToken;
-    if (cur.kind === "category") a = ckb.kb.things[thing].category;
-    else if (cur.kind === "question") {
+    if (cur.kind === "category") {
+      // v7: category questions are answered from cv, and noise flips them like any question
+      let qa = categoryAnswer(ckb, thing, cur.cat, rnd, "random");
+      if (pass === "noisy" && rnd() < NOISE) qa = flip(qa, rnd);
+      a = qa;
+    } else if (cur.kind === "question") {
       let qa = truthfulAnswer(ckb, thing, cur.q, rnd, "random");
       if (pass === "noisy" && rnd() < NOISE) qa = flip(qa, rnd);
       a = qa;

@@ -10,7 +10,6 @@ const ENGINE: KB["engine"] = {
     maybe: { yes: 0.1, maybe: 0.3, no: 0.1, unknown: 1 / 3 },
     no: { yes: 0.05, maybe: 0.3, no: 0.85, unknown: 1 / 3 },
   },
-  category: { match: 0.9, alt: 0.45, other: 1 / 30 },
   guessConfidence: 0.8,
   guessMinTurn: 8,
   forceGuessTurn: 20,
@@ -76,28 +75,80 @@ describe("thingPhrase", () => {
   });
 });
 
-describe("category turn", () => {
+describe("category phase (v7)", () => {
   const kb = makeKB([
     { category: "animal", yes: ["q0"] },
     { category: "vegetable", altCategories: ["animal"], yes: ["q1"] },
     { category: "mineral", yes: ["q2"] },
+    { category: "other", yes: ["q3"] },
   ]);
-  it("starts uniform on turn 1", () => {
-    const s = replay(kb, 1, []);
-    expect(s.current).toEqual({ turn: 1, kind: "category" });
-    expect(Array.from(s.w)).toEqual([1 / 3, 1 / 3, 1 / 3]);
-  });
-  it("applies match / alt / other multipliers then normalizes", () => {
-    const s = replay(kb, 1, ["animal"]);
-    const raw = [0.9, 0.45, 1 / 30];
+  const L = ENGINE.likelihood;
+  const norm = (raw: number[]) => {
     const sum = raw.reduce((a, b) => a + b, 0);
-    raw.forEach((r, i) => expect(s.w[i]).toBeCloseTo(r / sum, 12));
+    return raw.map((r) => r / sum);
+  };
+  it("starts uniform on turn 1 with the animal question", () => {
+    const s = replay(kb, 1, []);
+    expect(s.current).toEqual({ turn: 1, kind: "category", cat: 0 });
+    expect(Array.from(s.w)).toEqual([0.25, 0.25, 0.25, 0.25]);
+  });
+  it("YES scores with cv (yes / maybe for altCategories / no) and ends the phase", () => {
+    const s = replay(kb, 1, ["yes"]);
+    // cv(i, animal): animal yes, vegetable (alt animal) maybe, mineral no, other no
+    const want = norm([L.yes.yes, L.yes.maybe, L.yes.no, L.yes.no]);
+    want.forEach((r, i) => expect(s.w[i]).toBeCloseTo(r, 12));
     expect(s.current?.turn).toBe(2);
     expect(s.current?.kind).toBe("question");
+    expect(s.entries[0]).toEqual({ turn: 1, kind: "category", id: "animal", answer: "yes" });
   });
-  it("Skip leaves weights unchanged", () => {
+  it("NO and SOMETIMES go on to the next category question", () => {
+    for (const a of ["no", "maybe"] as const) {
+      const s = replay(kb, 1, [a]);
+      expect(s.current).toEqual({ turn: 2, kind: "category", cat: 1 });
+      const want = norm([L[a].yes, L[a].maybe, L[a].no, L[a].no]);
+      want.forEach((r, i) => expect(s.w[i]).toBeCloseTo(r, 12));
+    }
+  });
+  it("each category can be settled at Q1, Q2 or Q3, and three NOs end the phase", () => {
+    expect(replay(kb, 1, ["yes"]).current).toMatchObject({ turn: 2, kind: "question" });
+    expect(replay(kb, 1, ["no", "yes"]).current).toMatchObject({ turn: 3, kind: "question" });
+    expect(replay(kb, 1, ["no", "no", "yes"]).current).toMatchObject({ turn: 4, kind: "question" });
+    const s = replay(kb, 1, ["no", "no", "no"]);
+    expect(s.current).toMatchObject({ turn: 4, kind: "question" });
+    expect(s.entries.map((e) => e.id)).toEqual(["animal", "vegetable", "mineral"]);
+    // three NOs point at "other"
+    expect(s.topThing()).toBe(3);
+  });
+  it("SOMETIMES on the last category question still ends the phase", () => {
+    expect(replay(kb, 1, ["no", "no", "maybe"]).current).toMatchObject({ turn: 4, kind: "question" });
+  });
+  it("UNKNOWN ends the phase with the weights unchanged", () => {
     const s = replay(kb, 1, ["skip"]);
-    expect(Array.from(s.w)).toEqual([1 / 3, 1 / 3, 1 / 3]);
+    expect(Array.from(s.w)).toEqual([0.25, 0.25, 0.25, 0.25]);
+    expect(s.current).toMatchObject({ turn: 2, kind: "question" });
+    const t = replay(kb, 1, ["no", "skip"]);
+    expect(t.current).toMatchObject({ turn: 3, kind: "question" });
+  });
+  it("category turns never draw from the RNG", () => {
+    // Every thing is "other", so no number of NOs changes the relative weights: the first
+    // question must be the same whether the phase took one turn or three.
+    const same = makeKB(Array.from({ length: 8 }, (_, i) => ({ category: "other" as const, yes: [0, 1, 2].filter((b) => (i >> b) & 1).map((b) => `q${b}`) })));
+    for (let seed = 0; seed < 20; seed++) {
+      const a = replay(same, seed, ["skip"]);
+      const b = replay(same, seed, ["no", "no", "no"]);
+      expect(a.current).toMatchObject({ kind: "question" });
+      expect(b.current).toMatchObject({ kind: "question" });
+      expect((a.current as { q: number }).q).toBe((b.current as { q: number }).q);
+    }
+  });
+  it("category turns never guess", () => {
+    const one = makeKB([{ category: "animal", yes: ["q0"] }]);
+    const s = replay(one, 1, ["yes"]);
+    expect(s.w[0]).toBe(1); // fully confident, but turn 1 was a category question and turn 2 < guessMinTurn
+    expect(s.current).toMatchObject({ turn: 2, kind: "question" });
+  });
+  it("rejects guess tokens on a category turn", () => {
+    expect(() => replay(kb, 1, ["right"])).toThrow();
   });
 });
 
@@ -127,7 +178,7 @@ describe("answers", () => {
     expect(s.current?.turn).toBe(3);
   });
   it("rejects wrong answer tokens for the turn kind", () => {
-    expect(() => replay(kb, 5, ["yes"])).toThrow();
+    expect(() => replay(kb, 5, ["right"])).toThrow();
     expect(() => replay(kb, 5, ["skip", "right"])).toThrow();
   });
 });
@@ -289,14 +340,14 @@ describe("replay and Back", () => {
     8,
   );
   it("is deterministic for a given seed and answers", () => {
-    const answers: AnswerToken[] = ["animal", "yes", "no", "maybe"];
+    const answers: AnswerToken[] = ["no", "yes", "no", "maybe"];
     const a = replay(kb, 123, answers);
     const b = replay(kb, 123, answers);
     expect(a.current).toEqual(b.current);
     expect(Array.from(a.w)).toEqual(Array.from(b.w));
   });
   it("Back is an exact replay of the shorter history", () => {
-    const hist: AnswerToken[] = ["animal", "yes", "no", "maybe", "skip"];
+    const hist: AnswerToken[] = ["no", "yes", "no", "maybe", "skip"];
     const full = replay(kb, 77, hist);
     const back = replay(kb, 77, applyBacks([...hist, "back"]));
     const direct = replay(kb, 77, hist.slice(0, -1));
@@ -308,6 +359,6 @@ describe("replay and Back", () => {
     expect(Array.from(again.w)).toEqual(Array.from(full.w));
   });
   it("applyBacks never underflows", () => {
-    expect(applyBacks(["back", "back", "animal"])).toEqual(["animal"]);
+    expect(applyBacks(["back", "back", "yes"])).toEqual(["yes"]);
   });
 });

@@ -1,19 +1,12 @@
 // A simulated player used by kb:vectors and kb:bench (SPECS §6).
 import { replay } from "../../src/engine/engine";
-import { V_MAYBE, V_NO, V_UNKNOWN, V_YES, type CompiledKB } from "../../src/engine/kb";
+import { categoryValue, V_MAYBE, V_NO, V_UNKNOWN, V_YES, type CompiledKB } from "../../src/engine/kb";
 import type { AnswerToken, QuestionAnswer, Session } from "../../src/engine/index";
 
 export type MaybePolicy = "random" | "maybe" | "yes";
 
-/** How a player who is thinking of thing `ti` answers question `q`. */
-export function truthfulAnswer(
-  ckb: CompiledKB,
-  ti: number,
-  q: number,
-  rnd: () => number,
-  maybe: MaybePolicy = "random",
-): QuestionAnswer {
-  const v = ckb.values[ti * ckb.Q + q];
+/** The answer for a value code: yes -> Yes, no -> No, unknown -> Skip, maybe -> a pick of the three. */
+function answerForValue(v: number, rnd: () => number, maybe: MaybePolicy): QuestionAnswer {
   if (v === V_YES) return "yes";
   if (v === V_NO) return "no";
   if (v === V_UNKNOWN) return "skip";
@@ -23,6 +16,16 @@ export function truthfulAnswer(
     return (["yes", "no", "maybe"] as const)[Math.floor(rnd() * 3)];
   }
   throw new Error("unreachable");
+}
+
+/** How a player who is thinking of thing `ti` answers question `q`. */
+export function truthfulAnswer(ckb: CompiledKB, ti: number, q: number, rnd: () => number, maybe: MaybePolicy = "random"): QuestionAnswer {
+  return answerForValue(ckb.values[ti * ckb.Q + q], rnd, maybe);
+}
+
+/** v7: how that player answers category question `c` (0 animal, 1 vegetable, 2 mineral), from cv. */
+export function categoryAnswer(ckb: CompiledKB, ti: number, c: number, rnd: () => number, maybe: MaybePolicy = "random"): QuestionAnswer {
+  return answerForValue(categoryValue(ckb.kb, ti, c), rnd, maybe);
 }
 
 /** Replace a Yes/No/Maybe with a different random one of the three. */
@@ -50,14 +53,15 @@ export interface PlayOptions {
   /** Chance of flipping each Yes/No/Maybe answer. */
   noise?: number;
   noiseRnd?: () => number;
-  categoryAnswer?: AnswerToken;
+  /** Answers for the category questions in order (Q1, Q2, Q3), instead of answering from cv. */
+  categoryScript?: QuestionAnswer[];
   /** Answer Skip to every nth question (1-based among question turns). */
   skipEvery?: number;
-  /** Override: answer this to every question turn. */
+  /** Override: answer this to every ordinary question turn. */
   allQuestions?: QuestionAnswer;
   /** Answer Wrong to every guess, even the true one. */
   wrongAlways?: boolean;
-  /** At these question turns, answer wrongly, play one more turn, then Back twice. */
+  /** At these question or category turns, answer wrongly, play one more turn, then Back twice. */
   detourTurns?: number[];
   /** On the first guess turn, answer Wrong, play one more turn, then Back twice. */
   backAcrossGuess?: boolean;
@@ -85,14 +89,25 @@ export function play(ckb: CompiledKB, o: PlayOptions): PlayResult {
   const truthfulFor = (cur: NonNullable<Session["current"]>): AnswerToken => {
     if (cur.kind === "question") return truthfulAnswer(ckb, o.thing, cur.q, rnd, o.maybe);
     if (cur.kind === "guess") return "wrong";
-    return ckb.kb.things[o.thing].category;
+    return categoryAnswer(ckb, o.thing, cur.cat, rnd, o.maybe);
   };
 
   while (s.current) {
     const cur = s.current;
     if (tokens.length > 500) throw new Error("runaway game");
     if (cur.kind === "category") {
-      push(o.categoryAnswer ?? ckb.kb.things[o.thing].category);
+      if (o.detourTurns?.includes(cur.turn) && !detoured.has(cur.turn)) {
+        detoured.add(cur.turn);
+        const truth = categoryAnswer(ckb, o.thing, cur.cat, rnd, o.maybe);
+        push(truth === "yes" ? "no" : "yes"); // deliberately the other way
+        if (s.current) push(truthfulFor(s.current));
+        push("back");
+        push("back");
+        continue;
+      }
+      let a: QuestionAnswer = o.categoryScript?.[cur.cat] ?? categoryAnswer(ckb, o.thing, cur.cat, rnd, o.maybe);
+      if (o.noise && !o.categoryScript && (o.noiseRnd ?? rnd)() < o.noise) a = flip(a, o.noiseRnd ?? rnd);
+      push(a);
       continue;
     }
     if (cur.kind === "question") {

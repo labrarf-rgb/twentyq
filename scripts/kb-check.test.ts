@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { checkKB } from "./kb-check";
 
 const base = () => ({
-  schemaVersion: 1,
+  schemaVersion: 2,
   kbVersion: "t",
   categories: ["animal", "vegetable", "mineral", "other"],
   questions: ["is_alive", "is_mammal", "has_legs", "has_four_legs", "can_hold", "bigger_than_breadbox", "x"].map((id) => ({
@@ -20,7 +20,9 @@ const errs = (kb: unknown) => checkKB(kb).errors.join("\n");
 
 describe("checkKB", () => {
   it("accepts a valid kb", () => expect(checkKB(base()).errors).toEqual([]));
-  it("rejects wrong schemaVersion", () => expect(errs({ ...base(), schemaVersion: 2 })).toMatch(/schemaVersion/));
+  it("rejects wrong schemaVersion", () => expect(errs({ ...base(), schemaVersion: 1 })).toMatch(/schemaVersion/));
+  it("rejects the removed engine.category block", () =>
+    expect(errs({ ...base(), engine: { category: { match: 0.9 } } })).toMatch(/engine\.category/));
   it("rejects unknown question ids", () => {
     const kb = base();
     kb.things[0].yes.push("nope");

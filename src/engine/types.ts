@@ -3,7 +3,6 @@ export type Category = "animal" | "vegetable" | "mineral" | "other";
 
 export interface EngineConstants {
   likelihood: Record<"yes" | "maybe" | "no", Record<Value, number>>;
-  category: { match: number; alt: number; other: number };
   guessConfidence: number;
   guessMinTurn: number;
   forceGuessTurn: number;
@@ -37,17 +36,17 @@ export interface KB {
   things: Thing[];
 }
 
-/** Answer tokens (SPECS §5). `back` is handled by the caller, not the engine. */
-export type CategoryAnswer = Category | "skip";
+/** Answer tokens (SPECS §5). `back` is handled by the caller, not the engine.
+ *  Category questions take the same four tokens as ordinary questions (v7). */
 export type QuestionAnswer = "yes" | "no" | "maybe" | "skip";
 export type GuessAnswer = "right" | "wrong";
-export type AnswerToken = CategoryAnswer | QuestionAnswer | GuessAnswer;
+export type AnswerToken = QuestionAnswer | GuessAnswer;
 
 export type TurnKind = "category" | "question" | "guess";
 
 /** What the player is looking at right now. */
 export type CurrentTurn =
-  | { turn: number; kind: "category" }
+  | { turn: number; kind: "category"; /** 0 animal, 1 vegetable, 2 mineral */ cat: number }
   | { turn: number; kind: "question"; q: number }
   | { turn: number; kind: "guess"; thing: number };
 
@@ -55,7 +54,7 @@ export type CurrentTurn =
 export interface RecapEntry {
   turn: number;
   kind: TurnKind;
-  /** question id for questions, thing id for guesses, absent for the category turn */
+  /** category id, question id or thing id, depending on `kind` */
   id?: string;
   answer: AnswerToken;
 }
