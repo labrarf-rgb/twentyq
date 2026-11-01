@@ -97,6 +97,15 @@ KEEP="$(
     done
   } | grep -oE 'assets/[^"]+' | sed 's#^assets/##' | sort -u || true
 )"
+# Fonts (and anything else a stylesheet pulls in) are named inside the CSS, not in index.html,
+# so keep what every kept stylesheet references too. Without this the fonts were pruned and the
+# LCD fell back to a system monospace (2026-11-01).
+CSS_REFS="$(
+  for css in $(grep -E '\.css$' <<<"$KEEP"); do
+    [ -f "$DEST/assets/$css" ] && grep -oE 'assets/[^)"'"'"' ]+' "$DEST/assets/$css" | sed 's#^assets/##'
+  done | sort -u || true
+)"
+KEEP="$(printf '%s\n%s\n' "$KEEP" "$CSS_REFS" | sort -u)"
 for f in "$DEST"/assets/*; do
   [ -e "$f" ] || continue
   grep -qxF "$(basename "$f")" <<<"$KEEP" || rm -f "$f"
@@ -111,10 +120,10 @@ else
 fi
 
 # 5. Verify prod is actually serving this commit (GitHub Pages needs a moment),
-#    and that the assets its index.html names load: a version.json that matches
+#    and that the assets its index.html and stylesheets name load: a version.json that matches
 #    beside a script that 404s is exactly the blank page this script exists to
 #    rule out.
-ASSETS="$(grep -oE 'assets/[^"]+' "$WEBAPP_DIR/dist/index.html" | sort -u || true)"
+ASSETS="$({ cat "$WEBAPP_DIR/dist/index.html" "$WEBAPP_DIR"/dist/assets/*.css; } | grep -oE 'assets/[^)"]+' | sort -u || true)"
 echo "→ Waiting for $SITE_URL to report $EXPECTED ..."
 for i in $(seq 1 30); do
   LIVE="$(curl -fsS "$SITE_URL/version.json?cb=$(date +%s)" 2>/dev/null \
