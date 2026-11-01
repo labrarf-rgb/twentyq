@@ -84,8 +84,8 @@ export function checkKB(kb: Raw): CheckResult {
 
   // Pairwise distance over full answer vectors.
   const qList: string[] = kb.questions.map((q: Raw) => q.id);
-  const vec = (tid: string) => qList.map((q) => val(tid, q));
-  const vecs = kb.things.map((t: Raw) => vec(t.id));
+  const CODE: Record<string, number> = { no: 0, yes: 1, maybe: 2, unknown: 3 };
+  const vecs: Uint8Array[] = kb.things.map((t: Raw) => Uint8Array.from(qList.map((q) => CODE[val(t.id, q)])));
   for (let i = 0; i < kb.things.length; i++) {
     for (let j = i + 1; j < kb.things.length; j++) {
       let d = 0;
@@ -99,7 +99,10 @@ export function checkKB(kb: Raw): CheckResult {
   const N = kb.things.length;
   qList.forEach((q, qi) => {
     const counts: Record<string, number> = {};
-    for (const v of vecs) counts[v[qi]] = (counts[v[qi]] ?? 0) + 1;
+    for (const v of vecs) {
+      const name = Object.keys(CODE)[v[qi]];
+      counts[name] = (counts[name] ?? 0) + 1;
+    }
     const [topVal, n] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
     if (n / N >= 0.95) warn(`question "${q}" is ${topVal} for ${n}/${N} things (>= 95%)`);
   });
@@ -120,7 +123,15 @@ function main() {
     process.exit(1);
   }
   const { errors, warnings } = checkKB(kb);
-  for (const w of warnings) console.warn(`warn  ${w}`);
+  // The "same value for 95%" and "fewer than 6 yeses" warnings run to dozens on a big KB: summarize
+  // them on one line each, and cap the near-identical pair list.
+  const sparseQs = warnings.filter((w) => /^question "/.test(w)).map((w) => w.match(/^question "([^"]+)"/)![1]);
+  const thinThings = warnings.filter((w) => /has only \d+ yes entries/.test(w)).map((w) => w.split(" ")[0]);
+  const rest = warnings.filter((w) => !/^question "/.test(w) && !/has only \d+ yes entries/.test(w));
+  if (sparseQs.length) console.warn(`warn  ${sparseQs.length} narrow questions are the same value for >= 95% of things: ${sparseQs.join(" ")}`);
+  if (thinThings.length) console.warn(`warn  ${thinThings.length} things have fewer than 6 yes entries: ${thinThings.join(" ")}`);
+  for (const w of rest.slice(0, 60)) console.warn(`warn  ${w}`);
+  if (rest.length > 60) console.warn(`warn  ... and ${rest.length - 60} more near-identical pairs`);
   for (const e of errors) console.error(`error ${e}`);
   console.log(
     `${kb.kbVersion}: ${kb.things?.length} things, ${kb.questions?.length} questions · ${errors.length} error(s), ${warnings.length} warning(s)`,

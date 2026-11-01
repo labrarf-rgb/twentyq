@@ -10,7 +10,16 @@ import type { AnswerToken } from "../src/engine/types";
 import { loadKB } from "./lib/kb-io";
 import { categoryAnswer, flip, truthfulAnswer } from "./lib/player";
 
-const RUNS = 5;
+// Full run: every thing, 5 seeds. `--fast` (or --stride N --seeds N) plays every Nth thing with fewer
+// seeds, for use between KB batches; the full run is still the one that counts (SPECS section 6).
+const argv = process.argv;
+const argNum = (name: string, dflt: number) => {
+  const i = argv.indexOf(name);
+  return i >= 0 ? Number(argv[i + 1]) : dflt;
+};
+const FAST = argv.includes("--fast");
+const STRIDE = argNum("--stride", FAST ? 5 : 1);
+const RUNS = argNum("--seeds", FAST ? 2 : 5);
 const NOISE = 0.1;
 const TARGET = { truthful: { rate: 0.95, byTurn: 20 }, noisy: { rate: 0.8, byTurn: 25 } };
 
@@ -55,9 +64,11 @@ function simulate(ckb: ReturnType<typeof compileKB>, thing: number, run: number,
 function runSlice(kbPath: string, lo: number, hi: number): GameOutcome[] {
   const ckb = compileKB(loadKB(kbPath));
   const out: GameOutcome[] = [];
-  for (let t = lo; t < hi; t++)
+  for (let t = lo; t < hi; t++) {
+    if (t % STRIDE !== 0) continue;
     for (const pass of ["truthful", "noisy"] as const)
       for (let run = 0; run < RUNS; run++) out.push(simulate(ckb, t, run, pass));
+  }
   return out;
 }
 
@@ -73,7 +84,7 @@ async function main() {
       const hi = Math.min(N, lo + per);
       if (lo >= hi) return Promise.resolve([] as GameOutcome[]);
       return new Promise<GameOutcome[]>((resolve, reject) => {
-        const child = fork(fileURLToPath(import.meta.url), ["--worker", String(lo), String(hi)], {
+        const child = fork(fileURLToPath(import.meta.url), ["--worker", String(lo), String(hi), ...argv.slice(2).filter((a) => a !== "--worker")], {
           execArgv: process.execArgv,
         });
         child.on("message", (m) => resolve(m as GameOutcome[]));
@@ -101,7 +112,8 @@ function report(kb: ReturnType<typeof loadKB>, games: GameOutcome[], secs: numbe
   const pct = (x: number) => (x * 100).toFixed(1) + "%";
   const ok = (v: number, t: number) => (v >= t ? "PASS" : "FAIL");
 
-  console.log(`\n${kb.kbVersion}: ${kb.things.length} things x ${RUNS} seeds x 2 passes = ${games.length} games (${secs.toFixed(1)}s)\n`);
+  const subset = STRIDE > 1 ? ` (every ${STRIDE}th thing)` : "";
+  console.log(`\n${kb.kbVersion}: ${kb.things.length} things${subset} x ${RUNS} seeds x 2 passes = ${games.length} games (${secs.toFixed(1)}s)${STRIDE > 1 || RUNS < 5 ? "  [FAST: indicative only, run the full bench to sign off]" : ""}\n`);
   console.log(`Truthful  won by turn ${TARGET.truthful.byTurn}: ${pct(rt)}   target >= ${pct(TARGET.truthful.rate)}   ${ok(rt, TARGET.truthful.rate)}   (avg win turn ${avgTurn("truthful").toFixed(1)}, won by 25: ${pct(rate("truthful", 25))})`);
   console.log(`10% noise won by turn ${TARGET.noisy.byTurn}: ${pct(rn)}   target >= ${pct(TARGET.noisy.rate)}   ${ok(rn, TARGET.noisy.rate)}   (avg win turn ${avgTurn("noisy").toFixed(1)})`);
 
