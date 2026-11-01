@@ -1,0 +1,1420 @@
+{
+  "schemaVersion": 1,
+  "kbVersion": "seed-2026.11.01",
+  "categories": [
+    "animal",
+    "vegetable",
+    "mineral",
+    "other"
+  ],
+  "engine": {
+    "likelihood": {
+      "yes": {
+        "yes": 0.85,
+        "maybe": 0.4,
+        "no": 0.05,
+        "unknown": 0.3333333333333333
+      },
+      "maybe": {
+        "yes": 0.1,
+        "maybe": 0.3,
+        "no": 0.1,
+        "unknown": 0.3333333333333333
+      },
+      "no": {
+        "yes": 0.05,
+        "maybe": 0.3,
+        "no": 0.85,
+        "unknown": 0.3333333333333333
+      }
+    },
+    "category": {
+      "match": 0.9,
+      "alt": 0.45,
+      "other": 0.03333333333333333
+    },
+    "guessConfidence": 0.8,
+    "guessMinTurn": 8,
+    "forceGuessTurn": 20,
+    "maxTurns": 25,
+    "topK": 3
+  },
+  "questions": [
+    {
+      "id": "is_alive",
+      "text": "Is it alive?",
+      "group": "basics"
+    },
+    {
+      "id": "is_manmade",
+      "text": "Is it made by people?",
+      "group": "basics"
+    },
+    {
+      "id": "can_hold",
+      "text": "Can you hold it in one hand?",
+      "group": "basics"
+    },
+    {
+      "id": "bigger_than_breadbox",
+      "text": "Is it bigger than a breadbox?",
+      "group": "basics"
+    },
+    {
+      "id": "bigger_than_car",
+      "text": "Is it bigger than a car?",
+      "group": "basics"
+    },
+    {
+      "id": "heavier_than_person",
+      "text": "Is it heavier than a person?",
+      "group": "basics"
+    },
+    {
+      "id": "found_in_house",
+      "text": "Is it usually found in a house?",
+      "group": "basics"
+    },
+    {
+      "id": "found_outdoors",
+      "text": "Is it usually found outdoors?",
+      "group": "basics"
+    },
+    {
+      "id": "used_daily",
+      "text": "Do most people use it every day?",
+      "group": "basics"
+    },
+    {
+      "id": "is_valuable",
+      "text": "Is it valuable or expensive?",
+      "group": "basics"
+    },
+    {
+      "id": "is_idea",
+      "text": "Is it something you can't touch?",
+      "group": "basics"
+    },
+    {
+      "id": "is_mammal",
+      "text": "Is it a mammal?",
+      "group": "animals"
+    },
+    {
+      "id": "is_bird",
+      "text": "Is it a bird?",
+      "group": "animals"
+    },
+    {
+      "id": "is_fish",
+      "text": "Is it a fish?",
+      "group": "animals"
+    },
+    {
+      "id": "is_reptile",
+      "text": "Is it a reptile or amphibian?",
+      "group": "animals"
+    },
+    {
+      "id": "is_insect",
+      "text": "Is it an insect or spider?",
+      "group": "animals"
+    },
+    {
+      "id": "has_fur",
+      "text": "Does it have fur or hair?",
+      "group": "animals"
+    },
+    {
+      "id": "has_feathers",
+      "text": "Does it have feathers?",
+      "group": "animals"
+    },
+    {
+      "id": "has_scales",
+      "text": "Does it have scales?",
+      "group": "animals"
+    },
+    {
+      "id": "has_legs",
+      "text": "Does it have legs?",
+      "group": "animals"
+    },
+    {
+      "id": "has_four_legs",
+      "text": "Does it have four legs?",
+      "group": "animals"
+    },
+    {
+      "id": "has_tail",
+      "text": "Does it have a tail?",
+      "group": "animals"
+    },
+    {
+      "id": "has_wings",
+      "text": "Does it have wings?",
+      "group": "animals"
+    },
+    {
+      "id": "has_horns",
+      "text": "Does it have horns, antlers, or tusks?",
+      "group": "animals"
+    },
+    {
+      "id": "lays_eggs",
+      "text": "Does it lay eggs?",
+      "group": "animals"
+    },
+    {
+      "id": "eats_meat",
+      "text": "Does it eat meat?",
+      "group": "animals"
+    },
+    {
+      "id": "is_pet",
+      "text": "Do people keep it as a pet?",
+      "group": "animals"
+    },
+    {
+      "id": "lives_on_farm",
+      "text": "Is it found on a farm?",
+      "group": "animals"
+    },
+    {
+      "id": "is_wild",
+      "text": "Does it live in the wild?",
+      "group": "animals"
+    },
+    {
+      "id": "is_dangerous",
+      "text": "Is it dangerous?",
+      "group": "animals"
+    },
+    {
+      "id": "is_nocturnal",
+      "text": "Is it active at night?",
+      "group": "animals"
+    },
+    {
+      "id": "lives_in_africa",
+      "text": "Is it found in Africa?",
+      "group": "animals"
+    },
+    {
+      "id": "lives_in_forest",
+      "text": "Does it live in forests or jungles?",
+      "group": "animals"
+    },
+    {
+      "id": "is_extinct",
+      "text": "Is it extinct?",
+      "group": "animals"
+    },
+    {
+      "id": "can_fly",
+      "text": "Can it fly?",
+      "group": "movement"
+    },
+    {
+      "id": "can_swim",
+      "text": "Can it swim?",
+      "group": "movement"
+    },
+    {
+      "id": "lives_in_water",
+      "text": "Does it live in water?",
+      "group": "movement"
+    },
+    {
+      "id": "lives_in_ocean",
+      "text": "Is it found in the ocean?",
+      "group": "movement"
+    },
+    {
+      "id": "in_sky",
+      "text": "Is it found in the sky?",
+      "group": "movement"
+    },
+    {
+      "id": "is_food",
+      "text": "Can you eat it?",
+      "group": "food"
+    },
+    {
+      "id": "is_fruit",
+      "text": "Is it a fruit?",
+      "group": "food"
+    },
+    {
+      "id": "is_vegetable_food",
+      "text": "Is it a vegetable you eat?",
+      "group": "food"
+    },
+    {
+      "id": "is_sweet",
+      "text": "Is it sweet?",
+      "group": "food"
+    },
+    {
+      "id": "is_cooked",
+      "text": "Is it usually cooked before you eat it?",
+      "group": "food"
+    },
+    {
+      "id": "is_drink",
+      "text": "Do you drink it?",
+      "group": "food"
+    },
+    {
+      "id": "is_liquid",
+      "text": "Is it a liquid?",
+      "group": "food"
+    },
+    {
+      "id": "is_plant",
+      "text": "Is it a growing plant?",
+      "group": "food"
+    },
+    {
+      "id": "grows_on_tree",
+      "text": "Does it grow on a tree?",
+      "group": "food"
+    },
+    {
+      "id": "grows_underground",
+      "text": "Does it grow underground?",
+      "group": "food"
+    },
+    {
+      "id": "has_flowers",
+      "text": "Does it have flowers?",
+      "group": "food"
+    },
+    {
+      "id": "is_green",
+      "text": "Is it green?",
+      "group": "looks"
+    },
+    {
+      "id": "is_red",
+      "text": "Is it red?",
+      "group": "looks"
+    },
+    {
+      "id": "is_yellow_orange",
+      "text": "Is it yellow or orange?",
+      "group": "looks"
+    },
+    {
+      "id": "is_brown",
+      "text": "Is it brown?",
+      "group": "looks"
+    },
+    {
+      "id": "is_white",
+      "text": "Is it white?",
+      "group": "looks"
+    },
+    {
+      "id": "is_black",
+      "text": "Is it black?",
+      "group": "looks"
+    },
+    {
+      "id": "is_colorful",
+      "text": "Does it come in many colors?",
+      "group": "looks"
+    },
+    {
+      "id": "has_stripes_spots",
+      "text": "Does it have stripes or spots?",
+      "group": "looks"
+    },
+    {
+      "id": "is_round",
+      "text": "Is it round?",
+      "group": "looks"
+    },
+    {
+      "id": "is_shiny",
+      "text": "Is it shiny?",
+      "group": "looks"
+    },
+    {
+      "id": "is_transparent",
+      "text": "Can you see through it?",
+      "group": "looks"
+    },
+    {
+      "id": "is_soft",
+      "text": "Is it soft?",
+      "group": "looks"
+    },
+    {
+      "id": "is_sharp",
+      "text": "Is it sharp?",
+      "group": "looks"
+    },
+    {
+      "id": "is_hot",
+      "text": "Is it hot?",
+      "group": "looks"
+    },
+    {
+      "id": "is_cold",
+      "text": "Is it cold?",
+      "group": "looks"
+    },
+    {
+      "id": "made_of_wood",
+      "text": "Is it made of wood?",
+      "group": "materials"
+    },
+    {
+      "id": "made_of_paper",
+      "text": "Is it made of paper or cardboard?",
+      "group": "materials"
+    },
+    {
+      "id": "made_of_fabric",
+      "text": "Is it made of cloth?",
+      "group": "materials"
+    },
+    {
+      "id": "made_of_metal",
+      "text": "Is it made of metal?",
+      "group": "materials"
+    },
+    {
+      "id": "made_of_plastic",
+      "text": "Is it made of plastic?",
+      "group": "materials"
+    },
+    {
+      "id": "made_of_glass",
+      "text": "Is it made of glass?",
+      "group": "materials"
+    },
+    {
+      "id": "made_of_stone",
+      "text": "Is it made of stone or rock?",
+      "group": "materials"
+    },
+    {
+      "id": "is_breakable",
+      "text": "Does it break easily?",
+      "group": "materials"
+    },
+    {
+      "id": "uses_electricity",
+      "text": "Does it use electricity?",
+      "group": "objects"
+    },
+    {
+      "id": "has_screen",
+      "text": "Does it have a screen?",
+      "group": "objects"
+    },
+    {
+      "id": "has_buttons",
+      "text": "Does it have buttons or keys?",
+      "group": "objects"
+    },
+    {
+      "id": "has_wheels",
+      "text": "Does it have wheels?",
+      "group": "objects"
+    },
+    {
+      "id": "has_handle",
+      "text": "Does it have a handle?",
+      "group": "objects"
+    },
+    {
+      "id": "is_vehicle",
+      "text": "Is it a vehicle?",
+      "group": "objects"
+    },
+    {
+      "id": "is_tool",
+      "text": "Is it a tool?",
+      "group": "objects"
+    },
+    {
+      "id": "is_furniture",
+      "text": "Is it furniture?",
+      "group": "objects"
+    },
+    {
+      "id": "is_toy",
+      "text": "Is it a toy or game?",
+      "group": "objects"
+    },
+    {
+      "id": "is_clothing",
+      "text": "Do you wear it?",
+      "group": "objects"
+    },
+    {
+      "id": "is_container",
+      "text": "Can you put things inside it?",
+      "group": "objects"
+    },
+    {
+      "id": "used_in_kitchen",
+      "text": "Is it used in the kitchen?",
+      "group": "objects"
+    },
+    {
+      "id": "found_in_bathroom",
+      "text": "Is it found in a bathroom?",
+      "group": "objects"
+    },
+    {
+      "id": "found_in_office",
+      "text": "Is it found in an office or school?",
+      "group": "objects"
+    },
+    {
+      "id": "used_for_sport",
+      "text": "Is it used in a sport?",
+      "group": "objects"
+    },
+    {
+      "id": "is_musical",
+      "text": "Does it make music?",
+      "group": "objects"
+    },
+    {
+      "id": "makes_sound",
+      "text": "Does it make a sound?",
+      "group": "objects"
+    },
+    {
+      "id": "used_for_writing",
+      "text": "Is it used for writing or drawing?",
+      "group": "objects"
+    },
+    {
+      "id": "used_for_communication",
+      "text": "Is it used to talk or send messages?",
+      "group": "objects"
+    },
+    {
+      "id": "is_place",
+      "text": "Is it a place?",
+      "group": "places"
+    },
+    {
+      "id": "is_building",
+      "text": "Is it a building?",
+      "group": "places"
+    },
+    {
+      "id": "is_weather",
+      "text": "Is it part of the weather?",
+      "group": "places"
+    },
+    {
+      "id": "is_in_space",
+      "text": "Is it found in space?",
+      "group": "places"
+    }
+  ],
+  "things": [
+    {
+      "id": "cat",
+      "name": "Cat",
+      "article": "a",
+      "category": "animal",
+      "yes": [
+        "is_alive",
+        "is_mammal",
+        "has_fur",
+        "has_legs",
+        "has_four_legs",
+        "has_tail",
+        "eats_meat",
+        "is_pet",
+        "found_in_house",
+        "is_soft",
+        "makes_sound"
+      ],
+      "maybe": [
+        "bigger_than_breadbox",
+        "is_wild",
+        "lives_on_farm",
+        "is_nocturnal",
+        "found_outdoors",
+        "has_stripes_spots",
+        "is_black",
+        "is_white",
+        "is_brown",
+        "is_yellow_orange",
+        "is_colorful"
+      ]
+    },
+    {
+      "id": "dog",
+      "name": "Dog",
+      "article": "a",
+      "category": "animal",
+      "yes": [
+        "is_alive",
+        "is_mammal",
+        "has_fur",
+        "has_legs",
+        "has_four_legs",
+        "has_tail",
+        "eats_meat",
+        "is_pet",
+        "found_in_house",
+        "makes_sound",
+        "bigger_than_breadbox",
+        "can_swim"
+      ],
+      "maybe": [
+        "is_soft",
+        "is_dangerous",
+        "is_wild",
+        "lives_on_farm",
+        "found_outdoors",
+        "has_stripes_spots",
+        "is_black",
+        "is_white",
+        "is_brown",
+        "is_colorful"
+      ]
+    },
+    {
+      "id": "cow",
+      "name": "Cow",
+      "article": "a",
+      "category": "animal",
+      "yes": [
+        "is_alive",
+        "is_mammal",
+        "has_fur",
+        "has_legs",
+        "has_four_legs",
+        "has_tail",
+        "lives_on_farm",
+        "bigger_than_breadbox",
+        "heavier_than_person",
+        "makes_sound",
+        "found_outdoors"
+      ],
+      "maybe": [
+        "has_horns",
+        "is_food",
+        "has_stripes_spots",
+        "is_black",
+        "is_white",
+        "is_brown"
+      ]
+    },
+    {
+      "id": "chicken",
+      "name": "Chicken",
+      "article": "a",
+      "category": "animal",
+      "yes": [
+        "is_alive",
+        "is_bird",
+        "has_feathers",
+        "has_legs",
+        "has_wings",
+        "lays_eggs",
+        "lives_on_farm",
+        "makes_sound",
+        "is_food",
+        "is_cooked",
+        "found_outdoors"
+      ],
+      "maybe": [
+        "has_tail",
+        "can_fly",
+        "is_pet",
+        "bigger_than_breadbox",
+        "is_white",
+        "is_brown"
+      ]
+    },
+    {
+      "id": "eagle",
+      "name": "Eagle",
+      "article": "an",
+      "category": "animal",
+      "yes": [
+        "is_alive",
+        "is_bird",
+        "has_feathers",
+        "has_legs",
+        "has_wings",
+        "has_tail",
+        "can_fly",
+        "lays_eggs",
+        "eats_meat",
+        "is_wild",
+        "in_sky",
+        "found_outdoors",
+        "is_brown",
+        "makes_sound",
+        "bigger_than_breadbox"
+      ],
+      "maybe": [
+        "is_dangerous",
+        "is_white",
+        "lives_in_forest",
+        "lives_in_africa"
+      ]
+    },
+    {
+      "id": "penguin",
+      "name": "Penguin",
+      "article": "a",
+      "category": "animal",
+      "yes": [
+        "is_alive",
+        "is_bird",
+        "has_feathers",
+        "has_legs",
+        "has_wings",
+        "can_swim",
+        "lives_in_ocean",
+        "lays_eggs",
+        "eats_meat",
+        "is_wild",
+        "is_cold",
+        "is_black",
+        "is_white",
+        "found_outdoors",
+        "makes_sound",
+        "bigger_than_breadbox"
+      ],
+      "maybe": [
+        "has_tail",
+        "lives_in_water",
+        "lives_in_africa"
+      ]
+    },
+    {
+      "id": "shark",
+      "name": "Shark",
+      "article": "a",
+      "category": "animal",
+      "yes": [
+        "is_alive",
+        "is_fish",
+        "has_tail",
+        "can_swim",
+        "lives_in_water",
+        "lives_in_ocean",
+        "eats_meat",
+        "is_wild",
+        "is_dangerous",
+        "bigger_than_breadbox"
+      ],
+      "maybe": [
+        "has_scales",
+        "lays_eggs",
+        "heavier_than_person",
+        "bigger_than_car"
+      ]
+    },
+    {
+      "id": "goldfish",
+      "name": "Goldfish",
+      "article": "a",
+      "category": "animal",
+      "yes": [
+        "is_alive",
+        "is_fish",
+        "has_scales",
+        "has_tail",
+        "can_swim",
+        "lives_in_water",
+        "lays_eggs",
+        "is_pet",
+        "found_in_house",
+        "can_hold",
+        "is_yellow_orange"
+      ],
+      "maybe": [
+        "is_shiny"
+      ]
+    },
+    {
+      "id": "frog",
+      "name": "Frog",
+      "article": "a",
+      "category": "animal",
+      "yes": [
+        "is_alive",
+        "is_reptile",
+        "has_legs",
+        "has_four_legs",
+        "can_swim",
+        "lays_eggs",
+        "eats_meat",
+        "is_wild",
+        "is_green",
+        "can_hold",
+        "makes_sound",
+        "found_outdoors"
+      ],
+      "maybe": [
+        "lives_in_water",
+        "lives_in_forest",
+        "is_nocturnal",
+        "is_pet",
+        "has_stripes_spots",
+        "is_dangerous",
+        "is_brown"
+      ]
+    },
+    {
+      "id": "snake",
+      "name": "Snake",
+      "article": "a",
+      "category": "animal",
+      "yes": [
+        "is_alive",
+        "is_reptile",
+        "has_scales",
+        "has_tail",
+        "eats_meat",
+        "lays_eggs",
+        "is_wild",
+        "is_dangerous",
+        "found_outdoors"
+      ],
+      "maybe": [
+        "can_swim",
+        "lives_in_forest",
+        "lives_in_africa",
+        "is_pet",
+        "has_stripes_spots",
+        "is_green",
+        "is_brown",
+        "is_black",
+        "is_colorful",
+        "makes_sound",
+        "bigger_than_breadbox"
+      ]
+    },
+    {
+      "id": "bee",
+      "name": "Bee",
+      "article": "a",
+      "category": "animal",
+      "yes": [
+        "is_alive",
+        "is_insect",
+        "has_legs",
+        "has_wings",
+        "can_fly",
+        "lays_eggs",
+        "has_stripes_spots",
+        "is_yellow_orange",
+        "is_black",
+        "is_wild",
+        "found_outdoors",
+        "can_hold",
+        "makes_sound"
+      ],
+      "maybe": [
+        "is_dangerous",
+        "lives_on_farm"
+      ]
+    },
+    {
+      "id": "elephant",
+      "name": "Elephant",
+      "article": "an",
+      "category": "animal",
+      "yes": [
+        "is_alive",
+        "is_mammal",
+        "has_legs",
+        "has_four_legs",
+        "has_tail",
+        "has_horns",
+        "is_wild",
+        "lives_in_africa",
+        "bigger_than_breadbox",
+        "bigger_than_car",
+        "heavier_than_person",
+        "makes_sound",
+        "can_swim",
+        "found_outdoors"
+      ],
+      "maybe": [
+        "lives_in_forest",
+        "is_dangerous"
+      ]
+    },
+    {
+      "id": "lion",
+      "name": "Lion",
+      "article": "a",
+      "category": "animal",
+      "yes": [
+        "is_alive",
+        "is_mammal",
+        "has_fur",
+        "has_legs",
+        "has_four_legs",
+        "has_tail",
+        "eats_meat",
+        "is_wild",
+        "is_dangerous",
+        "lives_in_africa",
+        "is_yellow_orange",
+        "makes_sound",
+        "bigger_than_breadbox",
+        "heavier_than_person",
+        "found_outdoors"
+      ],
+      "maybe": [
+        "is_brown",
+        "is_nocturnal"
+      ]
+    },
+    {
+      "id": "spider",
+      "name": "Spider",
+      "article": "a",
+      "category": "animal",
+      "yes": [
+        "is_alive",
+        "is_insect",
+        "has_legs",
+        "eats_meat",
+        "lays_eggs",
+        "can_hold",
+        "is_wild",
+        "found_outdoors"
+      ],
+      "maybe": [
+        "found_in_house",
+        "is_dangerous",
+        "is_nocturnal",
+        "is_black",
+        "is_brown",
+        "has_stripes_spots"
+      ]
+    },
+    {
+      "id": "apple",
+      "name": "Apple",
+      "article": "an",
+      "category": "vegetable",
+      "yes": [
+        "is_food",
+        "is_fruit",
+        "is_sweet",
+        "grows_on_tree",
+        "is_round",
+        "can_hold",
+        "is_red"
+      ],
+      "maybe": [
+        "is_alive",
+        "found_in_house",
+        "is_green",
+        "is_yellow_orange",
+        "is_cooked"
+      ]
+    },
+    {
+      "id": "banana",
+      "name": "Banana",
+      "article": "a",
+      "category": "vegetable",
+      "yes": [
+        "is_food",
+        "is_fruit",
+        "is_sweet",
+        "is_yellow_orange",
+        "can_hold",
+        "is_soft"
+      ],
+      "maybe": [
+        "is_alive",
+        "grows_on_tree",
+        "found_in_house",
+        "is_green",
+        "is_brown"
+      ]
+    },
+    {
+      "id": "carrot",
+      "name": "Carrot",
+      "article": "a",
+      "category": "vegetable",
+      "yes": [
+        "is_food",
+        "is_vegetable_food",
+        "grows_underground",
+        "is_yellow_orange",
+        "can_hold"
+      ],
+      "maybe": [
+        "is_alive",
+        "is_cooked",
+        "is_sweet",
+        "is_green",
+        "found_in_house"
+      ]
+    },
+    {
+      "id": "potato",
+      "name": "Potato",
+      "article": "a",
+      "category": "vegetable",
+      "yes": [
+        "is_food",
+        "is_vegetable_food",
+        "grows_underground",
+        "is_cooked",
+        "is_brown",
+        "can_hold"
+      ],
+      "maybe": [
+        "is_alive",
+        "is_round",
+        "is_yellow_orange",
+        "is_white",
+        "found_in_house"
+      ]
+    },
+    {
+      "id": "bread",
+      "name": "Bread",
+      "article": "",
+      "category": "vegetable",
+      "yes": [
+        "is_manmade",
+        "is_food",
+        "is_cooked",
+        "is_brown",
+        "is_soft",
+        "found_in_house"
+      ],
+      "maybe": [
+        "used_daily",
+        "is_white",
+        "can_hold",
+        "used_in_kitchen",
+        "is_sweet"
+      ]
+    },
+    {
+      "id": "oak_tree",
+      "name": "Oak tree",
+      "article": "an",
+      "category": "vegetable",
+      "yes": [
+        "is_alive",
+        "is_plant",
+        "is_green",
+        "is_brown",
+        "found_outdoors",
+        "bigger_than_breadbox",
+        "bigger_than_car",
+        "heavier_than_person",
+        "lives_in_forest",
+        "is_wild",
+        "made_of_wood"
+      ],
+      "maybe": [
+        "has_flowers",
+        "is_yellow_orange",
+        "is_red"
+      ]
+    },
+    {
+      "id": "rose",
+      "name": "Rose",
+      "article": "a",
+      "category": "vegetable",
+      "yes": [
+        "is_alive",
+        "is_plant",
+        "has_flowers",
+        "is_red",
+        "is_colorful",
+        "is_green",
+        "can_hold",
+        "found_outdoors"
+      ],
+      "maybe": [
+        "is_white",
+        "is_yellow_orange",
+        "is_sharp",
+        "is_valuable",
+        "found_in_house"
+      ]
+    },
+    {
+      "id": "pencil",
+      "name": "Pencil",
+      "article": "a",
+      "category": "vegetable",
+      "altCategories": [
+        "mineral"
+      ],
+      "yes": [
+        "is_manmade",
+        "made_of_wood",
+        "can_hold",
+        "used_for_writing",
+        "found_in_office",
+        "found_in_house"
+      ],
+      "maybe": [
+        "is_yellow_orange",
+        "is_sharp",
+        "is_breakable",
+        "is_tool",
+        "used_daily",
+        "is_colorful"
+      ]
+    },
+    {
+      "id": "book",
+      "name": "Book",
+      "article": "a",
+      "category": "vegetable",
+      "altCategories": [
+        "other"
+      ],
+      "yes": [
+        "is_manmade",
+        "made_of_paper",
+        "can_hold",
+        "found_in_house",
+        "found_in_office",
+        "is_colorful"
+      ],
+      "maybe": [
+        "used_daily",
+        "is_valuable"
+      ]
+    },
+    {
+      "id": "t_shirt",
+      "name": "T-shirt",
+      "article": "a",
+      "category": "vegetable",
+      "altCategories": [
+        "other"
+      ],
+      "yes": [
+        "is_manmade",
+        "made_of_fabric",
+        "is_clothing",
+        "is_soft",
+        "found_in_house",
+        "used_daily",
+        "is_colorful",
+        "can_hold"
+      ],
+      "maybe": [
+        "made_of_plastic",
+        "is_white",
+        "is_black"
+      ]
+    },
+    {
+      "id": "car",
+      "name": "Car",
+      "article": "a",
+      "category": "mineral",
+      "yes": [
+        "is_manmade",
+        "is_vehicle",
+        "has_wheels",
+        "made_of_metal",
+        "bigger_than_breadbox",
+        "heavier_than_person",
+        "found_outdoors",
+        "makes_sound",
+        "is_valuable",
+        "is_colorful"
+      ],
+      "maybe": [
+        "made_of_glass",
+        "made_of_plastic",
+        "uses_electricity",
+        "has_buttons",
+        "has_screen",
+        "is_shiny",
+        "used_daily",
+        "has_handle",
+        "is_container",
+        "is_dangerous"
+      ]
+    },
+    {
+      "id": "bicycle",
+      "name": "Bicycle",
+      "article": "a",
+      "category": "mineral",
+      "yes": [
+        "is_manmade",
+        "is_vehicle",
+        "has_wheels",
+        "made_of_metal",
+        "has_handle",
+        "found_outdoors",
+        "bigger_than_breadbox",
+        "is_colorful"
+      ],
+      "maybe": [
+        "used_for_sport",
+        "is_toy",
+        "is_valuable",
+        "made_of_plastic"
+      ]
+    },
+    {
+      "id": "smartphone",
+      "name": "Smartphone",
+      "article": "a",
+      "category": "mineral",
+      "yes": [
+        "is_manmade",
+        "uses_electricity",
+        "has_screen",
+        "has_buttons",
+        "can_hold",
+        "made_of_glass",
+        "made_of_metal",
+        "used_daily",
+        "used_for_communication",
+        "makes_sound",
+        "is_valuable",
+        "is_breakable",
+        "found_in_house",
+        "found_in_office",
+        "is_shiny"
+      ],
+      "maybe": [
+        "made_of_plastic",
+        "is_musical",
+        "is_toy",
+        "is_black"
+      ]
+    },
+    {
+      "id": "spoon",
+      "name": "Spoon",
+      "article": "a",
+      "category": "mineral",
+      "yes": [
+        "is_manmade",
+        "made_of_metal",
+        "can_hold",
+        "used_in_kitchen",
+        "found_in_house",
+        "has_handle",
+        "used_daily",
+        "is_shiny"
+      ],
+      "maybe": [
+        "is_tool",
+        "made_of_plastic",
+        "made_of_wood",
+        "is_container"
+      ]
+    },
+    {
+      "id": "scissors",
+      "name": "Scissors",
+      "article": "",
+      "category": "mineral",
+      "yes": [
+        "is_manmade",
+        "made_of_metal",
+        "is_sharp",
+        "is_tool",
+        "can_hold",
+        "has_handle",
+        "found_in_house",
+        "found_in_office"
+      ],
+      "maybe": [
+        "made_of_plastic",
+        "used_in_kitchen",
+        "is_dangerous",
+        "is_shiny"
+      ]
+    },
+    {
+      "id": "diamond",
+      "name": "Diamond",
+      "article": "a",
+      "category": "mineral",
+      "yes": [
+        "is_valuable",
+        "is_shiny",
+        "is_transparent",
+        "made_of_stone",
+        "can_hold"
+      ],
+      "maybe": [
+        "is_white",
+        "is_clothing",
+        "is_manmade"
+      ]
+    },
+    {
+      "id": "coin",
+      "name": "Coin",
+      "article": "a",
+      "category": "mineral",
+      "yes": [
+        "is_manmade",
+        "made_of_metal",
+        "can_hold",
+        "is_round",
+        "is_shiny",
+        "found_in_house"
+      ],
+      "maybe": [
+        "is_valuable",
+        "used_daily",
+        "is_yellow_orange"
+      ]
+    },
+    {
+      "id": "television",
+      "name": "Television",
+      "article": "a",
+      "category": "mineral",
+      "yes": [
+        "is_manmade",
+        "uses_electricity",
+        "has_screen",
+        "found_in_house",
+        "bigger_than_breadbox",
+        "made_of_plastic",
+        "makes_sound",
+        "is_valuable",
+        "is_breakable",
+        "is_black"
+      ],
+      "maybe": [
+        "has_buttons",
+        "made_of_glass",
+        "made_of_metal",
+        "is_musical",
+        "used_daily",
+        "is_furniture"
+      ]
+    },
+    {
+      "id": "moon",
+      "name": "Moon",
+      "article": "the",
+      "category": "mineral",
+      "altCategories": [
+        "other"
+      ],
+      "yes": [
+        "in_sky",
+        "is_in_space",
+        "is_round",
+        "made_of_stone",
+        "bigger_than_breadbox",
+        "bigger_than_car",
+        "heavier_than_person",
+        "is_white"
+      ],
+      "maybe": [
+        "is_shiny",
+        "found_outdoors",
+        "is_cold",
+        "is_place"
+      ]
+    },
+    {
+      "id": "sun",
+      "name": "Sun",
+      "article": "the",
+      "category": "other",
+      "altCategories": [
+        "mineral"
+      ],
+      "yes": [
+        "in_sky",
+        "is_in_space",
+        "is_round",
+        "is_hot",
+        "is_yellow_orange",
+        "bigger_than_breadbox",
+        "bigger_than_car",
+        "heavier_than_person",
+        "is_shiny"
+      ],
+      "maybe": [
+        "is_dangerous",
+        "is_weather",
+        "found_outdoors"
+      ]
+    },
+    {
+      "id": "house",
+      "name": "House",
+      "article": "a",
+      "category": "other",
+      "altCategories": [
+        "mineral",
+        "vegetable"
+      ],
+      "yes": [
+        "is_manmade",
+        "is_building",
+        "is_place",
+        "bigger_than_breadbox",
+        "bigger_than_car",
+        "heavier_than_person",
+        "is_valuable",
+        "found_outdoors",
+        "used_daily"
+      ],
+      "maybe": [
+        "made_of_wood",
+        "made_of_stone",
+        "made_of_glass",
+        "has_handle",
+        "is_container",
+        "uses_electricity",
+        "is_colorful"
+      ]
+    },
+    {
+      "id": "rain",
+      "name": "Rain",
+      "article": "",
+      "category": "other",
+      "altCategories": [
+        "mineral"
+      ],
+      "yes": [
+        "is_weather",
+        "is_liquid",
+        "in_sky",
+        "found_outdoors",
+        "is_transparent"
+      ],
+      "maybe": [
+        "is_cold",
+        "is_drink",
+        "makes_sound"
+      ]
+    }
+  ]
+}
