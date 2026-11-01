@@ -4,9 +4,9 @@
 > the Android app. Change it only through the coordinator session, which copies it to both
 > repos. Each repo keeps its own dated log in `docs/SESSIONS.md`.
 
-Last spec update: 2026-10-31 (v2: the UI is now a handheld toy device with physical-style
-buttons and synthesized beeps. The answer buttons are relabelled Unknown / No / Yes /
-Sometimes. **The engine, the KB schema, and the answer tokens are unchanged.**)
+Last spec update: 2026-11-01 (v3: buttons never change; turn 1 asks one category at a time. v2: the UI is now a handheld toy device with physical-style
+buttons and synthesized beeps. The answer buttons are labelled Unknown / No / Yes /
+Sometimes, and they never change. Turn 1 offers categories one at a time on the LCD (§2). **The engine, the KB schema, and the answer tokens are unchanged.**)
 
 ---
 
@@ -70,12 +70,18 @@ The whole game happens on one screen: the **device** (§7). Every step of the ga
      - Sometimes means partly or it depends
      - Unknown means you don't know or it doesn't apply
      - what the four categories mean
-2. **Turn 1 is always the category question.** The LCD shows
-   *"Is it an animal, vegetable, mineral, or other?"*
-   - For this turn only, the four printed button labels swap to
-     **ANIMAL · VEGETABLE · MINERAL · OTHER**, mapped left to right to the four buttons.
-   - Keyboard: `A`, `V`, `I`, `O`, or `1` to `4`.
-   - There is no category Skip in the UI.
+2. **Turn 1 is always the category question.** The buttons stay exactly the same; the LCD
+   offers one category at a time, the way the toy does:
+   *"Is it an animal?"* → *"Is it a vegetable?"* → *"Is it a mineral?"* →
+   *"Is it something else?"*
+   - **YES** or **SOMETIMES** picks the category on screen. It becomes the turn-1 answer
+     (`animal | vegetable | mineral | other`).
+   - **NO** moves to the next category. A NO on *"Is it something else?"* means the turn-1
+     answer is `skip`.
+   - **UNKNOWN** at any point means the turn-1 answer is `skip`.
+   - **UNDO** during these prompts steps back one prompt. On the first prompt it does
+     nothing. UNDO from turn 2 returns to the first prompt, *"Is it an animal?"*.
+   - All of this is turn 1 (`Q1`), and the engine sees one category answer, exactly as in §4.
    - Category definitions for the sheet:
      - Animal: any animal, or something mostly made from one (leather, wool, egg).
      - Vegetable: a plant, or something made from plants (fruit, bread, wood, paper, cotton).
@@ -90,7 +96,8 @@ The whole game happens on one screen: the **device** (§7). Every step of the ga
    - A small `Q7` counter sits in the LCD's top-right corner.
 4. **Guess turns.**
    - The LCD types *"I think it's {article} {name}. Am I right?"*
-   - **YES** means Right and **NO** means Wrong. UNKNOWN and SOMETIMES go dim and are disabled.
+   - **YES** means Right and **NO** means Wrong. UNKNOWN and SOMETIMES do nothing here
+     (they still click, see the button rule below).
    - Wrong removes that thing and play continues.
 5. **Overtime, as on the toy.**
    - From turn 20 on, every turn is a guess.
@@ -382,7 +389,9 @@ own wordmark, "Twenty Q", in Spectral (light weight) where a toy would have a lo
   - Ink (`--ink`) rubber caps with a faint moulded inner ring, and a 1 px lighter top edge
     for the pressed-in feel.
   - **Pressed:** move down 1 to 2 px, shadow shrinks, dim slightly. 80 ms, no bounce.
-  - **Disabled:** 35% opacity.
+  - **Buttons never change.** No relabelling, dimming, hiding, or recolouring, ever, in any
+    state. A press that has no meaning in the current state still plays the press animation
+    and click, and changes nothing else. All guidance lives on the LCD, just like the toy.
 - **LCD backlight:** soft sage built from the accent hue, about `oklch(0.87 0.045 150)`.
   - Text is dark ink-green, about `oklch(0.30 0.035 150)`.
   - A barely visible ghost dot grid of unlit pixels behind the text.
