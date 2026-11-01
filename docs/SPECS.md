@@ -4,7 +4,7 @@
 > the Android app. Change it only through the coordinator session, which copies it to both
 > repos. Each repo keeps its own dated log in `docs/SESSIONS.md`.
 
-Last spec update: 2026-11-01 (v4: exact device geometry, LCD fit rules, no page scroll, required fit check. v3: buttons never change; turn 1 asks one category at a time. v2: the UI is now a handheld toy device with physical-style
+Last spec update: 2026-11-01 (v5: web device fills the window, up to D = 800 px, with stats moved into the header on wide screens. v4: exact device geometry, LCD fit rules, no page scroll, required fit check. v3: buttons never change; turn 1 asks one category at a time. v2: the UI is now a handheld toy device with physical-style
 buttons and synthesized beeps. The answer buttons are labelled Unknown / No / Yes /
 Sometimes, and they never change. Turn 1 offers categories one at a time on the LCD (§2). **The engine, the KB schema, and the answer tokens are unchanged.**)
 
@@ -382,12 +382,22 @@ the ridge rings.
 | UNDO oval | 0.22 D × 0.075 D | centred at (0.5, 0.84), label font 0.026 D |
 
 **Shell size.**
-- **Web:** the page is a full-height column (`100dvh`) holding the header, the device, the
-  stats line with How to play, and the footer.
-  - The device takes the space that's left: `D = min(92vw, remaining height, 460px)`.
-  - The footer hides itself when the viewport is shorter than 700 px.
+- **Web (v5: as big as the window allows):** the page is a full-height column (`100dvh`).
+  - **Header:** a single slim row, at most 48 px tall.
+  - **Device:** fills everything else, with 16 px breathing room above and below.
+    `D = min(94vw, 100dvh − header − below-row − 32px, 800px)`, where `below-row` is 0 on
+    wide screens.
+  - **Wide screens (600 px and wider):** the stats line, the sound state and How to play move
+    into the header row, on the right next to the theme toggle. Nothing sits under the device.
+  - **Narrow screens (under 600 px):** the header holds only the wordmark and the theme
+    toggle. The stats line and How to play sit in one compact row under the device, at most
+    48 px tall.
+  - **Footer note** ("Everything runs on this page..."): it moves to the bottom of the How to
+    play sheet. There is no page footer.
   - **The page never scrolls, horizontally or vertically, at any viewport from 320 × 560 up.**
     The recap and how-to sheets are the only things that may scroll, inside themselves.
+  - Expected sizes: 1024×768 gives D ≈ 690, 1440×900 gives D = 800, 375×667 gives D ≈ 352
+    (width-limited).
 - **Android:** `D = min(screen width − 32 dp, available height − stats row − How to play row, 460 dp)`.
   The device is centred in the space between those two rows.
 
