@@ -18,10 +18,14 @@ function wrap(measure: HTMLElement, text: string): string[] {
   measure.textContent = "";
   // A single word longer than a line is broken, never allowed to run off the LCD.
   const words = text.split(" ").flatMap((w) => (w.length > MAX_WORD ? w.match(new RegExp(`.{1,${MAX_WORD}}`, "g"))! : [w]));
+  // Each word is an atomic inline-block, so the browser can only wrap at the spaces between them:
+  // "walkie-talkie" must not break at its hyphen (SPECS section 7).
   const spans = words.map((w, i) => {
     const s = document.createElement("span");
-    s.textContent = i < words.length - 1 ? w + " " : w;
+    s.style.display = "inline-block";
+    s.textContent = w;
     measure.appendChild(s);
+    if (i < words.length - 1) measure.appendChild(document.createTextNode(" "));
     return s;
   });
   const lines: string[] = [];

@@ -1,5 +1,5 @@
 {
- "kbVersion": "kb-2026.11.02.3",
+ "kbVersion": "kb-2026.11.02.4",
  "prng": [
   {
    "seed": 42,
@@ -38,12 +38,12 @@
    "seed": 12345,
    "answers": [
     "yes",
-    "no",
     "yes",
     "no",
     "no",
     "yes",
     "yes",
+    "no",
     "yes",
     "no",
     "yes",
@@ -58,12 +58,12 @@
     {
      "turn": 2,
      "kind": "question",
-     "id": "lays_eggs"
+     "id": "has_legs"
     },
     {
      "turn": 3,
      "kind": "question",
-     "id": "is_mammal"
+     "id": "lays_eggs"
     },
     {
      "turn": 4,
@@ -73,17 +73,17 @@
     {
      "turn": 5,
      "kind": "question",
-     "id": "heavier_than_person"
+     "id": "has_fur"
     },
     {
      "turn": 6,
      "kind": "question",
-     "id": "has_four_legs"
+     "id": "makes_sound"
     },
     {
      "turn": 7,
      "kind": "question",
-     "id": "is_soft"
+     "id": "heavier_than_person"
     },
     {
      "turn": 8,
@@ -98,7 +98,7 @@
     {
      "turn": 10,
      "kind": "question",
-     "id": "climbs"
+     "id": "hops_jumps"
     },
     {
      "turn": 11,
@@ -113,15 +113,15 @@
    "finalWeightsTop3": [
     [
      "cat",
-     0.8320886471013995
-    ],
-    [
-     "ferret",
-     0.13820157460507673
+     0.8067955981579865
     ],
     [
      "dog",
-     0.00812950438853393
+     0.13400065298125732
+    ],
+    [
+     "kitten",
+     0.022333442163542883
     ]
    ]
   },
@@ -131,16 +131,14 @@
    "answers": [
     "no",
     "yes",
-    "no",
-    "maybe",
     "yes",
     "yes",
-    "no",
-    "yes",
-    "no",
     "yes",
     "yes",
     "maybe",
+    "yes",
+    "yes",
+    "yes",
     "right"
    ],
    "expect": [
@@ -157,75 +155,65 @@
     {
      "turn": 3,
      "kind": "question",
-     "id": "is_brown"
+     "id": "can_hold"
     },
     {
      "turn": 4,
      "kind": "question",
-     "id": "is_green"
+     "id": "eaten_with_hands"
     },
     {
      "turn": 5,
      "kind": "question",
-     "id": "is_food"
+     "id": "is_sweet"
     },
     {
      "turn": 6,
      "kind": "question",
-     "id": "has_seeds"
+     "id": "grows_on_tree"
     },
     {
      "turn": 7,
      "kind": "question",
-     "id": "is_vegetable_food"
+     "id": "is_yellow_orange"
     },
     {
      "turn": 8,
      "kind": "question",
-     "id": "grows_on_tree"
+     "id": "is_crunchy"
     },
     {
      "turn": 9,
      "kind": "question",
-     "id": "is_soft"
+     "id": "is_red"
     },
     {
      "turn": 10,
      "kind": "question",
-     "id": "eaten_with_hands"
+     "id": "is_round"
     },
     {
      "turn": 11,
-     "kind": "question",
-     "id": "is_red"
-    },
-    {
-     "turn": 12,
-     "kind": "question",
-     "id": "is_cooked"
-    },
-    {
-     "turn": 13,
      "kind": "guess",
      "id": "apple"
     }
    ],
    "result": {
     "outcome": "win",
-    "turn": 13
+    "turn": 11
    },
    "finalWeightsTop3": [
     [
      "apple",
-     0.8663435571177691
+     0.9407807234219491
     ],
     [
      "cherry",
-     0.09626039523530772
+     0.018446680851410772
     ],
     [
-     "mango",
-     0.007993942856911365
+     "pear",
+     0.012255234337269438
     ]
    ]
   },
@@ -241,10 +229,11 @@
     "yes",
     "yes",
     "no",
-    "no",
+    "yes",
     "yes",
     "no",
     "no",
+    "maybe",
     "right"
    ],
    "expect": [
@@ -291,7 +280,7 @@
     {
      "turn": 9,
      "kind": "question",
-     "id": "is_round"
+     "id": "is_container"
     },
     {
      "turn": 10,
@@ -301,35 +290,40 @@
     {
      "turn": 11,
      "kind": "question",
-     "id": "is_flat"
+     "id": "uses_electricity"
     },
     {
      "turn": 12,
      "kind": "question",
-     "id": "bigger_than_breadbox"
+     "id": "is_round"
     },
     {
      "turn": 13,
+     "kind": "question",
+     "id": "made_of_wood"
+    },
+    {
+     "turn": 14,
      "kind": "guess",
      "id": "spoon"
     }
    ],
    "result": {
     "outcome": "win",
-    "turn": 13
+    "turn": 14
    },
    "finalWeightsTop3": [
     [
      "spoon",
-     0.8022217027988643
-    ],
-    [
-     "fork",
-     0.09993073114449517
+     0.89020251781134
     ],
     [
      "kettle",
-     0.029506651871961675
+     0.02319273809889101
+    ],
+    [
+     "ladle",
+     0.018481713172553774
     ]
    ]
   },
@@ -342,13 +336,11 @@
     "yes",
     "no",
     "no",
-    "no",
-    "no",
     "yes",
     "no",
     "no",
     "no",
-    "yes",
+    "no",
     "yes",
     "yes",
     "right"
@@ -382,17 +374,17 @@
     {
      "turn": 6,
      "kind": "question",
-     "id": "found_in_house"
+     "id": "found_outdoors"
     },
     {
      "turn": 7,
      "kind": "question",
-     "id": "you_can_ride_it"
+     "id": "has_wheels"
     },
     {
      "turn": 8,
      "kind": "question",
-     "id": "found_outdoors"
+     "id": "used_for_sport"
     },
     {
      "turn": 9,
@@ -407,45 +399,35 @@
     {
      "turn": 11,
      "kind": "question",
-     "id": "bigger_than_breadbox"
+     "id": "in_sky"
     },
     {
      "turn": 12,
      "kind": "question",
-     "id": "is_weather"
+     "id": "is_liquid"
     },
     {
      "turn": 13,
-     "kind": "question",
-     "id": "is_transparent"
-    },
-    {
-     "turn": 14,
-     "kind": "question",
-     "id": "is_wet"
-    },
-    {
-     "turn": 15,
      "kind": "guess",
      "id": "rain"
     }
    ],
    "result": {
     "outcome": "win",
-    "turn": 15
+    "turn": 13
    },
    "finalWeightsTop3": [
     [
      "rain",
-     0.9403844247228152
+     0.8170002905620396
     ],
     [
-     "steam",
-     0.009187553915468175
+     "water",
+     0.04805884062129645
     ],
     [
      "snow",
-     0.009187553915468173
+     0.022537669202415442
     ]
    ]
   },
@@ -458,9 +440,11 @@
     "yes",
     "yes",
     "yes",
-    "no",
     "yes",
     "no",
+    "no",
+    "no",
+    "yes",
     "yes",
     "right"
    ],
@@ -483,22 +467,22 @@
     {
      "turn": 4,
      "kind": "question",
-     "id": "eats_plants"
+     "id": "heavier_than_person"
     },
     {
      "turn": 5,
      "kind": "question",
-     "id": "lives_in_groups"
+     "id": "eats_plants"
     },
     {
      "turn": 6,
      "kind": "question",
-     "id": "has_hooves"
+     "id": "has_horns"
     },
     {
      "turn": 7,
      "kind": "question",
-     "id": "heavier_than_person"
+     "id": "lives_in_cold_places"
     },
     {
      "turn": 8,
@@ -508,30 +492,40 @@
     {
      "turn": 9,
      "kind": "question",
-     "id": "you_can_ride_it"
+     "id": "lays_eggs"
     },
     {
      "turn": 10,
+     "kind": "question",
+     "id": "lives_in_groups"
+    },
+    {
+     "turn": 11,
+     "kind": "question",
+     "id": "you_can_ride_it"
+    },
+    {
+     "turn": 12,
      "kind": "guess",
      "id": "elephant"
     }
    ],
    "result": {
     "outcome": "win",
-    "turn": 10
+    "turn": 12
    },
    "finalWeightsTop3": [
     [
      "elephant",
-     0.9600103034762097
-    ],
-    [
-     "hippo",
-     0.009379298710942006
+     0.9555774164236475
     ],
     [
      "rhino",
-     0.009379298710942006
+     0.026451970004806858
+    ],
+    [
+     "horse",
+     0.0033064962506008573
     ]
    ]
   },
@@ -540,15 +534,15 @@
    "seed": 5150,
    "answers": [
     "yes",
+    "yes",
     "no",
-    "no",
+    "yes",
     "yes",
     "no",
     "no",
     "no",
     "yes",
     "no",
-    "yes",
     "right"
    ],
    "expect": [
@@ -560,12 +554,12 @@
     {
      "turn": 2,
      "kind": "question",
-     "id": "has_legs"
+     "id": "lays_eggs"
     },
     {
      "turn": 3,
      "kind": "question",
-     "id": "is_manmade"
+     "id": "makes_sound"
     },
     {
      "turn": 4,
@@ -575,32 +569,32 @@
     {
      "turn": 5,
      "kind": "question",
-     "id": "found_outdoors"
+     "id": "is_fish"
     },
     {
      "turn": 6,
      "kind": "question",
-     "id": "is_cooked"
+     "id": "is_food"
     },
     {
      "turn": 7,
      "kind": "question",
-     "id": "lives_in_ocean"
+     "id": "bigger_than_breadbox"
     },
     {
      "turn": 8,
      "kind": "question",
-     "id": "is_fish"
+     "id": "eats_meat"
     },
     {
      "turn": 9,
      "kind": "question",
-     "id": "eats_meat"
+     "id": "found_in_house"
     },
     {
      "turn": 10,
      "kind": "question",
-     "id": "found_in_house"
+     "id": "is_colorful"
     },
     {
      "turn": 11,
@@ -615,15 +609,15 @@
    "finalWeightsTop3": [
     [
      "goldfish",
-     0.9480790325623536
+     0.8669860924070169
     ],
     [
-     "koi",
-     0.019683301714097306
+     "angelfish",
+     0.05099918190629512
     ],
     [
-     "hamster",
-     0.0032805502856828855
+     "guppy",
+     0.02399961501472711
     ]
    ]
   },
@@ -632,28 +626,24 @@
    "seed": 8086,
    "answers": [
     "yes",
+    "maybe",
+    "yes",
     "yes",
     "yes",
     "yes",
     "yes",
     "no",
     "maybe",
-    "no",
-    "maybe",
+    "yes",
     "no",
     "yes",
     "no",
-    "maybe",
-    "no",
-    "maybe",
-    "no",
-    "no",
     "yes",
-    "maybe",
-    "wrong",
-    "wrong",
-    "wrong",
-    "wrong",
+    "no",
+    "no",
+    "no",
+    "no",
+    "no",
     "wrong",
     "right"
    ],
@@ -666,140 +656,120 @@
     {
      "turn": 2,
      "kind": "question",
-     "id": "has_legs"
+     "id": "lays_eggs"
     },
     {
      "turn": 3,
      "kind": "question",
-     "id": "has_fur"
+     "id": "bigger_than_breadbox"
     },
     {
      "turn": 4,
      "kind": "question",
-     "id": "eats_meat"
+     "id": "is_mammal"
     },
     {
      "turn": 5,
      "kind": "question",
-     "id": "eats_plants"
+     "id": "eats_meat"
     },
     {
      "turn": 6,
      "kind": "question",
-     "id": "climbs"
+     "id": "makes_sound"
     },
     {
      "turn": 7,
      "kind": "question",
-     "id": "makes_sound"
+     "id": "can_swim"
     },
     {
      "turn": 8,
      "kind": "question",
-     "id": "has_hooves"
+     "id": "lives_in_forest"
     },
     {
      "turn": 9,
      "kind": "question",
-     "id": "lives_in_north_america"
+     "id": "lives_in_groups"
     },
     {
      "turn": 10,
      "kind": "question",
-     "id": "can_swim"
+     "id": "has_legs"
     },
     {
      "turn": 11,
      "kind": "question",
-     "id": "bigger_than_breadbox"
+     "id": "found_in_house"
     },
     {
      "turn": 12,
      "kind": "question",
-     "id": "is_white"
+     "id": "is_brown"
     },
     {
      "turn": 13,
      "kind": "question",
-     "id": "is_alive"
+     "id": "heavier_than_person"
     },
     {
      "turn": 14,
      "kind": "question",
-     "id": "has_horns"
+     "id": "lives_in_water"
     },
     {
      "turn": 15,
      "kind": "question",
-     "id": "is_fast"
+     "id": "eats_fish"
     },
     {
      "turn": 16,
      "kind": "question",
-     "id": "lives_in_africa"
+     "id": "is_nocturnal"
     },
     {
      "turn": 17,
      "kind": "question",
-     "id": "hops_jumps"
+     "id": "lives_in_north_america"
     },
     {
      "turn": 18,
      "kind": "question",
-     "id": "is_black"
+     "id": "lives_in_africa"
     },
     {
      "turn": 19,
      "kind": "question",
-     "id": "has_four_legs"
+     "id": "lives_in_ocean"
     },
     {
      "turn": 20,
      "kind": "guess",
-     "id": "bat"
+     "id": "platypus"
     },
     {
      "turn": 21,
-     "kind": "guess",
-     "id": "tasmanian_devil"
-    },
-    {
-     "turn": 22,
-     "kind": "guess",
-     "id": "coyote"
-    },
-    {
-     "turn": 23,
-     "kind": "guess",
-     "id": "skunk"
-    },
-    {
-     "turn": 24,
-     "kind": "guess",
-     "id": "badger"
-    },
-    {
-     "turn": 25,
      "kind": "guess",
      "id": "dog"
     }
    ],
    "result": {
     "outcome": "win",
-    "turn": 25
+    "turn": 21
    },
    "finalWeightsTop3": [
     [
      "dog",
-     0.11697705639142807
+     0.15962069477402652
     ],
     [
-     "crow",
-     0.1043406459787738
+     "sea_lion",
+     0.15075287839769178
     ],
     [
-     "boar",
-     0.08314645226433533
+     "bullfrog",
+     0.15075287839769175
     ]
    ]
   },
@@ -808,21 +778,21 @@
    "seed": 4242,
    "answers": [
     "yes",
-    "yes",
-    "no",
-    "no",
     "no",
     "yes",
     "no",
+    "no",
+    "maybe",
+    "yes",
+    "yes",
+    "yes",
+    "no",
+    "wrong",
+    "maybe",
     "yes",
     "no",
     "yes",
     "wrong",
-    "no",
-    "yes",
-    "maybe",
-    "yes",
-    "maybe",
     "no",
     "no",
     "maybe",
@@ -842,32 +812,32 @@
     {
      "turn": 2,
      "kind": "question",
-     "id": "has_legs"
+     "id": "lays_eggs"
     },
     {
      "turn": 3,
      "kind": "question",
-     "id": "lays_eggs"
+     "id": "is_mammal"
     },
     {
      "turn": 4,
      "kind": "question",
-     "id": "eats_plants"
+     "id": "heavier_than_person"
     },
     {
      "turn": 5,
      "kind": "question",
-     "id": "can_swim"
+     "id": "eats_plants"
     },
     {
      "turn": 6,
      "kind": "question",
-     "id": "is_mammal"
+     "id": "bigger_than_breadbox"
     },
     {
      "turn": 7,
      "kind": "question",
-     "id": "lives_in_africa"
+     "id": "found_in_house"
     },
     {
      "turn": 8,
@@ -877,12 +847,12 @@
     {
      "turn": 9,
      "kind": "question",
-     "id": "is_dangerous"
+     "id": "climbs"
     },
     {
      "turn": 10,
      "kind": "question",
-     "id": "hops_jumps"
+     "id": "is_a_baby"
     },
     {
      "turn": 11,
@@ -892,27 +862,27 @@
     {
      "turn": 12,
      "kind": "question",
-     "id": "lives_in_groups"
+     "id": "is_nocturnal"
     },
     {
      "turn": 13,
      "kind": "question",
-     "id": "eats_meat"
+     "id": "is_pet"
     },
     {
      "turn": 14,
      "kind": "question",
-     "id": "bigger_than_breadbox"
+     "id": "is_black"
     },
     {
      "turn": 15,
      "kind": "question",
-     "id": "is_soft"
+     "id": "eats_meat"
     },
     {
      "turn": 16,
-     "kind": "question",
-     "id": "lives_in_north_america"
+     "kind": "guess",
+     "id": "ferret"
     },
     {
      "turn": 17,
@@ -922,42 +892,42 @@
     {
      "turn": 18,
      "kind": "question",
-     "id": "found_outdoors"
+     "id": "lives_in_africa"
     },
     {
      "turn": 19,
      "kind": "question",
-     "id": "lives_in_asia"
+     "id": "eats_fish"
     },
     {
      "turn": 20,
      "kind": "guess",
-     "id": "ferret"
+     "id": "dog"
     },
     {
      "turn": 21,
      "kind": "guess",
-     "id": "mouse"
+     "id": "otter"
     },
     {
      "turn": 22,
      "kind": "guess",
-     "id": "rabbit"
+     "id": "kitten"
     },
     {
      "turn": 23,
      "kind": "guess",
-     "id": "dog"
+     "id": "cougar"
     },
     {
      "turn": 24,
      "kind": "guess",
-     "id": "hamster"
+     "id": "dingo"
     },
     {
      "turn": 25,
      "kind": "guess",
-     "id": "otter"
+     "id": "raccoon"
     }
    ],
    "result": {
@@ -966,16 +936,16 @@
    },
    "finalWeightsTop3": [
     [
-     "fox",
-     0.3938357365191421
+     "monkey",
+     0.13055326683397603
     ],
     [
-     "pig",
-     0.19691786825957094
+     "jaguar",
+     0.09825493259119554
     ],
     [
-     "guinea_pig",
-     0.04940040271442361
+     "lynx",
+     0.09825493259119554
     ]
    ]
   },
@@ -985,11 +955,8 @@
    "answers": [
     "no",
     "yes",
-    "yes",
-    "yes",
-    "skip",
-    "yes",
-    "yes",
+    "no",
+    "no",
     "skip",
     "yes",
     "no",
@@ -1000,9 +967,11 @@
     "no",
     "no",
     "skip",
+    "yes",
+    "yes",
+    "skip",
+    "yes",
     "no",
-    "no",
-    "wrong",
     "right"
    ],
    "expect": [
@@ -1019,115 +988,110 @@
     {
      "turn": 3,
      "kind": "question",
-     "id": "is_brown"
+     "id": "can_hold"
     },
     {
      "turn": 4,
      "kind": "question",
-     "id": "is_food"
+     "id": "bigger_than_breadbox"
     },
     {
      "turn": 5,
      "kind": "question",
-     "id": "is_cooked"
+     "id": "is_liquid"
     },
     {
      "turn": 6,
      "kind": "question",
-     "id": "is_manmade"
+     "id": "used_in_kitchen"
     },
     {
      "turn": 7,
      "kind": "question",
-     "id": "eaten_with_hands"
+     "id": "is_hot"
     },
     {
      "turn": 8,
      "kind": "question",
-     "id": "is_breakfast"
+     "id": "is_sweet"
     },
     {
      "turn": 9,
      "kind": "question",
-     "id": "is_sweet"
+     "id": "is_sticky"
     },
     {
      "turn": 10,
      "kind": "question",
-     "id": "is_flat"
+     "id": "is_brown"
     },
     {
      "turn": 11,
      "kind": "question",
-     "id": "is_soft"
+     "id": "is_salty"
     },
     {
      "turn": 12,
      "kind": "question",
-     "id": "is_round"
+     "id": "eaten_with_a_spoon"
     },
     {
      "turn": 13,
      "kind": "question",
-     "id": "is_baked"
+     "id": "is_sour"
     },
     {
      "turn": 14,
      "kind": "question",
-     "id": "is_sticky"
+     "id": "is_cooked"
     },
     {
      "turn": 15,
      "kind": "question",
-     "id": "is_crunchy"
+     "id": "is_food"
     },
     {
      "turn": 16,
      "kind": "question",
-     "id": "used_daily"
+     "id": "is_baked"
     },
     {
      "turn": 17,
      "kind": "question",
-     "id": "is_white"
+     "id": "eaten_with_hands"
     },
     {
      "turn": 18,
      "kind": "question",
-     "id": "is_black"
+     "id": "is_breakfast"
     },
     {
      "turn": 19,
      "kind": "question",
-     "id": "is_colorful"
+     "id": "is_crunchy"
     },
     {
      "turn": 20,
-     "kind": "guess",
-     "id": "muffin"
-    },
-    {
-     "turn": 21,
      "kind": "guess",
      "id": "bread"
     }
    ],
    "result": {
     "outcome": "win",
-    "turn": 21
+    "turn": 20
    },
    "finalWeightsTop3": [
     [
      "bread",
-     0.38554181824629624
+     0.6263267438166377
     ],
     [
-     "brownie",
-     0.28915636368472225
+     "bagel",
+     0.22182405510172584
     ],
     [
-     "granola",
-     0.06425696970771606
+     "tea",
+     0.03684274963627281
     ]
    ]
   },
@@ -1216,7 +1180,7 @@
     {
      "turn": 11,
      "kind": "question",
-     "id": "has_screen"
+     "id": "has_numbers"
     },
     {
      "turn": 12,
@@ -1226,7 +1190,7 @@
     {
      "turn": 13,
      "kind": "question",
-     "id": "gives_light"
+     "id": "made_of_plastic"
     },
     {
      "turn": 14,
@@ -1241,15 +1205,15 @@
    "finalWeightsTop3": [
     [
      "car",
-     0.9374635701309126
+     0.946857181646469
     ],
     [
-     "ambulance",
-     0.018381638630017894
+     "motorcycle",
+     0.0065753970947671474
     ],
     [
-     "police_car",
-     0.013834097823112426
+     "truck",
+     0.0065753970947671474
     ]
    ]
   },
@@ -1263,9 +1227,9 @@
     "no",
     "yes",
     "yes",
-    "no",
-    "no",
     "yes",
+    "yes",
+    "no",
     "yes",
     "wrong",
     "yes",
@@ -1302,27 +1266,27 @@
     {
      "turn": 6,
      "kind": "question",
-     "id": "lives_in_groups"
+     "id": "has_four_legs"
     },
     {
      "turn": 7,
      "kind": "question",
-     "id": "lives_in_water"
+     "id": "heavier_than_person"
     },
     {
      "turn": 8,
      "kind": "question",
-     "id": "lives_in_forest"
+     "id": "lives_in_africa"
     },
     {
      "turn": 9,
      "kind": "question",
-     "id": "lives_in_africa"
+     "id": "has_stripes_spots"
     },
     {
      "turn": 10,
      "kind": "question",
-     "id": "is_yellow_orange"
+     "id": "lives_in_groups"
     },
     {
      "turn": 11,
@@ -1337,15 +1301,15 @@
    "finalWeightsTop3": [
     [
      "lion",
-     0.8425786875412592
+     0.8151127945221102
     ],
     [
-     "cheetah",
-     0.049563452208309385
+     "elephant",
+     0.04794781144247707
     ],
     [
-     "hyena",
-     0.049563452208309364
+     "wolf",
+     0.02256367597293038
     ]
    ]
   },
@@ -1355,22 +1319,18 @@
    "answers": [
     "no",
     "skip",
-    "no",
-    "no",
-    "yes",
-    "no",
-    "no",
     "yes",
     "yes",
-    "yes",
+    "no",
+    "no",
+    "no",
+    "no",
     "yes",
     "yes",
     "no",
     "yes",
-    "no",
-    "no",
-    "no",
-    "no",
+    "yes",
+    "yes",
     "yes",
     "right"
    ],
@@ -1388,22 +1348,22 @@
     {
      "turn": 3,
      "kind": "question",
-     "id": "found_outdoors"
+     "id": "can_hold"
     },
     {
      "turn": 4,
      "kind": "question",
-     "id": "is_manmade"
+     "id": "is_food"
     },
     {
      "turn": 5,
      "kind": "question",
-     "id": "can_hold"
+     "id": "eaten_with_hands"
     },
     {
      "turn": 6,
      "kind": "question",
-     "id": "eaten_with_hands"
+     "id": "is_manmade"
     },
     {
      "turn": 7,
@@ -1413,7 +1373,7 @@
     {
      "turn": 8,
      "kind": "question",
-     "id": "is_vegetable_food"
+     "id": "is_fruit"
     },
     {
      "turn": 9,
@@ -1423,22 +1383,22 @@
     {
      "turn": 10,
      "kind": "question",
-     "id": "has_peel"
+     "id": "is_vegetable_food"
     },
     {
      "turn": 11,
      "kind": "question",
-     "id": "is_brown"
+     "id": "is_red"
     },
     {
      "turn": 12,
      "kind": "question",
-     "id": "is_cooked"
+     "id": "is_brown"
     },
     {
      "turn": 13,
      "kind": "question",
-     "id": "is_sweet"
+     "id": "is_cooked"
     },
     {
      "turn": 14,
@@ -1448,50 +1408,30 @@
     {
      "turn": 15,
      "kind": "question",
-     "id": "is_red"
-    },
-    {
-     "turn": 16,
-     "kind": "question",
-     "id": "is_yellow_orange"
-    },
-    {
-     "turn": 17,
-     "kind": "question",
      "id": "is_baked"
     },
     {
-     "turn": 18,
-     "kind": "question",
-     "id": "grows_on_tree"
-    },
-    {
-     "turn": 19,
-     "kind": "question",
-     "id": "grows_underground"
-    },
-    {
-     "turn": 20,
+     "turn": 16,
      "kind": "guess",
      "id": "potato"
     }
    ],
    "result": {
     "outcome": "win",
-    "turn": 20
+    "turn": 16
    },
    "finalWeightsTop3": [
     [
      "potato",
-     0.40017471860763276
+     0.8724589006711458
+    ],
+    [
+     "turnip",
+     0.0817930219379199
     ],
     [
      "onion",
-     0.40017471860763276
-    ],
-    [
-     "garlic",
-     0.1889713948980488
+     0.018113333577947664
     ]
    ]
   },
@@ -1509,14 +1449,14 @@
     "no",
     "yes",
     "yes",
+    "no",
     "right",
     "back",
     "wrong",
+    "no",
     "yes",
     "maybe",
-    "yes",
     "no",
-    "wrong",
     "no",
     "yes",
     "no",
@@ -1571,27 +1511,27 @@
     {
      "turn": 9,
      "kind": "question",
-     "id": "gives_light"
+     "id": "is_in_space"
     },
     {
      "turn": 10,
      "kind": "question",
-     "id": "made_of_stone"
+     "id": "gives_light"
     },
     {
      "turn": 11,
+     "kind": "question",
+     "id": "is_hot"
+    },
+    {
+     "turn": 12,
      "kind": "guess",
      "id": "moon"
     },
     {
-     "turn": 12,
-     "kind": "question",
-     "id": "in_sky"
-    },
-    {
      "turn": 13,
      "kind": "question",
-     "id": "is_cold"
+     "id": "is_yellow_orange"
     },
     {
      "turn": 14,
@@ -1601,52 +1541,52 @@
     {
      "turn": 15,
      "kind": "question",
-     "id": "is_yellow_orange"
+     "id": "is_cold"
     },
     {
      "turn": 16,
-     "kind": "guess",
-     "id": "comet"
-    },
-    {
-     "turn": 17,
      "kind": "question",
      "id": "is_fast"
     },
     {
+     "turn": 17,
+     "kind": "question",
+     "id": "is_place"
+    },
+    {
      "turn": 18,
      "kind": "question",
-     "id": "is_in_space"
+     "id": "is_shiny"
     },
     {
      "turn": 19,
      "kind": "question",
-     "id": "is_hot"
+     "id": "is_dangerous"
     },
     {
      "turn": 20,
      "kind": "guess",
-     "id": "galaxy"
+     "id": "star"
     },
     {
      "turn": 21,
      "kind": "guess",
-     "id": "asteroid"
+     "id": "galaxy"
     },
     {
      "turn": 22,
      "kind": "guess",
-     "id": "star"
+     "id": "comet"
     },
     {
      "turn": 23,
      "kind": "guess",
-     "id": "earth"
+     "id": "satellite"
     },
     {
      "turn": 24,
      "kind": "guess",
-     "id": "mountain"
+     "id": "sun"
     },
     {
      "turn": 25,
@@ -1660,16 +1600,16 @@
    },
    "finalWeightsTop3": [
     [
-     "sun",
-     0.14172943133758614
+     "chandelier",
+     0.23133193482332948
     ],
     [
-     "cloud",
-     0.14172943133758611
+     "ufo",
+     0.172898608726087
     ],
     [
-     "satellite",
-     0.133392405964787
+     "sink",
+     0.05122921740032209
     ]
    ]
   },
@@ -1732,7 +1672,7 @@
     {
      "turn": 6,
      "kind": "question",
-     "id": "makes_sound"
+     "id": "is_wild"
     },
     {
      "turn": 7,
@@ -1742,7 +1682,7 @@
     {
      "turn": 8,
      "kind": "question",
-     "id": "is_wild"
+     "id": "heavier_than_person"
     },
     {
      "turn": 9,
@@ -1752,22 +1692,22 @@
     {
      "turn": 10,
      "kind": "question",
-     "id": "heavier_than_person"
+     "id": "makes_sound"
     },
     {
      "turn": 11,
      "kind": "question",
-     "id": "has_legs"
+     "id": "is_brown"
     },
     {
      "turn": 12,
      "kind": "question",
-     "id": "is_food"
+     "id": "has_legs"
     },
     {
      "turn": 13,
      "kind": "question",
-     "id": "is_brown"
+     "id": "is_food"
     },
     {
      "turn": 14,
@@ -1837,15 +1777,15 @@
    "finalWeightsTop3": [
     [
      "shark",
-     0.0012903225806451583
+     0.001010101010100991
     ],
     [
      "goldfish",
-     0.0012903225806451583
+     0.001010101010100991
     ],
     [
      "frog",
-     0.0012903225806451583
+     0.001010101010100991
     ]
    ]
   },
@@ -1857,11 +1797,109 @@
     "no",
     "maybe",
     "yes",
+    "no",
     "yes",
     "no",
     "yes",
     "yes",
+    "yes",
     "no",
+    "right"
+   ],
+   "expect": [
+    {
+     "turn": 1,
+     "kind": "category",
+     "id": "animal"
+    },
+    {
+     "turn": 2,
+     "kind": "category",
+     "id": "vegetable"
+    },
+    {
+     "turn": 3,
+     "kind": "category",
+     "id": "mineral"
+    },
+    {
+     "turn": 4,
+     "kind": "question",
+     "id": "heavier_than_person"
+    },
+    {
+     "turn": 5,
+     "kind": "question",
+     "id": "is_place"
+    },
+    {
+     "turn": 6,
+     "kind": "question",
+     "id": "found_outdoors"
+    },
+    {
+     "turn": 7,
+     "kind": "question",
+     "id": "is_vehicle"
+    },
+    {
+     "turn": 8,
+     "kind": "question",
+     "id": "bigger_than_car"
+    },
+    {
+     "turn": 9,
+     "kind": "question",
+     "id": "in_sky"
+    },
+    {
+     "turn": 10,
+     "kind": "question",
+     "id": "is_in_space"
+    },
+    {
+     "turn": 11,
+     "kind": "question",
+     "id": "is_white"
+    },
+    {
+     "turn": 12,
+     "kind": "guess",
+     "id": "sun"
+    }
+   ],
+   "result": {
+    "outcome": "win",
+    "turn": 12
+   },
+   "finalWeightsTop3": [
+    [
+     "sun",
+     0.8147597563457466
+    ],
+    [
+     "asteroid",
+     0.047927044490926274
+    ],
+    [
+     "star",
+     0.035945283368194705
+    ]
+   ]
+  },
+  {
+   "name": "sun-sometimes-on-mineral",
+   "seed": 2468,
+   "answers": [
+    "no",
+    "no",
+    "maybe",
+    "yes",
+    "no",
+    "maybe",
+    "no",
+    "yes",
+    "yes",
     "yes",
     "right"
    ],
@@ -1884,37 +1922,37 @@
     {
      "turn": 4,
      "kind": "question",
-     "id": "bigger_than_breadbox"
+     "id": "heavier_than_person"
     },
     {
      "turn": 5,
      "kind": "question",
-     "id": "bigger_than_car"
+     "id": "is_place"
     },
     {
      "turn": 6,
      "kind": "question",
-     "id": "people_go_inside"
+     "id": "found_outdoors"
     },
     {
      "turn": 7,
      "kind": "question",
-     "id": "is_in_space"
+     "id": "makes_sound"
     },
     {
      "turn": 8,
      "kind": "question",
-     "id": "gives_light"
+     "id": "is_in_space"
     },
     {
      "turn": 9,
      "kind": "question",
-     "id": "is_white"
+     "id": "is_yellow_orange"
     },
     {
      "turn": 10,
      "kind": "question",
-     "id": "is_yellow_orange"
+     "id": "is_hot"
     },
     {
      "turn": 11,
@@ -1929,119 +1967,15 @@
    "finalWeightsTop3": [
     [
      "sun",
-     0.8231892130068864
+     0.8261156698606341
     ],
     [
      "star",
-     0.13672346790425796
+     0.1295867717428446
     ],
     [
      "planet",
-     0.008042556935544587
-    ]
-   ]
-  },
-  {
-   "name": "sun-sometimes-on-mineral",
-   "seed": 2468,
-   "answers": [
-    "no",
-    "no",
-    "maybe",
-    "yes",
-    "yes",
-    "no",
-    "no",
-    "maybe",
-    "yes",
-    "no",
-    "yes",
-    "maybe",
-    "right"
-   ],
-   "expect": [
-    {
-     "turn": 1,
-     "kind": "category",
-     "id": "animal"
-    },
-    {
-     "turn": 2,
-     "kind": "category",
-     "id": "vegetable"
-    },
-    {
-     "turn": 3,
-     "kind": "category",
-     "id": "mineral"
-    },
-    {
-     "turn": 4,
-     "kind": "question",
-     "id": "bigger_than_breadbox"
-    },
-    {
-     "turn": 5,
-     "kind": "question",
-     "id": "bigger_than_car"
-    },
-    {
-     "turn": 6,
-     "kind": "question",
-     "id": "people_go_inside"
-    },
-    {
-     "turn": 7,
-     "kind": "question",
-     "id": "is_place"
-    },
-    {
-     "turn": 8,
-     "kind": "question",
-     "id": "found_outdoors"
-    },
-    {
-     "turn": 9,
-     "kind": "question",
-     "id": "is_in_space"
-    },
-    {
-     "turn": 10,
-     "kind": "question",
-     "id": "is_fast"
-    },
-    {
-     "turn": 11,
-     "kind": "question",
-     "id": "is_shiny"
-    },
-    {
-     "turn": 12,
-     "kind": "question",
-     "id": "keeps_you_warm"
-    },
-    {
-     "turn": 13,
-     "kind": "guess",
-     "id": "sun"
-    }
-   ],
-   "result": {
-    "outcome": "win",
-    "turn": 13
-   },
-   "finalWeightsTop3": [
-    [
-     "sun",
-     0.8686837445220622
-    ],
-    [
-     "star",
-     0.09652041605800692
-    ],
-    [
-     "moon",
-     0.01603107256326758
+     0.021523062434797725
     ]
    ]
   },
@@ -2057,8 +1991,7 @@
     "yes",
     "yes",
     "yes",
-    "maybe",
-    "yes",
+    "no",
     "right"
    ],
    "expect": [
@@ -2100,40 +2033,35 @@
     {
      "turn": 8,
      "kind": "question",
-     "id": "is_valuable"
+     "id": "used_daily"
     },
     {
      "turn": 9,
      "kind": "question",
-     "id": "uses_electricity"
+     "id": "found_in_office"
     },
     {
      "turn": 10,
-     "kind": "question",
-     "id": "used_daily"
-    },
-    {
-     "turn": 11,
      "kind": "guess",
      "id": "house"
     }
    ],
    "result": {
     "outcome": "win",
-    "turn": 11
+    "turn": 10
    },
    "finalWeightsTop3": [
     [
      "house",
-     0.9267094352068097
-    ],
-    [
-     "school",
-     0.02280253896702646
+     0.8085746916537697
     ],
     [
      "castle",
-     0.006056924413116403
+     0.015854405718701368
+    ],
+    [
+     "cave",
+     0.015854405718701368
     ]
    ]
   },
@@ -2162,8 +2090,6 @@
     "maybe",
     "yes",
     "yes",
-    "yes",
-    "no",
     "no",
     "yes",
     "right"
@@ -2217,45 +2143,35 @@
     {
      "turn": 10,
      "kind": "question",
-     "id": "you_can_ride_it"
+     "id": "bigger_than_car"
     },
     {
      "turn": 11,
      "kind": "question",
-     "id": "bigger_than_car"
+     "id": "is_colorful"
     },
     {
      "turn": 12,
-     "kind": "question",
-     "id": "is_white"
-    },
-    {
-     "turn": 13,
-     "kind": "question",
-     "id": "has_handle"
-    },
-    {
-     "turn": 14,
      "kind": "guess",
      "id": "car"
     }
    ],
    "result": {
     "outcome": "win",
-    "turn": 14
+    "turn": 12
    },
    "finalWeightsTop3": [
     [
      "car",
-     0.9358003977769086
+     0.8952439166232561
     ],
     [
-     "taxi",
-     0.013761770555542773
+     "ambulance",
+     0.018586378891832307
     ],
     [
-     "fire_truck",
-     0.006880885277771389
+     "bus",
+     0.01755380228673051
     ]
    ]
   },
@@ -2273,22 +2189,22 @@
     "yes",
     "no",
     "no",
-    "no",
+    "yes",
     "back",
     "back",
     "yes",
     "skip",
-    "no",
-    "no",
+    "yes",
+    "yes",
     "yes",
     "skip",
     "yes",
-    "maybe",
+    "no",
     "no",
     "skip",
     "no",
-    "yes",
     "no",
+    "yes",
     "skip",
     "right"
    ],
@@ -2321,42 +2237,42 @@
     {
      "turn": 6,
      "kind": "question",
-     "id": "has_handle"
+     "id": "found_outdoors"
     },
     {
      "turn": 7,
      "kind": "question",
-     "id": "found_in_house"
+     "id": "you_can_ride_it"
     },
     {
      "turn": 8,
      "kind": "question",
-     "id": "is_container"
+     "id": "has_handle"
     },
     {
      "turn": 9,
      "kind": "question",
-     "id": "is_tool"
+     "id": "has_wheels"
     },
     {
      "turn": 10,
      "kind": "question",
-     "id": "you_can_sit_on_it"
+     "id": "is_vehicle"
     },
     {
      "turn": 11,
      "kind": "question",
-     "id": "is_colorful"
+     "id": "is_toy"
     },
     {
      "turn": 12,
      "kind": "question",
-     "id": "is_vehicle"
+     "id": "is_colorful"
     },
     {
      "turn": 13,
      "kind": "question",
-     "id": "is_fast"
+     "id": "made_of_fabric"
     },
     {
      "turn": 14,
@@ -2366,27 +2282,27 @@
     {
      "turn": 15,
      "kind": "question",
-     "id": "is_red"
+     "id": "is_fast"
     },
     {
      "turn": 16,
      "kind": "question",
-     "id": "uses_electricity"
+     "id": "has_an_engine"
     },
     {
      "turn": 17,
      "kind": "question",
-     "id": "found_outdoors"
+     "id": "is_container"
     },
     {
      "turn": 18,
      "kind": "question",
-     "id": "is_toy"
+     "id": "made_of_metal"
     },
     {
      "turn": 19,
      "kind": "question",
-     "id": "made_of_metal"
+     "id": "uses_electricity"
     },
     {
      "turn": 20,
@@ -2401,15 +2317,15 @@
    "finalWeightsTop3": [
     [
      "bicycle",
-     0.5692500960422832
-    ],
-    [
-     "scooter",
-     0.26788239813754516
+     0.6397144198565398
     ],
     [
      "tricycle",
-     0.042166673780909894
+     0.18888914819293454
+    ],
+    [
+     "scooter",
+     0.14166686114470084
     ]
    ]
   }
