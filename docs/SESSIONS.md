@@ -2,6 +2,13 @@
 
 Newest first. One dated entry per working session.
 
+## 2026-10-31 · Web build session 2 (KB review fixes, handheld UI)
+- Applied the coordinator's KB review: removed `oak_tree`, `tree.climbs` no, `lives_in_africa` unknown for non-animals (this also changes that one value on the seed non-animals), separated `gold` from `ring`, added the two honest yeses I could find on sparse produce (pineapple peel, coconut can_hold). Did not pad the rest. `kbVersion` `kb-2026.11.01.3`, 212 things, vectors regenerated.
+- Built the v2 handheld UI from SPECS §2 and §7: round cream shell with ridge rings, sage DotGothic16 LCD (bundled via @fontsource, so nothing is fetched at runtime) with typewriter text, "I'm thinking..." and paged scrolling past 3 lines, four ink caps with relabelling on turn 1, UNDO, NEW GAME (asks "Start over?"), SOUND, synthesized Web Audio beeps with a persisted mute, light/dark toggle, stats line, How to play sheet and in-place recap below the device.
+- Undo from the end screen takes the finished game back out of the stats, so a second end is not double counted.
+- Played in the browser: win, wrong guesses, overtime to stumped (paged 4-line ending), undo (also from the end), new game confirm, press-to-finish-typing, keyboard, mute persistence, dark theme, 360 px width.
+- Not done: deploy script, portfolio landing page. Audio was checked only by confirming the oscillators fire (not heard). Reduced-motion paths are coded but were not exercised in a browser.
+
 ## 2026-10-31 · Web build session 1 (engine, KB tooling, KB expansion)
 - Branch `feature/twentyq-web`. Scaffolded Vite + React 19 + TS + Zustand + Tailwind v4 + Vitest (modelled on Estoria-wa, `base: '/twentyq/'` in production).
 - Reference engine in `src/engine/` per SPECS §4 (mulberry32, soft scoring, info-gain, 1e-9 tie epsilon, guess rules, Back as replay). Unit tests in `engine.test.ts`.

@@ -1,0 +1,243 @@
+import { create } from "zustand";
+import { compileKB, replay, type AnswerToken, type GameView, type KB } from "@/engine";
+import { play, type SfxName } from "@/audio/sfx";
+import { CONFIRM_MESSAGE, IDLE_MESSAGE, messagesFor, type Message } from "@/lib/messages";
+import { loadStats, saveStats, withGame, type Stats } from "@/lib/stats";
+import kbJson from "../../kb/kb.json";
+
+export const ckb = compileKB(kbJson as unknown as KB);
+
+export type Slot = 0 | 1 | 2 | 3;
+export type Mode = "idle" | "category" | "question" | "guess" | "ended";
+
+/** Left to right on the device. */
+const QUESTION_TOKENS: AnswerToken[] = ["skip", "no", "yes", "maybe"];
+const CATEGORY_TOKENS: AnswerToken[] = ["animal", "vegetable", "mineral", "other"];
+
+const THINK_MS = 400;
+const HOLD_MS = 1100;
+const FLASH_MS = 120;
+
+interface Screen {
+  /** Changes whenever the LCD should start typing afresh. */
+  key: number;
+  messages: Message[];
+  msgIndex: number;
+  typingDone: boolean;
+}
+
+interface GameState {
+  started: boolean;
+  seed: number;
+  history: AnswerToken[];
+  view: GameView | null;
+  confirming: boolean;
+  thinking: boolean;
+  screen: Screen;
+  /** Bumped to ask the LCD to finish typing at once. */
+  skipTick: number;
+  flash: Slot | null;
+  stats: Stats;
+  press: (slot: Slot) => void;
+  undo: () => void;
+  newGame: () => void;
+  cancel: () => void;
+  lcdDone: () => void;
+}
+
+export function modeOf(s: Pick<GameState, "started" | "view">): Mode {
+  if (!s.started || !s.view) return "idle";
+  const cur = s.view.current;
+  if (!cur) return "ended";
+  return cur.kind;
+}
+
+/** Which of the four buttons do something right now. */
+export function enabledSlots(s: Pick<GameState, "started" | "view" | "confirming">): boolean[] {
+  if (s.confirming) return [false, true, true, false];
+  switch (modeOf(s)) {
+    case "idle":
+    case "ended":
+      return [false, false, true, false];
+    case "guess":
+      return [false, true, true, false];
+    default:
+      return [true, true, true, true];
+  }
+}
+
+function reducedMotion(): boolean {
+  return typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+}
+
+function newSeed(): number {
+  const a = new Uint32Array(1);
+  if (typeof crypto !== "undefined") crypto.getRandomValues(a);
+  else a[0] = Math.floor(Math.random() * 2 ** 32);
+  return a[0] | 0;
+}
+
+let thinkTimer: ReturnType<typeof setTimeout> | undefined;
+let holdTimer: ReturnType<typeof setTimeout> | undefined;
+let flashTimer: ReturnType<typeof setTimeout> | undefined;
+let screenKey = 0;
+
+function clearTimers() {
+  clearTimeout(thinkTimer);
+  clearTimeout(holdTimer);
+  thinkTimer = holdTimer = undefined;
+}
+
+export const useGame = create<GameState>((set, get) => {
+  /** Put messages on the LCD; the first one's sound plays now. */
+  function show(messages: Message[]) {
+    clearTimeout(holdTimer);
+    set({ thinking: false, screen: { key: ++screenKey, messages, msgIndex: 0, typingDone: false } });
+    if (messages[0].sfx) play(messages[0].sfx);
+  }
+
+  function showDefault() {
+    const { started, view, confirming } = get();
+    if (confirming) return show([CONFIRM_MESSAGE]);
+    if (!started || !view) return show([IDLE_MESSAGE]);
+    show(messagesFor(ckb, view));
+  }
+
+  /** Move to a new history: replay, keep the stats honest, then show the result. */
+  function go(history: AnswerToken[], opts: { think: boolean }) {
+    const prev = get().view;
+    const view = replay(ckb, get().seed, history).view();
+    let stats = get().stats;
+    if (prev?.result && !view.result) stats = withGame(stats, prev.result, -1);
+    if (view.result && !prev?.result) stats = withGame(stats, view.result, 1);
+    if (stats !== get().stats) saveStats(stats);
+    clearTimers();
+    set({ history, view, stats, confirming: false });
+    const msgs = messagesFor(ckb, view);
+    if (opts.think && view.current && !reducedMotion()) {
+      set({ thinking: true });
+      thinkTimer = setTimeout(() => show(msgs), THINK_MS);
+    } else {
+      show(msgs);
+    }
+  }
+
+  function start() {
+    clearTimers();
+    set({ started: true, seed: newSeed(), history: [], view: null, confirming: false });
+    go([], { think: false });
+  }
+
+  function flashSlot(slot: Slot) {
+    clearTimeout(flashTimer);
+    set({ flash: slot });
+    flashTimer = setTimeout(() => set({ flash: null }), FLASH_MS);
+  }
+
+  return {
+    started: false,
+    seed: 0,
+    history: [],
+    view: null,
+    confirming: false,
+    thinking: false,
+    screen: { key: 0, messages: [IDLE_MESSAGE], msgIndex: 0, typingDone: false },
+    skipTick: 0,
+    flash: null,
+    stats: loadStats(),
+
+    press: (slot) => {
+      const s = get();
+      if (s.thinking) return;
+      if (!enabledSlots(s)[slot]) return;
+      flashSlot(slot);
+      const { screen } = s;
+      // A press while the text is still typing only finishes the text.
+      if (!screen.typingDone) {
+        play("press");
+        set({ skipTick: s.skipTick + 1 });
+        return;
+      }
+      // Or moves past a lead-in message like "Hmm. Give me five more."
+      if (screen.msgIndex < screen.messages.length - 1) {
+        play("press");
+        clearTimeout(holdTimer);
+        const next = screen.msgIndex + 1;
+        set({ screen: { ...screen, msgIndex: next, typingDone: false } });
+        const sfx = screen.messages[next].sfx;
+        if (sfx) play(sfx);
+        return;
+      }
+      const mode = modeOf(s);
+      if (s.confirming) {
+        play("press");
+        if (slot === 2) start();
+        else {
+          set({ confirming: false });
+          showDefault();
+        }
+        return;
+      }
+      if (mode === "idle" || mode === "ended") {
+        play("press");
+        start();
+        return;
+      }
+      let token: AnswerToken;
+      let sound: SfxName = "press";
+      if (mode === "category") token = CATEGORY_TOKENS[slot];
+      else if (mode === "question") token = QUESTION_TOKENS[slot];
+      else {
+        token = slot === 2 ? "right" : "wrong";
+        if (token === "wrong") sound = "wrong";
+      }
+      play(sound);
+      go([...s.history, token], { think: true });
+    },
+
+    undo: () => {
+      const s = get();
+      if (!s.started || !s.view || s.history.length === 0 || s.confirming) return;
+      play("press");
+      go(s.history.slice(0, -1), { think: false });
+    },
+
+    newGame: () => {
+      const s = get();
+      if (s.confirming) return;
+      play("press");
+      const mode = modeOf(s);
+      if (mode === "idle" || mode === "ended") {
+        start();
+        return;
+      }
+      clearTimers();
+      set({ confirming: true, thinking: false });
+      show([CONFIRM_MESSAGE]);
+    },
+
+    cancel: () => {
+      if (!get().confirming) return;
+      set({ confirming: false });
+      showDefault();
+    },
+
+    lcdDone: () => {
+      const { screen } = get();
+      if (screen.typingDone) return;
+      set({ screen: { ...screen, typingDone: true } });
+      // Lead-in messages move on by themselves after a beat.
+      if (screen.msgIndex < screen.messages.length - 1) {
+        const key = screen.key;
+        holdTimer = setTimeout(() => {
+          const cur = get().screen;
+          if (cur.key !== key || cur.msgIndex !== screen.msgIndex) return;
+          const next = cur.msgIndex + 1;
+          set({ screen: { ...cur, msgIndex: next, typingDone: false } });
+          const sfx = cur.messages[next].sfx;
+          if (sfx) play(sfx);
+        }, HOLD_MS);
+      }
+    },
+  };
+});
