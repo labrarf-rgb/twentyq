@@ -2,6 +2,11 @@
 
 Newest first. One dated entry per working session.
 
+## 2026-11-01 · Web build session 7 (ship prep; push and deploy not done)
+- Ship prep committed (`11dcd07`) and `main` fast-forwarded to `feature/twentyq-web` locally: `scripts/deploy.sh` (Estoria's script adapted: clean-tree check, lock, settle wait, keep recent assets, live SHA poll; `npm run deploy`), `dist/version.json` stamped with the commit, PWA manifest and icons (`art/icon-source.svg`, `scripts/make-icons.sh`), and `public/privacy.html` (web and Android, dated 2026-11-01, linked from How to play). The production build uses `base: '/twentyq/'` and was checked from that subpath with `vite preview`: page, privacy, manifest, version.json, icons and bundled fonts all 200, DotGothic16 loads, a game starts.
+- Portfolio pages drafted in `~/Portfolio-Website` but NOT committed: `twentyq.html`, a last `.project-list-item` on `projects.html`, and SITE-GUIDE registry and log updates. Linked direct to `/twentyq/` with no `twentyq-app.html` wrapper, per the guide's rule (manifest plus `localStorage`).
+- Blocked: creating the public GitHub repo was denied by the permission check, so nothing was pushed or deployed. Waiting for Ray's own go.
+
 ## 2026-11-01 · Web build session 6 (spec v7: counted category questions)
 - Committed spec v7 as given. Engine change in the reference: a category phase of up to three counted questions (animal, vegetable, mineral), one per turn from turn 1. YES settles and ends the phase, NO or SOMETIMES goes on (after mineral the phase ends), UNKNOWN ends it. Scored with the normal likelihood table and `cv(i,c)` (yes if the category matches, maybe if in altCategories, else no). No guessing and no RNG draw on category turns. The "something else?" prompt is gone.
 - `engine.category` removed from `kb.json`, `schemaVersion` 2 (kb:check enforces it and rejects the old block), `kbVersion` `kb-2026.11.01.4`. Category turns carry `cat` (0 to 2) in the engine's current-turn type; recap and vector entries use the category id.
