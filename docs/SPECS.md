@@ -4,7 +4,9 @@
 > the Android app. Change it only through the coordinator session, which copies it to both
 > repos. Each repo keeps its own dated log in `docs/SESSIONS.md`.
 
-Last spec update: 2026-10-31 (v1, initial).
+Last spec update: 2026-10-31 (v2: the UI is now a handheld toy device with physical-style
+buttons and synthesized beeps. The answer buttons are relabelled Unknown / No / Yes /
+Sometimes. **The engine, the KB schema, and the answer tokens are unchanged.**)
 
 ---
 
@@ -12,7 +14,9 @@ Last spec update: 2026-10-31 (v1, initial).
 
 Twenty Q is a twenty questions game in the spirit of the 90s handheld toy.
 - **You think of something.** The app asks questions and you answer with
-  **Yes / No / Maybe / Skip**. It tries to guess within 20 questions.
+  **Unknown / No / Yes / Sometimes**. It tries to guess within 20 questions.
+- **The UI is an on-screen handheld toy.** It has a round shell, a backlit dot-matrix LCD,
+  chunky buttons, and beeps.
 - **One mode only.** The app is always the one guessing.
 - **Fully offline.** There is no server, API key, account, analytics, or learning.
 - **One knowledge base drives both apps.** It is the shared file `kb.json`, with one shared
@@ -26,56 +30,91 @@ Twenty Q is a twenty questions game in the spirit of the 90s handheld toy.
 | Ships to | `~/Portfolio-Website/twentyq` via `npm run deploy` (labrarf.com/twentyq). Follow `~/Portfolio-Website/SITE-GUIDE.md` and Estoria's `scripts/deploy.sh`. Vite `base: '/twentyq/'`. | Local debug builds. Play internal testing later. |
 | KB copy | **Master copy** at `kb/kb.json` | Exact copy at `app/src/main/assets/kb.json` |
 
-**Look:** Ray's papery design language. Load the `design-pref-rfcl` skill before any UI work.
+**Look:** an original handheld guessing toy, coloured in Ray's papery palette (§7). Load the
+`design-pref-rfcl` skill before any UI work: its tokens, page chrome, and copy rules apply.
 
 ---
 
-## 2. Game flow
+## 2. Game flow (played on the device)
 
-Every step of the game is a **turn**, numbered 1 to 25. A turn is either a question or a
-guess, and the big counter on screen shows the turn number ("Q7").
+The whole game happens on one screen: the **device** (§7). Every step of the game is a
+**turn**, numbered 1 to 25. A turn is either a question or a guess.
 
-1. **Home.**
-   - The title "Twenty Q" and the line "Think of something. I'll read your mind in twenty questions."
-   - A **Play** button.
-   - A "How to play" link that opens a short sheet: think of an object, animal, or plant;
-     answer honestly; Maybe means sometimes or partly; Skip means you don't know or it
-     doesn't apply.
-   - A small stats line: games played, and how often you stumped it.
-2. **Turn 1 is always the category question:** *"Is it an animal, vegetable, mineral, or other?"*
-   - Buttons: **Animal · Vegetable · Mineral · Other · Skip**.
-   - The how-to sheet explains the categories:
+### Controls
+
+**Answer buttons**, left to right, in an arc under the LCD. On question turns:
+
+| Button | Engine answer token | Keyboard (web) |
+|---|---|---|
+| **UNKNOWN** | `skip` | `U` |
+| **NO** | `no` | `N` |
+| **YES** | `yes` | `Y` |
+| **SOMETIMES** | `maybe` | `S` |
+
+**Other controls:**
+- **UNDO** sits centred below the arc (keyboard `Backspace` or `Z`). It undoes the last
+  turn, whether a question or a guess, back to turn 1.
+- **NEW GAME** is a small round button bottom-left (keyboard `G`). Mid-game the LCD first
+  asks "Start over?", and YES confirms.
+- **SOUND** is a small round button bottom-right (keyboard `M`). It mutes or unmutes and
+  remembers the choice.
+
+### Flow
+
+1. **Idle.** The LCD shows *"Think of something. Press YES to start."*
+   - YES (or NEW GAME) starts a game.
+   - The page outside the device shows a quiet stats line and a "How to play" link that
+     opens a sheet. The sheet says:
+     - think of an object, animal, or plant
+     - answer honestly
+     - Sometimes means partly or it depends
+     - Unknown means you don't know or it doesn't apply
+     - what the four categories mean
+2. **Turn 1 is always the category question.** The LCD shows
+   *"Is it an animal, vegetable, mineral, or other?"*
+   - For this turn only, the four printed button labels swap to
+     **ANIMAL · VEGETABLE · MINERAL · OTHER**, mapped left to right to the four buttons.
+   - Keyboard: `A`, `V`, `I`, `O`, or `1` to `4`.
+   - There is no category Skip in the UI.
+   - Category definitions for the sheet:
      - Animal: any animal, or something mostly made from one (leather, wool, egg).
      - Vegetable: a plant, or something made from plants (fruit, bread, wood, paper, cotton).
      - Mineral: non-living, and not from a plant or animal (metal, stone, glass, plastic).
      - Other: places, weather, ideas, and things that don't fit cleanly.
-3. **Question turns.** The screen shows the question text and four buttons:
-   **Yes · No · Maybe · Skip**. A **Back** control undoes the last turn, whether it was a
-   question or a guess, back to turn 1.
-4. **Guess turns.** The app says *"I think it's {article} {name}."* (for example
-   "I think it's a cat.", "I think it's the moon.", "I think it's bread.").
-   - Buttons: **Right · Wrong**. Back is available here too.
-   - Right ends the game as a win for the app.
+3. **Question turns.**
+   - After each answer, the LCD briefly shows *"I'm thinking..."* with animated dots
+     (about 400 ms; skipped under reduced motion).
+   - Then it **types out** the next question character by character (about 40 characters a
+     second). Any button press during the typing completes the text instantly; it does not
+     count as an answer.
+   - A small `Q7` counter sits in the LCD's top-right corner.
+4. **Guess turns.**
+   - The LCD types *"I think it's {article} {name}. Am I right?"*
+   - **YES** means Right and **NO** means Wrong. UNKNOWN and SOMETIMES go dim and are disabled.
    - Wrong removes that thing and play continues.
-5. **Overtime.**
+5. **Overtime, as on the toy.**
    - From turn 20 on, every turn is a guess.
-   - If the turn-20 guess is wrong, the app gets turns 21 to 25. It shows the line
-     *"Hmm. Give me five more."* once, when turn 21 starts.
-6. **End screen.**
-   - App wins: *"I got it in {turn}!"*
-   - Stumped (wrong at turn 25, or no candidates left): *"You stumped me!"*, followed by
-     *"Were you thinking of…"* and the top 3 remaining things by weight. These are
-     informational only: tapping one records nothing.
-   - Both show a recap: every turn's question or guess with your answer. Then **Play again**
-     and **Home**.
+   - If the turn-20 guess is wrong, the LCD shows *"Hmm. Give me five more."* once, and play
+     continues through turn 25.
+6. **End.** The LCD shows one of these, then *"Press YES to play again."*:
+   - App wins: *"I win! Got it in {turn}."*
+   - Stumped (wrong at turn 25, or no candidates left): *"You win! You stumped me."*
+     followed by *"Were you thinking of {a}, {b}, or {c}?"*, the top 3 runner-ups.
+     These are informational only.
+   - Below the device, a quiet **"Show the questions"** link opens the recap: every turn's
+     question or guess with your answer. On web it expands in place; on Android it opens a
+     bottom sheet.
 
 **Stats** are stored locally (web `localStorage`, Android DataStore). Fields: `played`,
-`appWins`, `stumped`, and `totalTurnsOnWins`. The Home line shows "Played 12 · You stumped me 3 times".
-A game counts once it reaches the end screen; quitting halfway counts nothing.
+`appWins`, `stumped`, and `totalTurnsOnWins`. The page shows a line like
+"Played 12 · You stumped me 3 times". A game counts once it reaches the end; abandoning it
+with NEW GAME counts nothing.
 
-**Keyboard on web:** `Y` Yes, `N` No, `M` Maybe, `S` Skip, `Backspace` Back.
-- Turn 1: `A` Animal, `V` Vegetable, `I` Mineral, `O` Other, `S` Skip.
-- Guess turns: `Y` / `Enter` Right, `N` Wrong.
+### LCD text rules
+- Up to 3 lines, word-wrapped.
+- If a message needs more than 3 lines, it scrolls up a line at a time, about 1.2 s per line.
+- The LCD can show lower and upper case. Use sentence case as written above.
+- No em dashes in any message.
 
 ---
 
@@ -281,7 +320,7 @@ The TypeScript engine is the **reference implementation**.
   - an overtime game reaching turn 25 stumped
   - a game with Skips
   - a game with several Backs, including a Back across a guess
-  - a category Skip
+  - a category Skip (the UI never sends one, but the engine must handle it)
   - at least 12 games in total
 
 ---
@@ -309,30 +348,90 @@ of fixes to make. The coordinator signs off on the full KB using this report plu
 
 ---
 
-## 7. Screens and style
+## 7. The device: look, sound, feel
 
-Load the `design-pref-rfcl` skill before writing any UI.
-- **Palette:** cream and paper. **Type:** a serif display face for the question text, and a
-  humanist sans for UI. Hairline borders, uppercase eyebrow labels, calm motion. **No em
-  dashes anywhere in UI copy.**
-- **Home:** title, tagline, Play, How to play, stats line.
-- **Question:**
-  - eyebrow label `QUESTION 7 OF 20`, shown as `OF 25` in overtime
-  - the question in large serif
-  - answer buttons stacked full-width on phones, in a row on wide screens
-  - a quiet Back control
-  - a thin 20-segment progress hairline
-- **Guess:**
-  - eyebrow label `MY GUESS`
-  - "I think it's a cat." in large serif
-  - Right and Wrong buttons
-- **End:** headline, the runner-ups when stumped, a scrollable recap, Play again and Home.
-- **Motion:** about a 180 ms cross-fade between turns. Nothing bounces or flashes. Respect
-  reduced-motion settings.
-- **Web:** responsive from 360 px wide. The answer buttons have `aria-keyshortcuts`, and the
-  page has a light theme only, unless the design skill says otherwise.
-- **Android:** portrait-first. Edge-to-edge with the correct insets. Haptic tick on each
-  answer. Back gesture on the Question screen means undo, and on turn 1 it returns Home.
+This is an **original handheld guessing toy**, inspired by the 90s toys in feel. It must
+**not** copy any real product's logo, name, mascot, or exact shape. The face carries our
+own wordmark, "Twenty Q", in Spectral (light weight) where a toy would have a logo.
+
+### Shape
+- **Shell.** A single circle, centred on the page.
+  - Diameter: `min(92vw, 70vh, 460px)` on web. On Android, the screen width minus 16 dp
+    each side, capped at 460 dp.
+  - Every control inside is positioned and sized as a fraction of the diameter, so it
+    scales cleanly.
+  - Two or three concentric **ridge rings** drawn as hairlines in `--line` / `--rule`.
+- **LCD.**
+  - A wide rounded rectangle across the middle, about 80% of the diameter wide.
+  - Set in a recessed ink-coloured bezel with a soft inner shadow.
+- **Buttons.**
+  - Four round answer buttons in a gentle downward-curving arc below the LCD, each about
+    17% of the diameter.
+  - Their labels are printed above each button in eyebrow style (uppercase, letter-spaced,
+    `--soft`), and curve with the arc.
+  - **UNDO** is a wide oval centred below the arc.
+  - **NEW GAME** and **SOUND** are small round buttons at about 7 and 5 o'clock, with tiny
+    eyebrow labels.
+
+### Colour (Estoria palette from `design-pref-rfcl`; warm, never saturated)
+- **Page:** `--bg`.
+- **Shell:** warm cream plastic.
+  - A very soft radial shade from `--card` (top-left highlight) to `--panel`.
+  - Warm-tinted soft shadow from `--shadow`. No glossy highlights, chrome, or neon.
+- **Buttons:**
+  - Ink (`--ink`) rubber caps with a faint moulded inner ring, and a 1 px lighter top edge
+    for the pressed-in feel.
+  - **Pressed:** move down 1 to 2 px, shadow shrinks, dim slightly. 80 ms, no bounce.
+  - **Disabled:** 35% opacity.
+- **LCD backlight:** soft sage built from the accent hue, about `oklch(0.87 0.045 150)`.
+  - Text is dark ink-green, about `oklch(0.30 0.035 150)`.
+  - A barely visible ghost dot grid of unlit pixels behind the text.
+- **Dark theme**, via a manual toggle on web (persisted; follow the system theme on
+  Android):
+  - The shell becomes warm graphite (`--card` / `--panel` dark values) and button caps
+    become `#4c4740`.
+  - The LCD keeps the same sage glow, so it reads as backlit.
+  - Labels use the dark `--soft`.
+  - Contrast must pass in both themes.
+
+### Type
+- **LCD:** a dot-matrix font, **DotGothic16** (OFL), bundled with the app and never fetched
+  at runtime.
+- **Page chrome** (stats line, how-to sheet, recap): Spectral + Hanken Grotesk, per the
+  design skill. Eyebrow labels as the skill defines them.
+- **Copy:** no em dashes anywhere, and the plain, low-hype voice of the skill.
+
+### Sound (synthesized, no audio files)
+Square-wave blips, generated at runtime: Web Audio on web, `AudioTrack` PCM on Android.
+Volume stays modest.
+
+| Event | Sound |
+|---|---|
+| Any button press | 25 ms blip, about 880 Hz |
+| New question appears | two-note chirp, about 660 then 990 Hz, 60 ms each |
+| Guess appears | rising three-note arpeggio |
+| App wins | short five-note major jingle, under 1 s |
+| Stumped | falling three-note "wah wah", under 1 s |
+| Wrong guess | low 120 ms buzz, about 180 Hz |
+
+- SOUND toggles all of it, **default on**, and the setting persists.
+- Web: create the AudioContext on the first user gesture.
+- Android: also respect the system media volume.
+
+### Feel
+- **Haptics on Android:** a light tick on every press, and a heavier one on win or stumped.
+- **Motion:** the typed-out LCD text and the "I'm thinking..." dots are the only animation,
+  plus the button press.
+- **Reduced motion:** show the text instantly and skip the thinking dots.
+- **Accessibility:**
+  - Every button has a real accessible label ("Yes", "Sometimes", "Undo", etc.) and visible
+    focus rings (accent green).
+  - The LCD text is an `aria-live="polite"` region on web, and a live region on Android.
+- **Web:** `aria-keyshortcuts` on the buttons. Responsive from 360 px. The device never
+  scrolls off-screen on a phone in portrait.
+- **Android:** portrait-locked. Edge-to-edge with the correct insets. The device is drawn in
+  Compose (shapes and Canvas), not as a bitmap. The system Back gesture means UNDO during a
+  game, and leaves the app when idle.
 
 ---
 
@@ -378,5 +477,3 @@ Load the `design-pref-rfcl` skill before writing any UI.
 - the reverse mode, where you guess the app's thing
 - free-text questions, LLMs, and network calls
 - accounts, sync, analytics, and ads
-- sound effects (maybe in v2)
-- dark theme, unless it comes free from the design skill
