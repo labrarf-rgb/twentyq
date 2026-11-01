@@ -4,7 +4,9 @@
 > the Android app. Change it only through the coordinator session, which copies it to both
 > repos. Each repo keeps its own dated log in `docs/SESSIONS.md`.
 
-Last spec update: 2026-11-01, v7. History:
+Last spec update: 2026-11-01, v8. History:
+- **v8:** the knowledge base grows from 212 to about 1,000 things. The schema and engine are
+  unchanged.
 - **v7:** each category question (animal, vegetable, mineral) is its own numbered question.
   The engine has a category phase, and `schemaVersion` is 2. **Engine change: the vectors
   must be regenerated and the parity tests re-run.**
@@ -171,8 +173,8 @@ by hand. A schema change needs both apps updated together, through the coordinat
 - **Order is meaningful.** Question order in the array breaks ties (§4), and thing order is
   each thing's index. Don't re-sort casually: any reorder means regenerating the test vectors.
 - **Seed.** The current file has 96 questions and 36 seed things. The web session expands it
-  to **about 200 things**:
-  - roughly 70 animal, 50 vegetable, 60 mineral, 20 other
+  to **about 200 things** (v1), and v8 grows it to **about 1,000**:
+  - at 1,000: roughly 300 animal, 250 vegetable, 300 mineral, 150 other
   - everyday things a 10-year-old would think of first: dog, pizza, chair, phone, tree, car, moon
   - questions added only when they separate things the existing ones can't. Never remove or
     rename a question id without the coordinator.
