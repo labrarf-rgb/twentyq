@@ -6,7 +6,7 @@ Newest first. One dated entry per working session.
 - Branch `feature/twentyq-web`. Scaffolded Vite + React 19 + TS + Zustand + Tailwind v4 + Vitest (modelled on Estoria-wa, `base: '/twentyq/'` in production).
 - Reference engine in `src/engine/` per SPECS §4 (mulberry32, soft scoring, info-gain, 1e-9 tie epsilon, guess rules, Back as replay). Unit tests in `engine.test.ts`.
 - `npm run kb:check`, `kb:vectors`, `kb:bench` added under `scripts/`. 16-game `kb/test-vectors.json` committed early for the Android port; hand-over notes in the shared notes folder (`web-vectors-ready.md`).
-- KB expanded from 36 to 213 things and from 96 to 128 questions (32 appended, no ids changed or reordered). New-question values were appended to the 36 seed things; their existing values are untouched. `kbVersion` is now `kb-2026.11.01.2`; vectors regenerated.
+- KB expanded from 36 to 212 things and from 96 to 128 questions (32 appended, no ids changed or reordered). New-question values were appended to the 36 seed things; their existing values are untouched. `kbVersion` is now `kb-2026.11.01.3` (after coordinator review: oak_tree removed, lives_in_africa unknown for non-animals, gold/ring separated); vectors regenerated.
 - Bench: 100% truthful by turn 20, 99.4% with 10% noise by turn 25 (self-play from the KB itself, so it measures consistency, not accuracy). Stopped here for coordinator KB review. Not started: UI, deploy script, portfolio page.
 
 ## 2026-10-31 · Coordinator

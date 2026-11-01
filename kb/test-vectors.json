@@ -1,5 +1,5 @@
 {
- "kbVersion": "kb-2026.11.01.2",
+ "kbVersion": "kb-2026.11.01.3",
  "prng": [
   {
    "seed": 42,
@@ -94,15 +94,15 @@
    "finalWeightsTop3": [
     [
      "cat",
-     0.9028572036941086
+     0.902857714012545
     ],
     [
      "lion",
-     0.024992586953470144
+     0.024992601079932036
     ],
     [
      "spider",
-     0.02499258695347014
+     0.024992601079932036
     ]
    ]
   },
@@ -185,15 +185,15 @@
    "finalWeightsTop3": [
     [
      "apple",
-     0.8384157314439248
+     0.837042519176283
     ],
     [
      "cherry",
-     0.09315730349376942
+     0.09300472435292036
     ],
     [
      "watermelon",
-     0.016439524145959308
+     0.016412598415221243
     ]
    ]
   },
@@ -264,15 +264,15 @@
    "finalWeightsTop3": [
     [
      "spoon",
-     0.802044793610943
+     0.8020447957084289
     ],
     [
      "fork",
-     0.10025559920136788
+     0.10025559946355361
     ],
     [
      "refrigerator",
-     0.04717910550652608
+     0.04717910562990756
     ]
    ]
   },
@@ -337,15 +337,15 @@
    "finalWeightsTop3": [
     [
      "rain",
-     0.9752657254520334
+     0.9752657502626436
     ],
     [
      "snow",
-     0.01270445887012623
+     0.012704459193325711
     ],
     [
      "water",
-     0.006352229435063115
+     0.0063522295966628554
     ]
    ]
   },
@@ -416,15 +416,15 @@
    "finalWeightsTop3": [
     [
      "elephant",
-     0.9330292412235573
+     0.9329857066466324
     ],
     [
      "hippo",
-     0.018294691004383485
+     0.01829383738522809
     ],
     [
      "rhino",
-     0.018294691004383485
+     0.01829383738522809
     ]
    ]
   },
@@ -489,15 +489,15 @@
    "finalWeightsTop3": [
     [
      "goldfish",
-     0.813261748626058
+     0.8132667346324085
     ],
     [
      "salmon",
-     0.047838926389768124
+     0.047839219684259325
     ],
     [
      "shark",
-     0.022512435948126183
+     0.022512573969063213
     ]
    ]
   },
@@ -640,15 +640,15 @@
    "finalWeightsTop3": [
     [
      "dog",
-     0.4721546170179286
+     0.4721804899745181
     ],
     [
      "cat",
-     0.16722142686051647
+     0.16723059019930847
     ],
     [
      "hedgehog",
-     0.07869243616965485
+     0.07869674832908632
     ]
    ]
   },
@@ -668,13 +668,13 @@
     "no",
     "maybe",
     "no",
-    "yes",
     "no",
-    "yes",
+    "no",
+    "no",
     "wrong",
-    "no",
-    "no",
-    "no",
+    "yes",
+    "yes",
+    "maybe",
     "wrong",
     "wrong",
     "wrong",
@@ -745,17 +745,17 @@
     {
      "turn": 13,
      "kind": "question",
-     "id": "is_mammal"
+     "id": "can_hold"
     },
     {
      "turn": 14,
      "kind": "question",
-     "id": "lives_in_forest"
+     "id": "lives_in_cold_places"
     },
     {
      "turn": 15,
      "kind": "question",
-     "id": "is_pet"
+     "id": "heavier_than_person"
     },
     {
      "turn": 16,
@@ -765,47 +765,47 @@
     {
      "turn": 17,
      "kind": "question",
-     "id": "has_hooves"
+     "id": "has_legs"
     },
     {
      "turn": 18,
      "kind": "question",
-     "id": "heavier_than_person"
+     "id": "climbs"
     },
     {
      "turn": 19,
      "kind": "question",
-     "id": "is_food"
+     "id": "is_brown"
     },
     {
      "turn": 20,
      "kind": "guess",
-     "id": "rabbit"
+     "id": "monkey"
     },
     {
      "turn": 21,
      "kind": "guess",
-     "id": "mouse"
+     "id": "goat"
     },
     {
      "turn": 22,
      "kind": "guess",
-     "id": "hamster"
+     "id": "rabbit"
     },
     {
      "turn": 23,
      "kind": "guess",
-     "id": "hedgehog"
+     "id": "lion"
     },
     {
      "turn": 24,
      "kind": "guess",
-     "id": "polar_bear"
+     "id": "spider"
     },
     {
      "turn": 25,
      "kind": "guess",
-     "id": "teddy_bear"
+     "id": "lizard"
     }
    ],
    "result": {
@@ -814,16 +814,16 @@
    },
    "finalWeightsTop3": [
     [
-     "monkey",
-     0.21549372425035396
+     "mouse",
+     0.11780629323438838
     ],
     [
-     "lion",
-     0.11487854462261166
+     "crab",
+     0.09905511853272102
     ],
     [
-     "lizard",
-     0.1144810410080006
+     "raccoon",
+     0.09387688992115326
     ]
    ]
   },
@@ -918,15 +918,15 @@
    "finalWeightsTop3": [
     [
      "bread",
-     0.9447192743145354
+     0.9447206304208385
     ],
     [
      "cake",
-     0.01961354894770662
+     0.019613577102162737
     ],
     [
      "cereal",
-     0.009229905387156057
+     0.009229918636311877
     ]
    ]
   },
@@ -1069,15 +1069,15 @@
    "finalWeightsTop3": [
     [
      "car",
-     0.9600446625972027
+     0.9600447217759004
     ],
     [
      "bicycle",
-     0.03791071427581707
+     0.03791071661269452
     ],
     [
      "bus",
-     0.0011111628039319472
+     0.0011111628724258112
     ]
    ]
   },
@@ -1152,15 +1152,15 @@
    "finalWeightsTop3": [
     [
      "lion",
-     0.8817458771871133
+     0.8805882876256088
     ],
     [
      "gorilla",
-     0.05186740454041843
+     0.05179931103680053
     ],
     [
      "rhino",
-     0.01830614277897121
+     0.018282109777694306
     ]
    ]
   },
@@ -1171,15 +1171,12 @@
     "skip",
     "yes",
     "no",
+    "yes",
+    "no",
     "no",
     "yes",
     "no",
     "yes",
-    "yes",
-    "yes",
-    "no",
-    "no",
-    "wrong",
     "yes",
     "right"
    ],
@@ -1196,37 +1193,37 @@
     {
      "turn": 3,
      "kind": "question",
-     "id": "has_tail"
+     "id": "has_legs"
     },
     {
      "turn": 4,
      "kind": "question",
-     "id": "found_outdoors"
+     "id": "is_food"
     },
     {
      "turn": 5,
      "kind": "question",
-     "id": "is_food"
+     "id": "is_fruit"
     },
     {
      "turn": 6,
      "kind": "question",
-     "id": "is_sweet"
+     "id": "is_soft"
     },
     {
      "turn": 7,
      "kind": "question",
-     "id": "is_yellow_orange"
+     "id": "is_cooked"
     },
     {
      "turn": 8,
      "kind": "question",
-     "id": "grows_underground"
+     "id": "has_tail"
     },
     {
      "turn": 9,
      "kind": "question",
-     "id": "is_round"
+     "id": "grows_underground"
     },
     {
      "turn": 10,
@@ -1235,41 +1232,26 @@
     },
     {
      "turn": 11,
-     "kind": "question",
-     "id": "has_seeds"
-    },
-    {
-     "turn": 12,
-     "kind": "guess",
-     "id": "onion"
-    },
-    {
-     "turn": 13,
-     "kind": "question",
-     "id": "is_cooked"
-    },
-    {
-     "turn": 14,
      "kind": "guess",
      "id": "potato"
     }
    ],
    "result": {
     "outcome": "win",
-    "turn": 14
+    "turn": 11
    },
    "finalWeightsTop3": [
     [
      "potato",
-     0.841432053131404
+     0.8195270172863361
     ],
     [
      "carrot",
-     0.1051790066414255
+     0.0482074716050786
     ],
     [
      "egg",
-     0.013147375830178186
+     0.0482074716050786
     ]
    ]
   },
@@ -1438,15 +1420,15 @@
    "finalWeightsTop3": [
     [
      "cloud",
-     0.07830787857618887
+     0.08314166663146652
     ],
     [
      "helmet",
-     0.06584364876821415
+     0.06990804495310156
     ],
     [
-     "oak_tree",
-     0.05873090893214166
+     "tree",
+     0.06235624997359986
     ]
    ]
   },
@@ -1498,7 +1480,7 @@
     {
      "turn": 4,
      "kind": "question",
-     "id": "bigger_than_breadbox"
+     "id": "can_hold"
     },
     {
      "turn": 5,
@@ -1523,7 +1505,7 @@
     {
      "turn": 9,
      "kind": "question",
-     "id": "can_hold"
+     "id": "bigger_than_breadbox"
     },
     {
      "turn": 10,
@@ -1558,7 +1540,7 @@
     {
      "turn": 16,
      "kind": "question",
-     "id": "is_soft"
+     "id": "is_round"
     },
     {
      "turn": 17,
@@ -1613,15 +1595,15 @@
    "finalWeightsTop3": [
     [
      "shark",
-     0.004830917874396142
+     0.004854368932038826
     ],
     [
      "goldfish",
-     0.004830917874396142
+     0.004854368932038826
     ],
     [
      "frog",
-     0.004830917874396142
+     0.004854368932038826
     ]
    ]
   },
@@ -1692,15 +1674,15 @@
    "finalWeightsTop3": [
     [
      "sun",
-     0.9529175968856837
+     0.9529321436274524
     ],
     [
      "star",
-     0.042040482215544864
+     0.04204112398356408
     ],
     [
      "rocket",
-     0.000732731716175074
+     0.0007327429016743193
     ]
    ]
   },
@@ -1726,6 +1708,7 @@
     "no",
     "skip",
     "yes",
+    "no",
     "right"
    ],
    "expect": [
@@ -1751,7 +1734,7 @@
     {
      "turn": 5,
      "kind": "question",
-     "id": "is_manmade"
+     "id": "can_hold"
     },
     {
      "turn": 6,
@@ -1761,7 +1744,7 @@
     {
      "turn": 7,
      "kind": "question",
-     "id": "has_wheels"
+     "id": "is_manmade"
     },
     {
      "turn": 8,
@@ -1771,35 +1754,40 @@
     {
      "turn": 9,
      "kind": "question",
-     "id": "makes_sound"
+     "id": "has_wheels"
     },
     {
      "turn": 10,
      "kind": "question",
-     "id": "is_colorful"
+     "id": "is_vehicle"
     },
     {
      "turn": 11,
+     "kind": "question",
+     "id": "bigger_than_car"
+    },
+    {
+     "turn": 12,
      "kind": "guess",
      "id": "bicycle"
     }
    ],
    "result": {
     "outcome": "win",
-    "turn": 11
+    "turn": 12
    },
    "finalWeightsTop3": [
     [
      "bicycle",
-     0.8139317407036819
+     0.8183315761691797
     ],
     [
      "car",
-     0.04787833768845188
+     0.048137151539363536
     ],
     [
-     "bus",
-     0.02253098244162442
+     "motorcycle",
+     0.048137151539363536
     ]
    ]
   }
