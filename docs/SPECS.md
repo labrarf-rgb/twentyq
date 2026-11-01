@@ -4,7 +4,7 @@
 > the Android app. Change it only through the coordinator session, which copies it to both
 > repos. Each repo keeps its own dated log in `docs/SESSIONS.md`.
 
-Last spec update: 2026-11-01 (v5: web device fills the window, up to D = 800 px, with stats moved into the header on wide screens. v4: exact device geometry, LCD fit rules, no page scroll, required fit check. v3: buttons never change; turn 1 asks one category at a time. v2: the UI is now a handheld toy device with physical-style
+Last spec update: 2026-11-01 (v6: Android device centred and sized to the phone; the overtime line is its own message. v5: web device fills the window, up to D = 800 px, with stats moved into the header on wide screens. v4: exact device geometry, LCD fit rules, no page scroll, required fit check. v3: buttons never change; turn 1 asks one category at a time. v2: the UI is now a handheld toy device with physical-style
 buttons and synthesized beeps. The answer buttons are labelled Unknown / No / Yes /
 Sometimes, and they never change. Turn 1 offers categories one at a time on the LCD (§2). **The engine, the KB schema, and the answer tokens are unchanged.**)
 
@@ -102,7 +102,8 @@ The whole game happens on one screen: the **device** (§7). Every step of the ga
 5. **Overtime, as on the toy.**
    - From turn 20 on, every turn is a guess.
    - If the turn-20 guess is wrong, the LCD shows *"Hmm. Give me five more."* once, and play
-     continues through turn 25.
+     continues through turn 25. That line is its own LCD message, shown for about 1.5 s,
+     and then the guess replaces it. Never join the two into one message.
 6. **End.** The LCD shows one of these, then *"Press YES to play again."*:
    - App wins: *"I win! Got it in {turn}."*
    - Stumped (wrong at turn 25, or no candidates left): *"You win! You stumped me."*
@@ -398,8 +399,18 @@ the ridge rings.
     The recap and how-to sheets are the only things that may scroll, inside themselves.
   - Expected sizes: 1024×768 gives D ≈ 690, 1440×900 gives D = 800, 375×667 gives D ≈ 352
     (width-limited).
-- **Android:** `D = min(screen width − 32 dp, available height − stats row − How to play row, 460 dp)`.
-  The device is centred in the space between those two rows.
+- **Android (v6: centred, as big as the phone allows):**
+  - **Layout:** a full-screen column inside the safe-drawing insets. Nothing may sit under
+    the status bar, the camera cutout, or the gesture/navigation bar.
+    - **Top row:** the stats line, centred, at most 40 dp tall.
+    - **Middle:** the device.
+    - **Bottom row:** How to play and Show the questions, centred as a pair, at most 48 dp tall.
+  - **Size:** `D = min(screen width − 24 dp, middle height − 24 dp, 560 dp)`. On a typical
+    phone this means the full width less a 12 dp margin each side (D ≈ 387 dp on the
+    1080×2400 AVD).
+  - **Centring:** the device is centred horizontally on the screen and vertically in the
+    middle area, both to within 1 dp. No fixed-size containers, start-aligned Boxes or
+    hard-coded offsets.
 
 ### LCD text fit
 - **Inside the LCD:** padding of 0.025 D on the left and right.
@@ -428,7 +439,8 @@ It also asserts the safe circle and the page rules at these sizes:
   server, as a dev-only route or a script driving the browser. It must report pass or fail
   per size.
 - **Android:** a 360×640 dp phone and the `TwentyQ_Test` AVD (1080×2400). Run it as an
-  instrumented Compose test.
+  instrumented Compose test. It also asserts the v6 centring (horizontal and vertical, within
+  1 dp) and that nothing overlaps the system bars.
 
 ### Colour (Estoria palette from `design-pref-rfcl`; warm, never saturated)
 - **Page:** `--bg`.
