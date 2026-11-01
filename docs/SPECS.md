@@ -37,7 +37,7 @@ Twenty Q is a twenty questions game in the spirit of the 90s handheld toy.
 | Repo | `~/WebAppProjects/TwentyQ-wa` | `~/AndroidStudioProjects/TwentyQ-aa` |
 | Stack | Vite + React 19 + TypeScript + Zustand + Tailwind v4 (tokens as CSS variables + `@theme`), Vitest | Kotlin + Jetpack Compose (Material 3, themed to our tokens), single activity, JUnit |
 | IDs | — | `applicationId` / `namespace` `com.labrarf.twentyq`, minSdk 29, targetSdk 36, versionCode = git commit count (copy the `gitCount` approach from `~/AndroidStudioProjects/Estoria-aa/app/build.gradle.kts`) |
-| Ships to | `~/Portfolio-Website/twentyq` via `npm run deploy` (labrarf.com/twentyq). Follow `~/Portfolio-Website/SITE-GUIDE.md` and Estoria's `scripts/deploy.sh`. Vite `base: '/twentyq/'`. | Local debug builds. Play internal testing later. |
+| Ships to | `~/Portfolio-Website/twentyq` via `npm run deploy` (labrarf.com/twentyq), source at github.com/labrarf-rgb/twentyq (public). Listed last on the portfolio's `projects.html` and linked directly (no embed page). `public/privacy.html` is served at `/twentyq/privacy.html` and is also the Play privacy policy URL. Vite `base: '/twentyq/'`. | Google Play (internal testing first). Ray signs release bundles in Android Studio with his upload key. No GitHub remote, by Ray's choice. versionName 1.0 shipped as versionCode 19; 1.1 carries the ~1,000-thing KB. |
 | KB copy | **Master copy** at `kb/kb.json` | Exact copy at `app/src/main/assets/kb.json` |
 
 **Look:** an original handheld guessing toy, coloured in Ray's papery palette (§7). Load the
@@ -172,7 +172,8 @@ by hand. A schema change needs both apps updated together, through the coordinat
   Lowercasing applies only to the first letter, so names keep their own internal capitals.
 - **Order is meaningful.** Question order in the array breaks ties (§4), and thing order is
   each thing's index. Don't re-sort casually: any reorder means regenerating the test vectors.
-- **Seed.** The current file has 96 questions and 36 seed things. The web session expands it
+- **Size.** It started as a seed of 96 questions and 36 things. It is now `kb-2026.11.02.5`, with
+  994 things and 168 questions. The web session expanded it
   to **about 200 things** (v1), and v8 grows it to **about 1,000**:
   - at 1,000: roughly 300 animal, 250 vegetable, 300 mineral, 150 other
   - everyday things a 10-year-old would think of first: dog, pizza, chair, phone, tree, car, moon
@@ -384,7 +385,12 @@ to a different random answer. **Targets for the full KB:**
 | 10% noise | ≥ 80% won by turn 25 |
 
 The benchmark prints the worst-performing things and the pairs most often confused, as a list
-of fixes to make. The coordinator signs off on the full KB using this report plus spot checks.
+of fixes to make. `npm run kb:bench:fast` (every 5th thing, 2 seeds) is for quick checks between
+batches. The full `kb:bench` is the sign-off. `npm run kb:format` rewrites `kb.json` in the
+compact one-thing-per-line layout.
+
+Latest full bench (`kb-2026.11.02.5`): 98.6% truthful by turn 20, 92.7% with noise by turn 25,
+and an average win at turn 14. The coordinator signs off on the full KB using this report plus spot checks.
 
 ---
 
