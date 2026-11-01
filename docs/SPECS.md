@@ -4,7 +4,7 @@
 > the Android app. Change it only through the coordinator session, which copies it to both
 > repos. Each repo keeps its own dated log in `docs/SESSIONS.md`.
 
-Last spec update: 2026-11-01 (v3: buttons never change; turn 1 asks one category at a time. v2: the UI is now a handheld toy device with physical-style
+Last spec update: 2026-11-01 (v4: exact device geometry, LCD fit rules, no page scroll, required fit check. v3: buttons never change; turn 1 asks one category at a time. v2: the UI is now a handheld toy device with physical-style
 buttons and synthesized beeps. The answer buttons are labelled Unknown / No / Yes /
 Sometimes, and they never change. Turn 1 offers categories one at a time on the LCD (§2). **The engine, the KB schema, and the answer tokens are unchanged.**)
 
@@ -361,24 +361,64 @@ This is an **original handheld guessing toy**, inspired by the 90s toys in feel.
 **not** copy any real product's logo, name, mascot, or exact shape. The face carries our
 own wordmark, "Twenty Q", in Spectral (light weight) where a toy would have a logo.
 
-### Shape
-- **Shell.** A single circle, centred on the page.
-  - Diameter: `min(92vw, 70vh, 460px)` on web. On Android, the screen width minus 16 dp
-    each side, capped at 460 dp.
-  - Every control inside is positioned and sized as a fraction of the diameter, so it
-    scales cleanly.
-  - Two or three concentric **ridge rings** drawn as hairlines in `--line` / `--rule`.
-- **LCD.**
-  - A wide rounded rectangle across the middle, about 80% of the diameter wide.
-  - Set in a recessed ink-coloured bezel with a soft inner shadow.
-- **Buttons.**
-  - Four round answer buttons in a gentle downward-curving arc below the LCD, each about
-    17% of the diameter.
-  - Their labels are printed above each button in eyebrow style (uppercase, letter-spaced,
-    `--soft`), and curve with the arc.
-  - **UNDO** is a wide oval centred below the arc.
-  - **NEW GAME** and **SOUND** are small round buttons at about 7 and 5 o'clock, with tiny
-    eyebrow labels.
+### Shape and geometry (v4: hard layout rules, same on both platforms)
+
+All positions are fractions of the shell diameter **D**, measured from the top-left corner
+of the shell's bounding square, so `(0.5, 0.5)` is the centre. Both apps use these numbers.
+
+**Safe circle.** Every control, label, the LCD bezel, and the wordmark must sit **entirely
+inside a circle of radius 0.44 D** around the centre. Nothing may touch or cross the rim or
+the ridge rings.
+
+| Element | Size | Centre / position |
+|---|---|---|
+| Wordmark "Twenty Q" | font size 0.065 D | centred, baseline at y 0.165 |
+| LCD bezel | 0.70 D × 0.26 D, corner radius 0.035 D, bezel padding 0.015 D | x 0.15 to 0.85, y 0.22 to 0.48 |
+| UNKNOWN, SOMETIMES buttons | Ø 0.15 D | (0.215, 0.62), (0.785, 0.62) |
+| NO, YES buttons | Ø 0.15 D | (0.405, 0.66), (0.595, 0.66) |
+| Answer labels | font 0.026 D, letter-spacing 0.1 em, no curve required | centred over each button, baseline 0.02 D above the button's top edge |
+| NEW GAME, SOUND buttons | Ø 0.065 D | (0.30, 0.775), (0.70, 0.775) |
+| NEW GAME, SOUND labels | font 0.022 D | centred under each button, top 0.012 D below it |
+| UNDO oval | 0.22 D × 0.075 D | centred at (0.5, 0.84), label font 0.026 D |
+
+**Shell size.**
+- **Web:** the page is a full-height column (`100dvh`) holding the header, the device, the
+  stats line with How to play, and the footer.
+  - The device takes the space that's left: `D = min(92vw, remaining height, 460px)`.
+  - The footer hides itself when the viewport is shorter than 700 px.
+  - **The page never scrolls, horizontally or vertically, at any viewport from 320 × 560 up.**
+    The recap and how-to sheets are the only things that may scroll, inside themselves.
+- **Android:** `D = min(screen width − 32 dp, available height − stats row − How to play row, 460 dp)`.
+  The device is centred in the space between those two rows.
+
+### LCD text fit
+- **Inside the LCD:** padding of 0.025 D on the left and right.
+- **Counter strip:** the top 0.035 D of the LCD is reserved for the `Q7` counter at the
+  right. Text starts below it, so the two never overlap.
+- **Font size:** the smaller of two sizes: the size at which exactly 24 characters of
+  DotGothic16 fill one line (measure the font's real advance width, don't assume it), and the
+  size at which 3 lines at 1.25 em fit under the counter strip.
+- **Lines:** line height 1.25 em, and exactly 3 lines visible.
+- **Wrapping:** only at spaces, with no horizontal clipping ever. If a single word could ever
+  exceed a line (none do today), break it, and never let it overflow.
+- **Longer messages** (runner-ups, for example) scroll up one line at a time per §2. They are
+  never clipped and never shrink the font.
+
+### Fit check (required, both apps)
+Each app gets an automated check that renders **every string the LCD can show** into the
+real LCD at real size, and asserts it fits per the rules above. "Every string" means:
+- every question in `kb.json`
+- the four category prompts
+- the guess line for every thing in `kb.json`
+- every idle, overtime, win, stumped, confirm and "Press YES" message
+- the longest possible runner-up message: the three longest names
+
+It also asserts the safe circle and the page rules at these sizes:
+- **Web:** 320×560, 375×667, 390×844, 768×1024, 1280×620, 1440×900. Run it in the dev
+  server, as a dev-only route or a script driving the browser. It must report pass or fail
+  per size.
+- **Android:** a 360×640 dp phone and the `TwentyQ_Test` AVD (1080×2400). Run it as an
+  instrumented Compose test.
 
 ### Colour (Estoria palette from `design-pref-rfcl`; warm, never saturated)
 - **Page:** `--bg`.
@@ -451,6 +491,7 @@ Volume stays modest.
 - `npm run kb:bench` meets §6 on the full KB.
 - Vectors cover §5.
 - The game plays end to end with mouse, touch, and keyboard.
+- The fit check (§7) passes at every listed size.
 - Deployed to `labrarf.com/twentyq` with a portfolio landing page, but only after Ray says go.
 
 **Android**
@@ -458,6 +499,7 @@ Volume stays modest.
   `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"`.
 - Every web test vector passes in JUnit against the synced `kb.json`.
 - The game plays end to end on an emulator or device.
+- The fit check (§7) passes on both devices.
 
 ---
 
