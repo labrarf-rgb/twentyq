@@ -2,6 +2,13 @@
 
 Newest first. One dated entry per working session.
 
+## 2026-11-01 · Web build session 4 (spec v4: geometry and fit)
+- Committed spec v4 as given, then reworked the layout to §7. The page is a `100dvh` flex column (header, device area, stats and links row, footer); the device takes the leftover height, `D = min(92cqw, 100cqh, 460px)`, so the page cannot scroll. The footer hides under 700 px of height. The recap is in the flow with its own scroll (max `min(14rem, 30dvh)`), and the device shrinks to make room.
+- Device geometry follows the §7 table in fractions of D: LCD bezel 0.70 x 0.26 at y 0.22 to 0.48, buttons at the listed centres (0.15 D), UNDO 0.22 x 0.075 at (0.5, 0.84), NEW GAME and SOUND at y 0.775, labels 0.026 D, ridge rings moved outside the 0.44 D safe circle.
+- LCD: 0.025 D side padding, a 0.035 D counter strip, line height 1.25 em, exactly 3 lines. The font is the smaller of "24 characters across" and "3 lines fit", using DotGothic16's advance measured at runtime (`src/lib/lcdFont.ts`, 0.5 em today). Words longer than 24 characters are broken.
+- Fit check at `/fitcheck.html` (dev only, `src/dev/fitcheck.ts`): 353 unique LCD strings (all questions, category prompts, a guess line per thing incl. the turn-21 lead-in, idle, confirm, thinking, win, and the stumped line with the three longest names) at the six required viewports, plus safe circle, button overlap and page scroll, including with a finished 25-turn recap open. Result: all six sizes PASS. `?break=1` makes it fail, so it can fail.
+- Moved "Sound on/off" and the recap toggle into the links row to save height.
+
 ## 2026-11-01 · Web build session 3 (spec v3: fixed buttons)
 - Committed spec v3 as given. Turn 1 now asks one category at a time ("Is it an animal?" ... "Is it something else?"): YES or SOMETIMES picks the one shown, NO moves on (NO on the last, or UNKNOWN anywhere, sends a category `skip`), UNDO steps back one prompt and from turn 2 returns to the first. The prompt step is UI state only; the engine still gets one category answer, so the engine, KB and vectors are untouched.
 - The buttons never change: no relabelling, no `disabled`, no dimming, no lit/unlit SOUND dot. A press with no meaning still animates (keyboard presses too, for UNDO, NEW GAME and SOUND as well) and clicks. SOUND state moved to a quiet "Sound on/off" line below the device.

@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 const CHAR_MS = 25; // about 40 characters a second
 const SCROLL_MS = 1200; // a new line scrolls in about this often
 const VISIBLE_LINES = 3;
+const MAX_WORD = 24; // the LCD fits 24 characters of DotGothic16 across
 
 interface Props {
   text: string;
@@ -15,7 +16,8 @@ interface Props {
 /** Break `text` into lines the way the LCD's width wraps it, by measuring a hidden copy. */
 function wrap(measure: HTMLElement, text: string): string[] {
   measure.textContent = "";
-  const words = text.split(" ");
+  // A single word longer than a line is broken, never allowed to run off the LCD.
+  const words = text.split(" ").flatMap((w) => (w.length > MAX_WORD ? w.match(new RegExp(`.{1,${MAX_WORD}}`, "g"))! : [w]));
   const spans = words.map((w, i) => {
     const s = document.createElement("span");
     s.textContent = i < words.length - 1 ? w + " " : w;

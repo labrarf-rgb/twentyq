@@ -1,0 +1,23 @@
+<!doctype html>
+<!-- Dev only (SPECS section 7, "Fit check"). Open http://localhost:5173/fitcheck.html with `npm run dev`.
+     Not an entry of the production build, so it never ships. -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Twenty Q fit check</title>
+    <style>
+      body { font: 14px/1.5 ui-monospace, monospace; margin: 24px; background: #fff; color: #111; }
+      .pass { color: #0a6b2d; }
+      .fail { color: #b00020; font-weight: 600; }
+      table { border-collapse: collapse; margin: 12px 0; }
+      td, th { border: 1px solid #ccc; padding: 4px 10px; text-align: left; vertical-align: top; }
+      pre { margin: 4px 0; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <h1>Twenty Q fit check</h1>
+    <p id="status">Running...</p>
+    <div id="out"></div>
+    <script type="module" src="/src/dev/fitcheck.ts"></script>
+  </body>
+</html>

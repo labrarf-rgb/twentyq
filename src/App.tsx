@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Device } from "./components/Device";
 import { HowTo } from "./components/HowTo";
-import { Recap } from "./components/Recap";
+import { RecapList, RecapToggle, useHasRecap } from "./components/Recap";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { statsLine } from "./lib/stats";
 import { useGame, type Slot } from "./store/game";
@@ -12,6 +12,8 @@ const KEYS: Record<string, Slot> = { u: 0, n: 1, y: 2, s: 3 };
 
 export default function App() {
   const [howOpen, setHowOpen] = useState(false);
+  const [recapOpen, setRecapOpen] = useState(false);
+  const hasRecap = useHasRecap();
   const stats = useGame((s) => s.stats);
   const muted = usePrefs((s) => s.muted);
 
@@ -44,20 +46,23 @@ export default function App() {
         <ThemeToggle />
       </header>
       <main id="device" className="stage">
-        <Device />
+        <div className="device-wrap">
+          <Device />
+        </div>
         <div className="below">
           <p className="stats" aria-live="polite">
             {statsLine(stats)}
-          </p>
-          <p className="sound-state" aria-live="polite">
-            Sound {muted ? "off" : "on"}
           </p>
           <div className="links">
             <button type="button" className="link" onClick={() => setHowOpen(true)}>
               How to play
             </button>
+            {hasRecap && <RecapToggle open={recapOpen} onToggle={() => setRecapOpen(!recapOpen)} />}
+            <span className="sound-state" aria-live="polite">
+              Sound {muted ? "off" : "on"}
+            </span>
           </div>
-          <Recap />
+          {hasRecap && recapOpen && <RecapList />}
         </div>
       </main>
       <footer className="foot">
