@@ -158,8 +158,9 @@ function report(kb: ReturnType<typeof loadKB>, games: GameOutcome[], secs: numbe
 const wi = process.argv.indexOf("--worker");
 if (wi >= 0) {
   const out = runSlice(fileURLToPath(new URL("../kb/kb.json", import.meta.url)), Number(process.argv[wi + 1]), Number(process.argv[wi + 2]));
-  process.send!(out);
-  process.exit(0);
+  // Exit only once the parent has the whole result: exiting right after send() truncated big
+  // messages, and the run ended silently with no report.
+  process.send!(out, undefined, undefined, () => process.exit(0));
 } else if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main();
 }
