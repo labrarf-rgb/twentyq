@@ -118,15 +118,19 @@ function report(kb: ReturnType<typeof loadKB>, games: GameOutcome[], secs: numbe
   console.log(`10% noise won by turn ${TARGET.noisy.byTurn}: ${pct(rn)}   target >= ${pct(TARGET.noisy.rate)}   ${ok(rn, TARGET.noisy.rate)}   (avg win turn ${avgTurn("noisy").toFixed(1)})`);
 
   // Worst things: lowest truthful rate, then lowest noisy rate.
-  const per = kb.things.map((_, i) => {
+  const played = new Set(games.map((g) => g.thing));
+  const per = kb.things.flatMap((_, i) => {
+    if (!played.has(i)) return [];
     const t = games.filter((x) => x.thing === i && x.pass === "truthful");
     const n = games.filter((x) => x.thing === i && x.pass === "noisy");
-    return {
-      id: name(i),
-      truthful: t.filter((x) => x.won && x.turn <= 20).length / t.length,
-      noisy: n.filter((x) => x.won && x.turn <= 25).length / n.length,
-      avgTurn: t.reduce((a, x) => a + x.turn, 0) / t.length,
-    };
+    return [
+      {
+        id: name(i),
+        truthful: t.filter((x) => x.won && x.turn <= 20).length / t.length,
+        noisy: n.filter((x) => x.won && x.turn <= 25).length / n.length,
+        avgTurn: t.reduce((a, x) => a + x.turn, 0) / t.length,
+      },
+    ];
   });
   const worst = [...per].sort((a, b) => a.truthful - b.truthful || a.noisy - b.noisy || b.avgTurn - a.avgTurn).slice(0, 20);
   console.log("\nWorst things (truthful by 20 / noisy by 25 / avg truthful end turn):");

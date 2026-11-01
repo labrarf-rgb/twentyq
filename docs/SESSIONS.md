@@ -2,6 +2,13 @@
 
 Newest first. One dated entry per working session.
 
+## 2026-11-01 · Web build session 8 (KB to ~1,000: tooling and batch 1)
+- Branch `feature/kb-1000`. Committed spec v8 as given (§3 target ~1,000). Not deployed; the live site still has the 212-thing KB.
+- Tooling: `npm run kb:format` (compact one-thing-per-line `kb.json`; only about 8% smaller because it was already one thing per line, so I kept the schema and ids unchanged rather than switching to indices, which would be a schema change; gzip is 17 KB at 357 things, about 45 KB projected at 1,000), `npm run kb:bench:fast` (every 5th thing, 2 seeds) beside the full bench, and `kb:check` now summarizes its narrow-question and thin-thing warnings on one line each.
+- Batch 1: 212 to 357 things (+145: 53 animal, 36 vegetable, 36 mineral, 20 other) and 128 to 138 questions. Dropped four near-twins the check flagged (raspberry, plum, spinach, noodles). `kbVersion` `kb-2026.11.02.1`. Vectors regenerated.
+- New questions (all filled for every thing, old and new): lives_in_north_america, lives_in_south_america, lives_in_desert (animals; non-animals are unknown, like the other regional ones), eats_fish, is_breakfast, uses_batteries, used_for_cleaning, is_jewelry, is_wet, people_go_inside.
+- Full bench on 357 things (8 s): truthful 99.6% by turn 20, 10% noise 96.9% by turn 25.
+
 ## 2026-11-01 · Web build session 7 (shipped)
 - Ship prep committed (`11dcd07`): `scripts/deploy.sh` (Estoria's script adapted: clean-tree check, lock, settle wait, keep recent assets, live SHA poll; `npm run deploy`), `dist/version.json`, PWA manifest and icons (`art/icon-source.svg`, `scripts/make-icons.sh`), and `public/privacy.html` (web and Android, dated 2026-11-01, linked from How to play).
 - With Ray's go: created https://github.com/labrarf-rgb/twentyq (public), pushed `main`, ran `npm run deploy`. Live at https://www.labrarf.com/twentyq/ (privacy at /twentyq/privacy.html).
