@@ -7,6 +7,7 @@ const REQUIRED: [number, number][] = [
   [375, 667],
   [390, 844],
   [768, 1024],
+  [1024, 768],
   [1280, 620],
   [1440, 900],
 ];
@@ -34,6 +35,7 @@ interface SizeResult {
   size: string;
   pass: boolean;
   deviceD: number;
+  expectedD: number;
   fontPx: number;
   strings: number;
   maxLines: number;
@@ -99,8 +101,24 @@ async function runSize(w: number, h: number): Promise<SizeResult> {
   const dr = device.getBoundingClientRect();
   const D = dr.width;
   if (Math.abs(dr.width - dr.height) > 1) fail("device not square", `${dr.width}x${dr.height}`);
-  if (D > 460 + 0.5 || D > w * 0.92 + 0.5) fail("device too big", `D=${D}`);
+  // v5: D = min(94vw, height - header - below-row - 32px, 800px); below-row only exists under 600px wide
+  const header = doc.querySelector(".topbar") as HTMLElement;
+  const info = doc.querySelector(".info") as HTMLElement;
+  const narrow = w < 600;
+  const headerH = header.getBoundingClientRect().height;
+  const belowH = narrow ? info.getBoundingClientRect().height : 0;
+  const expectedD = Math.min(0.94 * w, h - headerH - belowH - 32, 800);
+  if (headerH > 48.5) fail("header taller than 48px", `${headerH}`);
+  if (narrow && belowH > 48.5) fail("info row taller than 48px", `${belowH}`);
+  if (Math.abs(D - expectedD) > 1.5) fail("D does not match the v5 formula", `D=${D.toFixed(1)} expected ${expectedD.toFixed(1)}`);
+  if (header.scrollWidth > header.clientWidth + 1) fail("header overflows sideways", `${header.scrollWidth} > ${header.clientWidth}`);
+  if (info.scrollHeight > info.clientHeight + 1 || info.scrollWidth > info.clientWidth + 1) fail("info block clipped", `${info.scrollWidth}x${info.scrollHeight} in ${info.clientWidth}x${info.clientHeight}`);
+  if (!narrow && info.getBoundingClientRect().bottom > header.getBoundingClientRect().bottom + 0.5) fail("info leaves the header", "");
+  if (doc.querySelector(".foot")) fail("page footer still present", "");
+  const infoR = info.getBoundingClientRect();
+  if (narrow && (infoR.left < -0.5 || infoR.right > w + 0.5 || infoR.bottom > h + 0.5)) fail("info row outside viewport", JSON.stringify(infoR));
   if (dr.top < -0.5 || dr.bottom > h + 0.5 || dr.left < -0.5 || dr.right > w + 0.5) fail("device outside viewport", JSON.stringify(dr));
+  if (dr.top < headerH - 0.5 || (narrow && dr.bottom > h - belowH + 0.5)) fail("device overlaps the header or info row", JSON.stringify(dr));
   const cx = dr.left + D / 2;
   const cy = dr.top + D / 2;
 
@@ -234,10 +252,12 @@ async function runSize(w: number, h: number): Promise<SizeResult> {
     const list = doc.querySelector(".recap-list") as HTMLElement | null;
     if (!list) fail("recap list missing", "");
     const dr2 = (doc.querySelector(".device") as HTMLElement).getBoundingClientRect();
-    if (dr2.width < 120) fail("recap squeezes the device", `D=${dr2.width.toFixed(0)}`);
+    if (Math.abs(dr2.width - D) > 0.5) fail("opening the recap changed D", `${D.toFixed(1)} -> ${dr2.width.toFixed(1)}`);
+    const pr = (doc.querySelector(".recap-panel") as HTMLElement).getBoundingClientRect();
+    if (pr.left < -0.5 || pr.top < -0.5 || pr.right > w + 0.5 || pr.bottom > h + 0.5) fail("recap panel outside viewport", JSON.stringify(pr));
   }
   frame.remove();
-  return { size: `${w}x${h}`, pass: failures.length === 0, deviceD: Math.round(D), fontPx: Math.round(fontPx * 100) / 100, strings: uniq.size, maxLines, failures };
+  return { size: `${w}x${h}`, pass: failures.length === 0, deviceD: Math.round(D * 10) / 10, expectedD: Math.round(expectedD * 10) / 10, fontPx: Math.round(fontPx * 100) / 100, strings: uniq.size, maxLines, failures };
 }
 
 async function main() {
@@ -251,11 +271,11 @@ async function main() {
   const all = results.every((r) => r.pass);
   document.getElementById("status")!.innerHTML = `<span class="${all ? "pass" : "fail"}">${all ? "ALL PASS" : "FAILURES"}</span>`;
   out.innerHTML =
-    `<table><tr><th>Viewport</th><th>Result</th><th>D (px)</th><th>LCD font (px)</th><th>Strings</th><th>Max lines</th><th>Failures</th></tr>` +
+    `<table><tr><th>Viewport</th><th>Result</th><th>D (px)</th><th>Expected D</th><th>LCD font (px)</th><th>Strings</th><th>Max lines</th><th>Failures</th></tr>` +
     results
       .map(
         (r) =>
-          `<tr><td>${r.size}</td><td class="${r.pass ? "pass" : "fail"}">${r.pass ? "PASS" : "FAIL"}</td><td>${r.deviceD}</td><td>${r.fontPx}</td><td>${r.strings}</td><td>${r.maxLines}</td><td>${r.failures
+          `<tr><td>${r.size}</td><td class="${r.pass ? "pass" : "fail"}">${r.pass ? "PASS" : "FAIL"}</td><td>${r.deviceD}</td><td>${r.expectedD}</td><td>${r.fontPx}</td><td>${r.strings}</td><td>${r.maxLines}</td><td>${r.failures
             .map((f) => `<pre>${f.what}: ${f.detail.replace(/</g, "&lt;")}</pre>`)
             .join("")}</td></tr>`,
       )

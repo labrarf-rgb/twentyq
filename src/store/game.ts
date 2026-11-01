@@ -17,7 +17,7 @@ const QUESTION_TOKENS: AnswerToken[] = ["skip", "no", "yes", "maybe"];
 const CATEGORY_TOKENS: AnswerToken[] = ["animal", "vegetable", "mineral", "other"];
 
 const THINK_MS = 400;
-const HOLD_MS = 1100;
+const HOLD_MS = 1500; // the "Hmm. Give me five more." line stays this long, then the guess replaces it
 const FLASH_MS = 120;
 
 interface Screen {

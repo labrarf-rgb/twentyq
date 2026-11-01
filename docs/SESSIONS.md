@@ -2,6 +2,14 @@
 
 Newest first. One dated entry per working session.
 
+## 2026-11-01 · Web build session 5 (spec v5: device fills the window)
+- Committed spec v5 as given. `D = min(94vw, 100dvh - header - below-row - 32px, 800px)`: the 460 px cap and the footer are gone (the "Everything runs on this page..." note is now at the bottom of the How to play sheet).
+- Header is one 48 px row. At 600 px and wider the stats line, sound state, How to play and Show the questions sit in it, right-aligned next to the theme toggle. Under 600 px the header keeps only the wordmark and the toggle, and the same info block is a fixed 48 px row under the device (two compact lines).
+- The recap is now an overlay panel (top right on wide screens, above the info row on narrow ones) that scrolls inside itself, so opening it never changes D.
+- Fit check gained 1024x768, an expected-D assertion per size, header and info-row height limits, info-block clipping, and the recap panel staying inside the viewport. All seven sizes PASS. D: 320x560 300.8, 375x667 352.5, 390x844 366.6, 768x1024 721.9, 1024x768 688, 1280x620 540, 1440x900 800.
+- Looked at D = 800 (1440x900) and 375x667 with the recap open; LCD, labels and press states scale cleanly.
+- Spec v6 (web part): the overtime line was already its own LCD message that the guess replaces, never joined; its hold is now 1.5 s after it finishes typing (was 1.1 s). Covered by a test.
+
 ## 2026-11-01 · Web build session 4 (spec v4: geometry and fit)
 - Committed spec v4 as given, then reworked the layout to §7. The page is a `100dvh` flex column (header, device area, stats and links row, footer); the device takes the leftover height, `D = min(92cqw, 100cqh, 460px)`, so the page cannot scroll. The footer hides under 700 px of height. The recap is in the flow with its own scroll (max `min(14rem, 30dvh)`), and the device shrinks to make room.
 - Device geometry follows the §7 table in fractions of D: LCD bezel 0.70 x 0.26 at y 0.22 to 0.48, buttons at the listed centres (0.15 D), UNDO 0.22 x 0.075 at (0.5, 0.84), NEW GAME and SOUND at y 0.775, labels 0.026 D, ridge rings moved outside the 0.44 D safe circle.

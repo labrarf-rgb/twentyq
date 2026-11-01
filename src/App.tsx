@@ -43,31 +43,30 @@ export default function App() {
       </a>
       <header className="topbar">
         <h1 className="eyebrow">Twenty Q</h1>
+        <div className="info">
+          <p className="stats" aria-live="polite">
+            {statsLine(stats)}
+          </p>
+          <span className="sound-state" aria-live="polite">
+            Sound {muted ? "off" : "on"}
+          </span>
+          <button type="button" className="link" onClick={() => setHowOpen(true)}>
+            How to play
+          </button>
+          {hasRecap && <RecapToggle open={recapOpen} onToggle={() => setRecapOpen(!recapOpen)} />}
+        </div>
         <ThemeToggle />
       </header>
       <main id="device" className="stage">
         <div className="device-wrap">
           <Device />
         </div>
-        <div className="below">
-          <p className="stats" aria-live="polite">
-            {statsLine(stats)}
-          </p>
-          <div className="links">
-            <button type="button" className="link" onClick={() => setHowOpen(true)}>
-              How to play
-            </button>
-            {hasRecap && <RecapToggle open={recapOpen} onToggle={() => setRecapOpen(!recapOpen)} />}
-            <span className="sound-state" aria-live="polite">
-              Sound {muted ? "off" : "on"}
-            </span>
-          </div>
-          {hasRecap && recapOpen && <RecapList />}
-        </div>
       </main>
-      <footer className="foot">
-        <p>Everything runs on this page. No account, no network, nothing saved but your own stats.</p>
-      </footer>
+      {hasRecap && recapOpen && (
+        <div className="recap-panel">
+          <RecapList />
+        </div>
+      )}
       <HowTo open={howOpen} onClose={() => setHowOpen(false)} />
     </>
   );

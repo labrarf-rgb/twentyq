@@ -110,15 +110,33 @@ html {
   outline-offset: 3px;
 }
 .topbar {
+  /* One slim row, at most 48px (SPECS section 7). On wide screens the info block sits in it. */
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 12px;
   flex: none;
-  padding: 6px 16px;
+  box-sizing: border-box;
+  height: 48px;
+  padding: 0 16px;
   border-bottom: 1px solid var(--rule);
+  overflow: hidden;
 }
 .topbar h1 {
-  margin: 0;
+  margin: 0 auto 0 0;
+  white-space: nowrap;
+}
+/* stats, sound state, How to play, Show the questions */
+.info {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0 14px;
+  min-width: 0;
+  max-height: 44px;
+  overflow: hidden;
+  line-height: 1.3;
+  text-align: right;
 }
 .icon-btn {
   display: grid;
@@ -140,45 +158,59 @@ html {
   flex: 1 1 0;
   min-height: 0;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 8px 16px 6px;
 }
-/* The device takes whatever height the other rows leave. */
+/* The device gets everything else, with 16px of air above and below.
+   D = min(94vw, height left - 32px, 800px): the wrapper's content box is that space. */
 .device-wrap {
   flex: 1 1 0;
+  min-width: 0;
   min-height: 0;
-  width: 100%;
+  box-sizing: border-box;
+  padding: 16px 0;
   display: grid;
   place-items: center;
   container-type: size;
 }
-.below {
-  flex: none;
-  width: min(100%, 460px);
-  text-align: center;
-  margin-top: 6px;
-}
 .stats {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.78rem;
   color: var(--soft);
+  white-space: nowrap;
 }
 .sound-state {
-  display: inline-block;
-  margin: 0;
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--faint);
+  white-space: nowrap;
 }
-.links {
-  margin-top: 2px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 0 14px;
+.info .link {
+  white-space: nowrap;
+  padding: 2px;
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+}
+@media (max-width: 599.98px) {
+  /* Narrow: the header keeps only the wordmark and toggle; the info block is a row under the device. */
+  .info {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    box-sizing: border-box;
+    height: 48px;
+    max-height: 48px;
+    padding: 2px 16px;
+    justify-content: center;
+    align-content: center;
+    text-align: center;
+    border-top: 1px solid var(--rule);
+    background: var(--bg);
+    z-index: 2;
+  }
+  .stage {
+    padding-bottom: 48px;
+  }
 }
 .link {
   background: none;
@@ -216,33 +248,38 @@ html {
 .btn:active {
   transform: scale(0.98);
 }
-.foot {
-  flex: none;
-  padding: 10px 24px 14px;
-  text-align: center;
-  font-size: 0.8rem;
-  color: var(--faint);
-  border-top: 1px solid var(--rule);
+/* ---- recap ---- */
+/* An overlay, so opening it never changes the device's size. It scrolls inside itself. */
+.recap-panel {
+  position: fixed;
+  z-index: 3;
+  top: 52px;
+  right: 12px;
+  box-sizing: border-box;
+  width: min(calc(100vw - 24px), 420px);
+  max-height: calc(100dvh - 64px);
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  box-shadow: var(--shadow);
+  padding: 4px 14px;
 }
-.foot p {
-  margin: 0;
-}
-
-@media (max-height: 699px) {
-  .foot {
-    display: none;
+@media (max-width: 599.98px) {
+  .recap-panel {
+    top: auto;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    bottom: 56px;
+    max-height: 55dvh;
   }
 }
-
-/* ---- recap ---- */
 .recap-list {
   list-style: none;
-  margin: 10px 0 0;
+  margin: 0;
   padding: 0;
   text-align: left;
-  max-height: min(14rem, 30dvh);
-  overflow-y: auto;
-  border-top: 1px solid var(--rule);
 }
 .recap-list li {
   display: grid;
@@ -322,8 +359,8 @@ kbd {
 /* ---- the device ----
    Everything inside is placed and sized as a fraction of the shell (cqw), so it scales. */
 .device {
-  /* D: the smaller of the width, the height left over, and 460px (SPECS section 7). */
-  --d: min(92cqw, 100cqh, 460px);
+  /* D: the smaller of 94% of the width, the height left over, and 800px (SPECS section 7). */
+  --d: min(94cqw, 100cqh, 800px);
   --adv: 0.5; /* DotGothic16's measured advance in em; main.tsx replaces it once the font loads */
   position: relative;
   width: var(--d);

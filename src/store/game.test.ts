@@ -242,6 +242,31 @@ describe("messages", () => {
     for (const m of messagesFor(ckb, s.view())) expect(m.text).not.toMatch(/—/);
   });
 
+  it("keeps the overtime line as its own message and moves on to the guess by itself", () => {
+    g().lcdDone();
+    g().press(2);
+    settle();
+    g().press(0);
+    for (let i = 0; i < 40 && g().view?.current?.turn !== 20; i++) {
+      settle();
+      g().press(0);
+    }
+    settle();
+    expect(g().view?.current).toMatchObject({ turn: 20, kind: "guess" });
+    g().press(1); // wrong at turn 20
+    vi.advanceTimersByTime(500);
+    expect(g().screen.messages.map((m) => m.text)).toEqual([
+      "Hmm. Give me five more.",
+      expect.stringMatching(/^I think it's .* Am I right\?$/),
+    ]);
+    expect(g().screen.msgIndex).toBe(0);
+    g().lcdDone();
+    vi.advanceTimersByTime(1400);
+    expect(g().screen.msgIndex).toBe(0); // still showing the lead-in
+    vi.advanceTimersByTime(200);
+    expect(g().screen.msgIndex).toBe(1); // then the guess replaces it
+  });
+
   it("says the overtime line only on turn 21", () => {
     const s = replay(ckb, 1, ["skip"]);
     while (s.current && s.current.turn < 20) s.apply("skip");

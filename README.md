@@ -15,7 +15,7 @@ npm run kb:bench     # self-play benchmark (SPECS section 6)
 
 **Fit check** (SPECS section 7, dev only): with `npm run dev` running, open
 http://localhost:5173/fitcheck.html. It loads the real app at 320x560, 375x667, 390x844, 768x1024,
-1280x620 and 1440x900, pushes every LCD string into the real LCD, and reports PASS or FAIL per
+1024x768, 1280x620 and 1440x900, pushes every LCD string into the real LCD, and reports PASS or FAIL per
 size (LCD fit, safe circle, no page scroll). `?sizes=500x400` tries other viewports and `?break=1`
 injects an oversized font to show the check can fail. The page is not part of the production build.
 
