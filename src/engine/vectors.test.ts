@@ -16,12 +16,12 @@ describe("test-vectors.json", () => {
   });
 
   it("has the coverage SPECS §5 requires", () => {
-    const games: { answers: string[]; result: { outcome: string; turn: number } }[] = vectors.games;
+    const games: { answers: string[]; expect: { kind: string }[]; result: { outcome: string; turn: number } }[] = vectors.games;
     expect(games.length).toBeGreaterThanOrEqual(12);
     // v7: category questions are ordinary tokens; check the phase shapes the vectors must cover
     const phases = games.map((g) => {
       const a = g.answers.filter((x) => x !== "back");
-      const n = (g.expect as { kind: string }[]).filter((e) => e.kind === "category").length;
+      const n = g.expect.filter((e) => e.kind === "category").length;
       return a.slice(0, n);
     });
     expect(phases.some((p) => p[0] === "yes")).toBe(true); // settled at Q1

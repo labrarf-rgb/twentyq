@@ -24,7 +24,7 @@ export function HowTo({ open, onClose }: { open: boolean; onClose: () => void })
             <strong>Unknown</strong> means you don't know, or the question doesn't apply.
           </li>
           <li>When I guess, YES means I'm right and NO means I'm not.</li>
-          <li>I start by asking what kind of thing it is, one kind at a time. YES picks it, NO moves on to the next:</li>
+          <li>I start by asking whether it is an animal, a vegetable or a mineral. Those count as questions too. YES settles it, NO or Sometimes moves on, and if all three are NO I treat it as something else:</li>
         </ul>
         <dl>
           <dt className="eyebrow">Animal</dt>

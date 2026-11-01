@@ -48,7 +48,7 @@ describe("device flow", () => {
     g().press(2);
     settle();
     g().press(2); // YES on "Is it an animal?"
-    expect(g().history).toEqual(["animal"]);
+    expect(g().history).toEqual(["yes"]);
     settle();
     expect(modeOf(g())).toBe("question");
     const tokens = ["skip", "no", "yes", "maybe"];
@@ -70,7 +70,7 @@ describe("device flow", () => {
     g().press(2);
     settle();
     g().undo();
-    expect(g().history).toEqual(["animal"]);
+    expect(g().history).toEqual(["yes"]);
     expect(g().view?.current).toEqual(q);
   });
 
@@ -88,7 +88,7 @@ describe("device flow", () => {
     expect(g().confirming).toBe(true);
     g().press(1);
     expect(g().confirming).toBe(false);
-    expect(g().history).toEqual(["animal"]);
+    expect(g().history).toEqual(["yes"]);
     g().newGame();
     settle();
     g().press(2);
@@ -137,95 +137,85 @@ describe("device flow", () => {
   });
 });
 
-describe("turn 1 asks one category at a time", () => {
+describe("category questions are counted questions (v7)", () => {
   const start = () => {
     g().lcdDone();
     g().press(2);
     settle();
   };
   const text = () => g().screen.messages[g().screen.msgIndex].text;
+  const cur = () => g().view?.current;
 
-  it("YES or SOMETIMES picks the category on screen", () => {
+  it("asks animal, vegetable, mineral as Q1, Q2, Q3 on NO", () => {
     start();
-    g().press(2);
-    expect(g().history).toEqual(["animal"]);
-    settle();
-    g().undo();
-    settle();
-    g().press(3);
-    expect(g().history).toEqual(["animal"]);
-  });
-
-  it("NO moves on, and picks whichever category is showing", () => {
-    start();
-    const seen: string[] = [text()];
-    for (const want of ["Is it a vegetable?", "Is it a mineral?", "Is it something else?"]) {
-      g().press(1);
-      settle();
-      seen.push(text());
-      expect(text()).toBe(want);
-      expect(g().history).toEqual([]);
-      expect(g().view?.current?.turn).toBe(1);
-    }
-    g().press(2);
-    expect(g().history).toEqual(["other"]);
-  });
-
-  it("each category is reachable", () => {
-    for (const [nos, want] of [[0, "animal"], [1, "vegetable"], [2, "mineral"], [3, "other"]] as const) {
-      vi.runAllTimers();
-      useGame.setState({ started: false, history: [], view: null, thinking: false, catStep: 0, confirming: false });
-      start();
-      for (let i = 0; i < nos; i++) {
-        g().press(1);
-        settle();
-      }
-      g().press(2);
-      expect(g().history).toEqual([want]);
-    }
-  });
-
-  it("NO on the last prompt, and UNKNOWN anywhere, send a category skip", () => {
-    start();
-    for (let i = 0; i < 4; i++) {
-      g().press(1);
-      settle();
-    }
-    expect(g().history).toEqual(["skip"]);
-    settle();
-    g().undo();
-    settle();
-    expect(g().history).toEqual([]);
     expect(text()).toBe("Is it an animal?");
+    expect(cur()).toMatchObject({ turn: 1, kind: "category", cat: 0 });
     g().press(1);
     settle();
-    g().press(0);
-    expect(g().history).toEqual(["skip"]);
-  });
-
-  it("UNDO steps back one prompt, does nothing on the first, and from turn 2 returns to the first", () => {
-    start();
-    g().undo();
-    settle();
-    expect(text()).toBe("Is it an animal?");
-    g().press(1);
-    settle();
+    expect(text()).toBe("Is it a vegetable?");
+    expect(cur()).toMatchObject({ turn: 2, kind: "category", cat: 1 });
     g().press(1);
     settle();
     expect(text()).toBe("Is it a mineral?");
+    expect(cur()).toMatchObject({ turn: 3, kind: "category", cat: 2 });
+    g().press(1);
+    settle();
+    expect(g().history).toEqual(["no", "no", "no"]);
+    expect(cur()).toMatchObject({ turn: 4, kind: "question" });
+  });
+
+  it("SOMETIMES moves on and YES settles the category", () => {
+    start();
+    g().press(3);
+    settle();
+    expect(cur()).toMatchObject({ turn: 2, kind: "category", cat: 1 });
+    g().press(2);
+    settle();
+    expect(g().history).toEqual(["maybe", "yes"]);
+    expect(cur()).toMatchObject({ turn: 3, kind: "question" });
+  });
+
+  it("UNKNOWN ends the category questions", () => {
+    start();
+    g().press(1);
+    settle();
+    g().press(0);
+    settle();
+    expect(g().history).toEqual(["no", "skip"]);
+    expect(cur()).toMatchObject({ turn: 3, kind: "question" });
+  });
+
+  it("UNDO steps back one numbered turn, including from the first question after the phase", () => {
+    start();
+    g().undo(); // nothing to undo on the first prompt
+    settle();
+    expect(cur()).toMatchObject({ turn: 1, kind: "category", cat: 0 });
+    g().press(1);
+    settle();
+    g().press(1);
+    settle();
     g().undo();
     settle();
     expect(text()).toBe("Is it a vegetable?");
-    g().press(1);
+    expect(cur()).toMatchObject({ turn: 2 });
+    g().press(2);
     settle();
-    g().press(2); // mineral
-    settle();
-    expect(g().view?.current?.turn).toBe(2);
+    expect(cur()).toMatchObject({ turn: 3, kind: "question" });
     g().undo();
     settle();
-    expect(g().view?.current?.turn).toBe(1);
-    expect(g().history).toEqual([]);
+    expect(text()).toBe("Is it a vegetable?");
+    g().undo();
+    settle();
     expect(text()).toBe("Is it an animal?");
+    expect(g().history).toEqual([]);
+  });
+
+  it("each question's counter is its own turn number", () => {
+    start();
+    expect(g().view?.current?.turn).toBe(1);
+    g().press(1);
+    settle();
+    expect(g().view?.current?.turn).toBe(2);
   });
 });
 
@@ -238,7 +228,7 @@ describe("messages", () => {
   });
 
   it("never uses an em dash", () => {
-    const s = replay(ckb, 7, ["animal"]);
+    const s = replay(ckb, 7, ["yes"]);
     for (const m of messagesFor(ckb, s.view())) expect(m.text).not.toMatch(/—/);
   });
 

@@ -14,7 +14,6 @@ export type Mode = "idle" | "category" | "question" | "guess" | "ended";
 
 /** Left to right on the device. */
 const QUESTION_TOKENS: AnswerToken[] = ["skip", "no", "yes", "maybe"];
-const CATEGORY_TOKENS: AnswerToken[] = ["animal", "vegetable", "mineral", "other"];
 
 const THINK_MS = 400;
 const HOLD_MS = 1500; // the "Hmm. Give me five more." line stays this long, then the guess replaces it
@@ -34,8 +33,6 @@ interface GameState {
   history: AnswerToken[];
   view: GameView | null;
   confirming: boolean;
-  /** Which category prompt turn 1 is showing (0 animal .. 3 something else). */
-  catStep: number;
   thinking: boolean;
   screen: Screen;
   /** Bumped to ask the LCD to finish typing at once. */
@@ -91,11 +88,11 @@ export const useGame = create<GameState>((set, get) => {
     const { started, view, confirming } = get();
     if (confirming) return show([CONFIRM_MESSAGE]);
     if (!started || !view) return show([IDLE_MESSAGE]);
-    show(messagesFor(ckb, view, get().catStep));
+    show(messagesFor(ckb, view));
   }
 
   /** Move to a new history: replay, keep the stats honest, then show the result. */
-  function go(history: AnswerToken[], opts: { think: boolean; catStep?: number }) {
+  function go(history: AnswerToken[], opts: { think: boolean }) {
     const prev = get().view;
     const view = replay(ckb, get().seed, history).view();
     let stats = get().stats;
@@ -103,9 +100,8 @@ export const useGame = create<GameState>((set, get) => {
     if (view.result && !prev?.result) stats = withGame(stats, view.result, 1);
     if (stats !== get().stats) saveStats(stats);
     clearTimers();
-    const catStep = opts.catStep ?? 0;
-    set({ history, view, stats, confirming: false, catStep });
-    const msgs = messagesFor(ckb, view, catStep);
+    set({ history, view, stats, confirming: false });
+    const msgs = messagesFor(ckb, view);
     if (opts.think && view.current && !reducedMotion()) {
       set({ thinking: true });
       thinkTimer = setTimeout(() => show(msgs), THINK_MS);
@@ -114,17 +110,9 @@ export const useGame = create<GameState>((set, get) => {
     }
   }
 
-  /** Show messages after the usual "I'm thinking..." beat. */
-  function showAfterThinking(msgs: Message[]) {
-    clearTimers();
-    if (reducedMotion()) return show(msgs);
-    set({ thinking: true });
-    thinkTimer = setTimeout(() => show(msgs), THINK_MS);
-  }
-
   function start() {
     clearTimers();
-    set({ started: true, seed: newSeed(), history: [], view: null, confirming: false, catStep: 0 });
+    set({ started: true, seed: newSeed(), history: [], view: null, confirming: false });
     go([], { think: false });
   }
 
@@ -140,7 +128,6 @@ export const useGame = create<GameState>((set, get) => {
     history: [],
     view: null,
     confirming: false,
-    catStep: 0,
     thinking: false,
     screen: { key: 0, messages: [IDLE_MESSAGE], msgIndex: 0, typingDone: false },
     skipTick: 0,
@@ -187,21 +174,10 @@ export const useGame = create<GameState>((set, get) => {
         if (slot === 2) start();
         return;
       }
-      if (mode === "category") {
-        play("press");
-        // YES or SOMETIMES picks the category on screen; NO tries the next; UNKNOWN skips.
-        if (slot === 2 || slot === 3) go([CATEGORY_TOKENS[s.catStep]], { think: true });
-        else if (slot === 0) go(["skip"], { think: true });
-        else if (s.catStep < CATEGORY_TOKENS.length - 1) {
-          const catStep = s.catStep + 1;
-          set({ catStep });
-          showAfterThinking(messagesFor(ckb, s.view!, catStep));
-        } else go(["skip"], { think: true });
-        return;
-      }
       let token: AnswerToken | null = null;
       let sound: SfxName = "press";
-      if (mode === "question") token = QUESTION_TOKENS[slot];
+      // v7: category questions answer exactly like ordinary questions
+      if (mode === "question" || mode === "category") token = QUESTION_TOKENS[slot];
       else if (slot === 2) token = "right";
       else if (slot === 1) {
         token = "wrong";
@@ -217,13 +193,6 @@ export const useGame = create<GameState>((set, get) => {
       play("press");
       if (s.thinking) return;
       if (!s.started || !s.view || s.confirming) return;
-      // Inside the turn-1 prompts, UNDO steps back one prompt.
-      if (modeOf(s) === "category" && s.catStep > 0) {
-        const catStep = s.catStep - 1;
-        set({ catStep });
-        show(messagesFor(ckb, s.view, catStep));
-        return;
-      }
       if (s.history.length === 0) return;
       go(s.history.slice(0, -1), { think: false });
     },

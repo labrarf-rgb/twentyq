@@ -164,7 +164,7 @@ async function runSize(w: number, h: number): Promise<SizeResult> {
     runnerUps,
   });
   kb.questions.forEach((q: any) => add(q.text));
-  for (let step = 0; step < 4; step++) for (const m of messages.messagesFor(ckb, fakeView({ turn: 1, kind: "category" }), step)) add(m.text);
+  for (let step = 0; step < 3; step++) for (const m of messages.messagesFor(ckb, fakeView({ turn: step + 1, kind: "category", cat: step }))) add(m.text);
   for (let i = 0; i < kb.things.length; i++) {
     for (const turn of [12, 21]) for (const m of messages.messagesFor(ckb, fakeView({ turn, kind: "guess", thing: i }))) add(m.text);
   }

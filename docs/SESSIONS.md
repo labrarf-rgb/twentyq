@@ -2,6 +2,14 @@
 
 Newest first. One dated entry per working session.
 
+## 2026-11-01 · Web build session 6 (spec v7: counted category questions)
+- Committed spec v7 as given. Engine change in the reference: a category phase of up to three counted questions (animal, vegetable, mineral), one per turn from turn 1. YES settles and ends the phase, NO or SOMETIMES goes on (after mineral the phase ends), UNKNOWN ends it. Scored with the normal likelihood table and `cv(i,c)` (yes if the category matches, maybe if in altCategories, else no). No guessing and no RNG draw on category turns. The "something else?" prompt is gone.
+- `engine.category` removed from `kb.json`, `schemaVersion` 2 (kb:check enforces it and rejects the old block), `kbVersion` `kb-2026.11.01.4`. Category turns carry `cat` (0 to 2) in the engine's current-turn type; recap and vector entries use the category id.
+- Vectors regenerated (19 games) with category tokens yes/no/maybe/skip and `{turn, kind:"category", id}` expect entries. New coverage: settled at Q1, Q2, Q3; three NOs (rain); SOMETIMES on mineral (sun) and on Q2 and Q3 (house); UNKNOWN on Q2 (potato); Backs across category turns (car). The generator asserts the coverage.
+- Bench simulated player answers category questions from `cv` (noise flips them too). Truthful 99.7% by turn 20 (avg win turn 10.9), 10% noise 99.3% by turn 25. No KB content changes needed.
+- UI: the store no longer has a prompt step. Category questions answer and undo like any turn and show their own counter (Q1, Q2, Q3). How to play text updated. Fit check updated (three category prompts) and passes at all seven sizes.
+- Played in the browser: NO, SOMETIMES, YES at each of Q1 to Q3, UNKNOWN, UNDO across category turns, and full games (rain, sun, bread, dolphin).
+
 ## 2026-11-01 · Web build session 5 (spec v5: device fills the window)
 - Committed spec v5 as given. `D = min(94vw, 100dvh - header - below-row - 32px, 800px)`: the 460 px cap and the footer are gone (the "Everything runs on this page..." note is now at the bottom of the How to play sheet).
 - Header is one 48 px row. At 600 px and wider the stats line, sound state, How to play and Show the questions sit in it, right-aligned next to the theme toggle. Under 600 px the header keeps only the wordmark and the toggle, and the same info block is a fixed 48 px row under the device (two compact lines).
