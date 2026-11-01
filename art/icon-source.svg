@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Flat fills only: ImageMagick's built-in SVG renderer ignores gradients. -->
+  <circle cx="512" cy="512" r="500" fill="#f6f0e2" stroke="#cdbfa2" stroke-width="6"/>
+  <circle cx="512" cy="512" r="478" fill="none" stroke="#cdbfa2" stroke-width="3"/>
+  <circle cx="512" cy="512" r="452" fill="none" stroke="#e1d6bf" stroke-width="3"/>
+  <!-- LCD: 0.70 x 0.26 of the shell, as on the device -->
+  <rect x="154" y="215" width="717" height="266" rx="36" fill="#2b2620"/>
+  <rect x="170" y="231" width="685" height="234" rx="20" fill="#c4ddc0"/>
+  <g fill="#3a4d37"><circle cx="592" cy="345" r="13"/><circle cx="586" cy="376" r="13"/><circle cx="569" cy="402" r="13"/><circle cx="543" cy="419" r="13"/><circle cx="512" cy="425" r="13"/><circle cx="481" cy="419" r="13"/><circle cx="455" cy="402" r="13"/><circle cx="438" cy="376" r="13"/><circle cx="432" cy="345" r="13"/><circle cx="438" cy="314" r="13"/><circle cx="455" cy="288" r="13"/><circle cx="481" cy="271" r="13"/><circle cx="512" cy="265" r="13"/><circle cx="543" cy="271" r="13"/><circle cx="569" cy="288" r="13"/><circle cx="586" cy="314" r="13"/><circle cx="578" cy="400" r="13"/><circle cx="604" cy="420" r="13"/><circle cx="630" cy="440" r="13"/></g>
+  <!-- the four ink buttons in their arc, and UNDO -->
+  <g fill="#2b2620">
+    <circle cx="220" cy="635" r="77"/>
+    <circle cx="415" cy="676" r="77"/>
+    <circle cx="609" cy="676" r="77"/>
+    <circle cx="804" cy="635" r="77"/>
+    <rect x="399" y="819" width="226" height="77" rx="38"/>
+  </g>
+</svg>

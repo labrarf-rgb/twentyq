@@ -11,6 +11,7 @@ npm run build        # typecheck + production build (base /twentyq/)
 npm run kb:check     # validate kb/kb.json (SPECS section 3)
 npm run kb:vectors   # regenerate kb/test-vectors.json after any kb change
 npm run kb:bench     # self-play benchmark (SPECS section 6)
+npm run deploy       # build, copy into ~/Portfolio-Website/twentyq, push, verify live
 ```
 
 **Fit check** (SPECS section 7, dev only): with `npm run dev` running, open
@@ -21,3 +22,6 @@ injects an oversized font to show the check can fail. The page is not part of th
 
 
 `kb/kb.json` is the master copy. Android copies it with its own `tools/sync-kb.sh`.
+
+Live at https://www.labrarf.com/twentyq/. Privacy policy (web and Android): https://www.labrarf.com/twentyq/privacy.html.
+Icons come from `art/icon-source.svg` via `scripts/make-icons.sh` (the PNGs are committed).

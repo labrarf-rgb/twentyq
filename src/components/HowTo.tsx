@@ -40,7 +40,10 @@ export function HowTo({ open, onClose }: { open: boolean; onClose: () => void })
           Keys: <kbd>U</kbd> <kbd>N</kbd> <kbd>Y</kbd> <kbd>S</kbd> match the buttons left to right,{" "}
           <kbd>Backspace</kbd> or <kbd>Z</kbd> to undo, <kbd>G</kbd> for a new game, <kbd>M</kbd> for sound.
         </p>
-        <p className="keys">Everything runs on this page. No account, no network, nothing saved but your own stats.</p>
+        <p className="keys">
+          Everything runs on this page. No account, no network, nothing saved but your own stats.{" "}
+          <a href={`${import.meta.env.BASE_URL}privacy.html`}>Privacy</a>
+        </p>
         <button type="button" className="btn" onClick={onClose}>
           Close
         </button>

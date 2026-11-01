@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Twenty Q Privacy</title>
+    <meta name="description" content="What Twenty Q stores, where, and what it never collects. Covers the web app and the Android app." />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+    <style>
+      /* Fonts ship with the app (public/fonts); nothing is fetched from a font service. */
+      @font-face { font-family: "Spectral"; font-weight: 300; font-display: swap; src: url("fonts/spectral-latin-300-normal.woff2") format("woff2"); }
+      @font-face { font-family: "Spectral"; font-weight: 400; font-display: swap; src: url("fonts/spectral-latin-400-normal.woff2") format("woff2"); }
+      @font-face { font-family: "Hanken Grotesk"; font-weight: 400; font-display: swap; src: url("fonts/hanken-grotesk-latin-400-normal.woff2") format("woff2"); }
+      @font-face { font-family: "Hanken Grotesk"; font-weight: 600; font-display: swap; src: url("fonts/hanken-grotesk-latin-600-normal.woff2") format("woff2"); }
+      :root {
+        --bg: #e9e0cd;
+        --card: #fffdf6;
+        --ink: #2b2620;
+        --soft: #7a6f5c;
+        --line: #cdbfa2;
+        --accent: oklch(0.54 0.1 152);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #231f19;
+          --card: #352f29;
+          --ink: #e4ddd3;
+          --soft: #aaa49b;
+          --line: #4c4740;
+          --accent: oklch(0.62 0.09 152);
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 400 16px/1.7 "Hanken Grotesk", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -webkit-text-size-adjust: 100%;
+      }
+      main { max-width: 680px; margin: 0 auto; padding: 56px 16px 72px; }
+      .eyebrow {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--soft);
+        margin: 0 0 8px;
+      }
+      h1, h2 { font-family: Spectral, Georgia, serif; font-weight: 400; line-height: 1.2; }
+      h1 { font-size: 40px; margin: 0 0 6px; }
+      h2 { font-size: 22px; margin: 40px 0 8px; }
+      .updated { color: var(--soft); font-size: 14px; margin: 0 0 28px; }
+      .summary { background: var(--card); border: 1px solid var(--line); border-radius: 2px; padding: 18px 20px; }
+      .summary p { margin: 0; }
+      p, ul { margin: 0 0 12px; }
+      ul { padding-left: 20px; }
+      li { margin-bottom: 6px; }
+      a { color: var(--accent); text-underline-offset: 2px; }
+      footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--soft); font-size: 14px; }
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">Twenty Q</p>
+      <h1>Privacy</h1>
+      <p class="updated">Last updated 2026-11-01</p>
+
+      <div class="summary">
+        <p>
+          Twenty Q collects no personal data. It has no accounts, no ads and no analytics, and the
+          game itself uses no network. The little it remembers stays on your own device.
+        </p>
+      </div>
+
+      <h2>What it stores</h2>
+      <p>Three small things, and only on the device you play on:</p>
+      <ul>
+        <li>
+          <strong>Your game stats:</strong> how many games you have played, how many I won, how many
+          times you stumped me, and the total turns across my wins.
+        </li>
+        <li><strong>Your sound setting:</strong> whether the beeps are on or off.</li>
+        <li><strong>Your theme choice</strong> (web app only): light or dark.</li>
+      </ul>
+      <p>
+        On the web these live in your browser's own storage for this site. On Android they live in
+        the app's private storage. None of it is sent anywhere, and I never see it. Your answers
+        during a game are not saved at all. When a game ends, they are gone.
+      </p>
+
+      <h2>What it does not do</h2>
+      <ul>
+        <li>No accounts, sign-in, passwords or profiles.</li>
+        <li>No analytics, tracking pixels, advertising or crash reporting.</li>
+        <li>No selling or sharing of any data, because there is none to share.</li>
+        <li>No network use by the game. The knowledge base and the questions are built in, so it works offline.</li>
+        <li>The Android app does not ask for any permissions.</li>
+      </ul>
+
+      <h2>Where the web app comes from</h2>
+      <p>
+        The web app is a static page hosted on GitHub Pages. Like any web page, loading it
+        sends your IP address and browser details to GitHub's servers, which is outside my
+        control. Its fonts are bundled with it, so no font service is contacted. Once it has
+        loaded, it makes no further requests.
+      </p>
+
+      <h2>Deleting what it stores</h2>
+      <ul>
+        <li><strong>Web:</strong> clear this site's data in your browser settings.</li>
+        <li>
+          <strong>Android:</strong> clear the app's storage in Android settings, or uninstall it. If you
+          use Android's own device backup, Android may include the app's stats in that backup, which
+          is controlled in your device settings.
+        </li>
+      </ul>
+
+      <h2>Children</h2>
+      <p>
+        Twenty Q does not ask for or collect anything about anyone, children included.
+      </p>
+
+      <h2>Changes</h2>
+      <p>
+        If this ever changes, I will update this page and its date. This page covers both the web
+        app and the Android app.
+      </p>
+
+      <footer>
+        Questions: <a href="mailto:raydaxn@gmail.com">raydaxn@gmail.com</a>
+      </footer>
+    </main>
+  </body>
+</html>
