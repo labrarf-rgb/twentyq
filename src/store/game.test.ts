@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ckb, enabledSlots, modeOf, useGame } from "./game";
+import { ckb, modeOf, useGame } from "./game";
 import { listPhrases, messagesFor } from "@/lib/messages";
 import { replay } from "@/engine";
 import { statsLine, withGame } from "@/lib/stats";
@@ -20,20 +20,25 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe("device flow", () => {
-  it("idle: only YES is live, and YES starts a game on the category question", () => {
+  it("idle: only YES starts a game; the other buttons press but do nothing", () => {
     expect(modeOf(g())).toBe("idle");
-    expect(enabledSlots(g())).toEqual([false, false, true, false]);
     g().lcdDone();
+    for (const slot of [0, 1, 3] as const) {
+      g().press(slot);
+      expect(g().started).toBe(false);
+      expect(g().flash).toBe(slot);
+    }
     g().press(2);
     expect(modeOf(g())).toBe("category");
     expect(g().view?.current?.turn).toBe(1);
+    expect(g().screen.messages[0].text).toBe("Is it an animal?");
   });
 
   it("a press while the text is typing only finishes the text", () => {
     g().lcdDone();
     g().press(2); // start; the category question is now typing
     const before = g().skipTick;
-    g().press(0); // Animal, but typing is not done
+    g().press(2); // YES, but typing is not done
     expect(g().history).toEqual([]);
     expect(g().skipTick).toBe(before + 1);
   });
@@ -42,7 +47,7 @@ describe("device flow", () => {
     g().lcdDone();
     g().press(2);
     settle();
-    g().press(0); // ANIMAL
+    g().press(2); // YES on "Is it an animal?"
     expect(g().history).toEqual(["animal"]);
     settle();
     expect(modeOf(g())).toBe("question");
@@ -59,7 +64,7 @@ describe("device flow", () => {
     g().lcdDone();
     g().press(2);
     settle();
-    g().press(0);
+    g().press(2);
     settle();
     const q = g().view?.current;
     g().press(2);
@@ -73,12 +78,14 @@ describe("device flow", () => {
     g().lcdDone();
     g().press(2);
     settle();
-    g().press(0);
+    g().press(2);
     settle();
     g().newGame();
     expect(g().confirming).toBe(true);
-    expect(enabledSlots(g())).toEqual([false, true, true, false]);
     settle();
+    g().press(0); // UNKNOWN does nothing while asking
+    g().press(3);
+    expect(g().confirming).toBe(true);
     g().press(1);
     expect(g().confirming).toBe(false);
     expect(g().history).toEqual(["animal"]);
@@ -89,7 +96,7 @@ describe("device flow", () => {
     expect(g().view?.current?.turn).toBe(1);
   });
 
-  it("guess turns: only YES and NO are live, and the turn-21 lead-in comes first", () => {
+  it("guess turns: UNKNOWN and SOMETIMES press but change nothing", () => {
     g().lcdDone();
     g().press(2);
     settle();
@@ -101,7 +108,10 @@ describe("device flow", () => {
     }
     settle();
     expect(modeOf(g())).toBe("guess");
-    expect(enabledSlots(g())).toEqual([false, true, true, false]);
+    const hist = g().history.length;
+    g().press(0);
+    g().press(3);
+    expect(g().history.length).toBe(hist);
   });
 
   it("counts a finished game once, and takes it back on undo", () => {
@@ -124,6 +134,98 @@ describe("device flow", () => {
     g().press(2); // Right this time
     expect(g().view?.result?.outcome).toBe("win");
     expect(g().stats).toMatchObject({ played: 1, appWins: 1, stumped: 0 });
+  });
+});
+
+describe("turn 1 asks one category at a time", () => {
+  const start = () => {
+    g().lcdDone();
+    g().press(2);
+    settle();
+  };
+  const text = () => g().screen.messages[g().screen.msgIndex].text;
+
+  it("YES or SOMETIMES picks the category on screen", () => {
+    start();
+    g().press(2);
+    expect(g().history).toEqual(["animal"]);
+    settle();
+    g().undo();
+    settle();
+    g().press(3);
+    expect(g().history).toEqual(["animal"]);
+  });
+
+  it("NO moves on, and picks whichever category is showing", () => {
+    start();
+    const seen: string[] = [text()];
+    for (const want of ["Is it a vegetable?", "Is it a mineral?", "Is it something else?"]) {
+      g().press(1);
+      settle();
+      seen.push(text());
+      expect(text()).toBe(want);
+      expect(g().history).toEqual([]);
+      expect(g().view?.current?.turn).toBe(1);
+    }
+    g().press(2);
+    expect(g().history).toEqual(["other"]);
+  });
+
+  it("each category is reachable", () => {
+    for (const [nos, want] of [[0, "animal"], [1, "vegetable"], [2, "mineral"], [3, "other"]] as const) {
+      vi.runAllTimers();
+      useGame.setState({ started: false, history: [], view: null, thinking: false, catStep: 0, confirming: false });
+      start();
+      for (let i = 0; i < nos; i++) {
+        g().press(1);
+        settle();
+      }
+      g().press(2);
+      expect(g().history).toEqual([want]);
+    }
+  });
+
+  it("NO on the last prompt, and UNKNOWN anywhere, send a category skip", () => {
+    start();
+    for (let i = 0; i < 4; i++) {
+      g().press(1);
+      settle();
+    }
+    expect(g().history).toEqual(["skip"]);
+    settle();
+    g().undo();
+    settle();
+    expect(g().history).toEqual([]);
+    expect(text()).toBe("Is it an animal?");
+    g().press(1);
+    settle();
+    g().press(0);
+    expect(g().history).toEqual(["skip"]);
+  });
+
+  it("UNDO steps back one prompt, does nothing on the first, and from turn 2 returns to the first", () => {
+    start();
+    g().undo();
+    settle();
+    expect(text()).toBe("Is it an animal?");
+    g().press(1);
+    settle();
+    g().press(1);
+    settle();
+    expect(text()).toBe("Is it a mineral?");
+    g().undo();
+    settle();
+    expect(text()).toBe("Is it a vegetable?");
+    g().press(1);
+    settle();
+    g().press(2); // mineral
+    settle();
+    expect(g().view?.current?.turn).toBe(2);
+    g().undo();
+    settle();
+    expect(g().view?.current?.turn).toBe(1);
+    expect(g().history).toEqual([]);
+    expect(text()).toBe("Is it an animal?");
   });
 });
 

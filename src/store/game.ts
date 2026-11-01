@@ -8,6 +8,8 @@ import kbJson from "../../kb/kb.json";
 export const ckb = compileKB(kbJson as unknown as KB);
 
 export type Slot = 0 | 1 | 2 | 3;
+/** Anything on the device that animates when pressed. */
+export type Control = Slot | "undo" | "new" | "sound";
 export type Mode = "idle" | "category" | "question" | "guess" | "ended";
 
 /** Left to right on the device. */
@@ -32,14 +34,17 @@ interface GameState {
   history: AnswerToken[];
   view: GameView | null;
   confirming: boolean;
+  /** Which category prompt turn 1 is showing (0 animal .. 3 something else). */
+  catStep: number;
   thinking: boolean;
   screen: Screen;
   /** Bumped to ask the LCD to finish typing at once. */
   skipTick: number;
-  flash: Slot | null;
+  flash: Control | null;
   stats: Stats;
   press: (slot: Slot) => void;
   undo: () => void;
+  flashControl: (c: Control) => void;
   newGame: () => void;
   cancel: () => void;
   lcdDone: () => void;
@@ -50,20 +55,6 @@ export function modeOf(s: Pick<GameState, "started" | "view">): Mode {
   const cur = s.view.current;
   if (!cur) return "ended";
   return cur.kind;
-}
-
-/** Which of the four buttons do something right now. */
-export function enabledSlots(s: Pick<GameState, "started" | "view" | "confirming">): boolean[] {
-  if (s.confirming) return [false, true, true, false];
-  switch (modeOf(s)) {
-    case "idle":
-    case "ended":
-      return [false, false, true, false];
-    case "guess":
-      return [false, true, true, false];
-    default:
-      return [true, true, true, true];
-  }
 }
 
 function reducedMotion(): boolean {
@@ -100,11 +91,11 @@ export const useGame = create<GameState>((set, get) => {
     const { started, view, confirming } = get();
     if (confirming) return show([CONFIRM_MESSAGE]);
     if (!started || !view) return show([IDLE_MESSAGE]);
-    show(messagesFor(ckb, view));
+    show(messagesFor(ckb, view, get().catStep));
   }
 
   /** Move to a new history: replay, keep the stats honest, then show the result. */
-  function go(history: AnswerToken[], opts: { think: boolean }) {
+  function go(history: AnswerToken[], opts: { think: boolean; catStep?: number }) {
     const prev = get().view;
     const view = replay(ckb, get().seed, history).view();
     let stats = get().stats;
@@ -112,8 +103,9 @@ export const useGame = create<GameState>((set, get) => {
     if (view.result && !prev?.result) stats = withGame(stats, view.result, 1);
     if (stats !== get().stats) saveStats(stats);
     clearTimers();
-    set({ history, view, stats, confirming: false });
-    const msgs = messagesFor(ckb, view);
+    const catStep = opts.catStep ?? 0;
+    set({ history, view, stats, confirming: false, catStep });
+    const msgs = messagesFor(ckb, view, catStep);
     if (opts.think && view.current && !reducedMotion()) {
       set({ thinking: true });
       thinkTimer = setTimeout(() => show(msgs), THINK_MS);
@@ -122,13 +114,21 @@ export const useGame = create<GameState>((set, get) => {
     }
   }
 
+  /** Show messages after the usual "I'm thinking..." beat. */
+  function showAfterThinking(msgs: Message[]) {
+    clearTimers();
+    if (reducedMotion()) return show(msgs);
+    set({ thinking: true });
+    thinkTimer = setTimeout(() => show(msgs), THINK_MS);
+  }
+
   function start() {
     clearTimers();
-    set({ started: true, seed: newSeed(), history: [], view: null, confirming: false });
+    set({ started: true, seed: newSeed(), history: [], view: null, confirming: false, catStep: 0 });
     go([], { think: false });
   }
 
-  function flashSlot(slot: Slot) {
+  function flashSlot(slot: Control) {
     clearTimeout(flashTimer);
     set({ flash: slot });
     flashTimer = setTimeout(() => set({ flash: null }), FLASH_MS);
@@ -140,6 +140,7 @@ export const useGame = create<GameState>((set, get) => {
     history: [],
     view: null,
     confirming: false,
+    catStep: 0,
     thinking: false,
     screen: { key: 0, messages: [IDLE_MESSAGE], msgIndex: 0, typingDone: false },
     skipTick: 0,
@@ -148,9 +149,12 @@ export const useGame = create<GameState>((set, get) => {
 
     press: (slot) => {
       const s = get();
-      if (s.thinking) return;
-      if (!enabledSlots(s)[slot]) return;
+      // Every press animates and clicks. Whether it also does anything depends on the state.
       flashSlot(slot);
+      if (s.thinking) {
+        play("press");
+        return;
+      }
       const { screen } = s;
       // A press while the text is still typing only finishes the text.
       if (!screen.typingDone) {
@@ -172,7 +176,7 @@ export const useGame = create<GameState>((set, get) => {
       if (s.confirming) {
         play("press");
         if (slot === 2) start();
-        else {
+        else if (slot === 1) {
           set({ confirming: false });
           showDefault();
         }
@@ -180,32 +184,57 @@ export const useGame = create<GameState>((set, get) => {
       }
       if (mode === "idle" || mode === "ended") {
         play("press");
-        start();
+        if (slot === 2) start();
         return;
       }
-      let token: AnswerToken;
+      if (mode === "category") {
+        play("press");
+        // YES or SOMETIMES picks the category on screen; NO tries the next; UNKNOWN skips.
+        if (slot === 2 || slot === 3) go([CATEGORY_TOKENS[s.catStep]], { think: true });
+        else if (slot === 0) go(["skip"], { think: true });
+        else if (s.catStep < CATEGORY_TOKENS.length - 1) {
+          const catStep = s.catStep + 1;
+          set({ catStep });
+          showAfterThinking(messagesFor(ckb, s.view!, catStep));
+        } else go(["skip"], { think: true });
+        return;
+      }
+      let token: AnswerToken | null = null;
       let sound: SfxName = "press";
-      if (mode === "category") token = CATEGORY_TOKENS[slot];
-      else if (mode === "question") token = QUESTION_TOKENS[slot];
-      else {
-        token = slot === 2 ? "right" : "wrong";
-        if (token === "wrong") sound = "wrong";
+      if (mode === "question") token = QUESTION_TOKENS[slot];
+      else if (slot === 2) token = "right";
+      else if (slot === 1) {
+        token = "wrong";
+        sound = "wrong";
       }
       play(sound);
-      go([...s.history, token], { think: true });
+      if (token) go([...s.history, token], { think: true });
     },
 
     undo: () => {
       const s = get();
-      if (!s.started || !s.view || s.history.length === 0 || s.confirming) return;
+      flashSlot("undo");
       play("press");
+      if (s.thinking) return;
+      if (!s.started || !s.view || s.confirming) return;
+      // Inside the turn-1 prompts, UNDO steps back one prompt.
+      if (modeOf(s) === "category" && s.catStep > 0) {
+        const catStep = s.catStep - 1;
+        set({ catStep });
+        show(messagesFor(ckb, s.view, catStep));
+        return;
+      }
+      if (s.history.length === 0) return;
       go(s.history.slice(0, -1), { think: false });
     },
 
+    flashControl: (c) => flashSlot(c),
+
     newGame: () => {
       const s = get();
-      if (s.confirming) return;
+      flashSlot("new");
       play("press");
+      if (s.confirming) return;
       const mode = modeOf(s);
       if (mode === "idle" || mode === "ended") {
         start();

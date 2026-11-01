@@ -2,6 +2,12 @@
 
 Newest first. One dated entry per working session.
 
+## 2026-11-01 · Web build session 3 (spec v3: fixed buttons)
+- Committed spec v3 as given. Turn 1 now asks one category at a time ("Is it an animal?" ... "Is it something else?"): YES or SOMETIMES picks the one shown, NO moves on (NO on the last, or UNKNOWN anywhere, sends a category `skip`), UNDO steps back one prompt and from turn 2 returns to the first. The prompt step is UI state only; the engine still gets one category answer, so the engine, KB and vectors are untouched.
+- The buttons never change: no relabelling, no `disabled`, no dimming, no lit/unlit SOUND dot. A press with no meaning still animates (keyboard presses too, for UNDO, NEW GAME and SOUND as well) and clicks. SOUND state moved to a quiet "Sound on/off" line below the device.
+- Keyboard is only U/N/Y/S, Backspace/Z, G, M (A/V/I/O and 1-4 removed). How to play text updated.
+- Played turn 1 every way in the browser (each category by walking NO, NO x4, UNKNOWN first and third, UNDO inside the prompts and from turn 2, non-YES keys in idle) plus two full games to a win. 70 tests, kb:check and build green.
+
 ## 2026-10-31 · Web build session 2 (KB review fixes, handheld UI)
 - Applied the coordinator's KB review: removed `oak_tree`, `tree.climbs` no, `lives_in_africa` unknown for non-animals (this also changes that one value on the seed non-animals), separated `gold` from `ring`, added the two honest yeses I could find on sparse produce (pineapple peel, coconut can_hold). Did not pad the rest. `kbVersion` `kb-2026.11.01.3`, 212 things, vectors regenerated.
 - Built the v2 handheld UI from SPECS §2 and §7: round cream shell with ridge rings, sage DotGothic16 LCD (bundled via @fontsource, so nothing is fetched at runtime) with typewriter text, "I'm thinking..." and paged scrolling past 3 lines, four ink caps with relabelling on turn 1, UNDO, NEW GAME (asks "Start over?"), SOUND, synthesized Web Audio beeps with a persisted mute, light/dark toggle, stats line, How to play sheet and in-place recap below the device.

@@ -4,15 +4,16 @@ import { HowTo } from "./components/HowTo";
 import { Recap } from "./components/Recap";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { statsLine } from "./lib/stats";
-import { modeOf, useGame, type Slot } from "./store/game";
+import { useGame, type Slot } from "./store/game";
 import { usePrefs } from "./store/prefs";
 
-const QUESTION_KEYS: Record<string, Slot> = { u: 0, n: 1, y: 2, s: 3 };
-const CATEGORY_KEYS: Record<string, Slot> = { a: 0, v: 1, i: 2, o: 3, "1": 0, "2": 1, "3": 2, "4": 3 };
+// The keyboard maps only to the physical buttons, left to right.
+const KEYS: Record<string, Slot> = { u: 0, n: 1, y: 2, s: 3 };
 
 export default function App() {
   const [howOpen, setHowOpen] = useState(false);
   const stats = useGame((s) => s.stats);
+  const muted = usePrefs((s) => s.muted);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -23,14 +24,11 @@ export default function App() {
         e.preventDefault();
         g.undo();
       } else if (k === "g") g.newGame();
-      else if (k === "m") usePrefs.getState().toggleMute();
-      else if (k === "escape") g.cancel();
-      else {
-        // The category question has its own letters; the answer letters stay off there.
-        const cat = modeOf(g) === "category" && !g.confirming;
-        const map = cat ? CATEGORY_KEYS : QUESTION_KEYS;
-        if (k in map) g.press(map[k]);
-      }
+      else if (k === "m") {
+        g.flashControl("sound");
+        usePrefs.getState().toggleMute();
+      } else if (k === "escape") g.cancel();
+      else if (k in KEYS) g.press(KEYS[k]);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -50,6 +48,9 @@ export default function App() {
         <div className="below">
           <p className="stats" aria-live="polite">
             {statsLine(stats)}
+          </p>
+          <p className="sound-state" aria-live="polite">
+            Sound {muted ? "off" : "on"}
           </p>
           <div className="links">
             <button type="button" className="link" onClick={() => setHowOpen(true)}>

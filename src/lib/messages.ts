@@ -8,6 +8,9 @@ export interface Message {
 
 export const IDLE_MESSAGE: Message = { text: "Think of something. Press YES to start." };
 export const CONFIRM_MESSAGE: Message = { text: "Start over?" };
+/** Turn 1 asks one category at a time, like the toy. */
+export const CATEGORY_PROMPTS = ["Is it an animal?", "Is it a vegetable?", "Is it a mineral?", "Is it something else?"];
+/** How the single category answer reads in the recap. */
 export const CATEGORY_TEXT = "Is it an animal, vegetable, mineral, or other?";
 
 /** "a cat, a dog, or the moon" */
@@ -19,7 +22,7 @@ export function listPhrases(ckb: CompiledKB, idx: number[]): string {
 }
 
 /** What the LCD says for the state in `view`. Several messages play one after another. */
-export function messagesFor(ckb: CompiledKB, view: GameView): Message[] {
+export function messagesFor(ckb: CompiledKB, view: GameView, catStep = 0): Message[] {
   const cur = view.current;
   if (!cur) {
     const r = view.result!;
@@ -30,7 +33,7 @@ export function messagesFor(ckb: CompiledKB, view: GameView): Message[] {
     const guesses = left.length ? ` Were you thinking of ${listPhrases(ckb, left)}?` : "";
     return [{ text: `You win! You stumped me.${guesses} Press YES to play again.`, sfx: "stumped" }];
   }
-  if (cur.kind === "category") return [{ text: CATEGORY_TEXT, sfx: "question" }];
+  if (cur.kind === "category") return [{ text: CATEGORY_PROMPTS[catStep], sfx: "question" }];
   if (cur.kind === "question") return [{ text: ckb.kb.questions[cur.q].text, sfx: "question" }];
   const guess: Message = {
     text: `I think it's ${thingPhrase(ckb.kb.things[cur.thing])}. Am I right?`,

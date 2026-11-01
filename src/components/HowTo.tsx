@@ -24,7 +24,7 @@ export function HowTo({ open, onClose }: { open: boolean; onClose: () => void })
             <strong>Unknown</strong> means you don't know, or the question doesn't apply.
           </li>
           <li>When I guess, YES means I'm right and NO means I'm not.</li>
-          <li>The first question sorts what you picked into one of four kinds:</li>
+          <li>I start by asking what kind of thing it is, one kind at a time. YES picks it, NO moves on to the next:</li>
         </ul>
         <dl>
           <dt className="eyebrow">Animal</dt>
@@ -37,7 +37,7 @@ export function HowTo({ open, onClose }: { open: boolean; onClose: () => void })
           <dd>Places, weather, ideas, and things that don't fit cleanly.</dd>
         </dl>
         <p className="keys">
-          Keys: <kbd>U</kbd> <kbd>N</kbd> <kbd>Y</kbd> <kbd>S</kbd> to answer, <kbd>A</kbd> <kbd>V</kbd> <kbd>I</kbd> <kbd>O</kbd> for the first question,{" "}
+          Keys: <kbd>U</kbd> <kbd>N</kbd> <kbd>Y</kbd> <kbd>S</kbd> match the buttons left to right,{" "}
           <kbd>Backspace</kbd> or <kbd>Z</kbd> to undo, <kbd>G</kbd> for a new game, <kbd>M</kbd> for sound.
         </p>
         <button type="button" className="btn" onClick={onClose}>

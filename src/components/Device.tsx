@@ -1,12 +1,11 @@
 import type { CSSProperties } from "react";
-import { enabledSlots, modeOf, useGame, type Slot } from "@/store/game";
+import { useGame, type Slot } from "@/store/game";
 import { usePrefs } from "@/store/prefs";
 import { Lcd } from "./Lcd";
 
-const QUESTION_LABELS = ["UNKNOWN", "NO", "YES", "SOMETIMES"];
-const CATEGORY_LABELS = ["ANIMAL", "VEGETABLE", "MINERAL", "OTHER"];
-const QUESTION_KEYS = ["U", "N", "Y", "S"];
-const CATEGORY_KEYS = ["A", "V", "I", "O"];
+// Printed on the shell: the buttons and their labels never change, whatever the game is doing.
+const LABELS = ["UNKNOWN", "NO", "YES", "SOMETIMES"];
+const KEYS = ["U", "N", "Y", "S"];
 
 /** Centre of each answer button as a percentage of the shell, and its label's tilt. */
 const ARC: { x: number; y: number; tilt: number }[] = [
@@ -19,16 +18,12 @@ const ARC: { x: number; y: number; tilt: number }[] = [
 const at = (x: number, y: number): CSSProperties => ({ "--x": `${x}%`, "--y": `${y}%` }) as CSSProperties;
 
 export function Device() {
-  const state = useGame();
-  const { press, undo, newGame, flash, history, started } = state;
-  const muted = usePrefs((s) => s.muted);
+  const press = useGame((s) => s.press);
+  const undo = useGame((s) => s.undo);
+  const newGame = useGame((s) => s.newGame);
+  const flash = useGame((s) => s.flash);
   const toggleMute = usePrefs((s) => s.toggleMute);
-  const mode = modeOf(state);
-  const enabled = enabledSlots(state);
-  const category = mode === "category" && !state.confirming;
-  const labels = category ? CATEGORY_LABELS : QUESTION_LABELS;
-  const keys = category ? CATEGORY_KEYS : QUESTION_KEYS;
-  const canUndo = started && history.length > 0 && !state.confirming;
+  const lit = (c: string) => (flash === c ? " is-pressed" : "");
 
   return (
     <div className="device" role="group" aria-label="Twenty Q handheld">
@@ -40,25 +35,24 @@ export function Device() {
       {ARC.map((p, i) => (
         <div className="slot" style={at(p.x, p.y)} key={i}>
           <span className="eyebrow slot-label" style={{ transform: `translateX(-50%) rotate(${p.tilt}deg)` }} aria-hidden="true">
-            {labels[i]}
+            {LABELS[i]}
           </span>
           <button
             type="button"
-            className={`cap${flash === i ? " is-pressed" : ""}`}
-            disabled={!enabled[i]}
+            className={`cap${lit(String(i))}`}
             onClick={() => press(i as Slot)}
-            aria-label={labels[i][0] + labels[i].slice(1).toLowerCase()}
-            aria-keyshortcuts={keys[i]}
+            aria-label={LABELS[i][0] + LABELS[i].slice(1).toLowerCase()}
+            aria-keyshortcuts={KEYS[i]}
           />
         </div>
       ))}
 
-      <button type="button" className="oval" style={at(50, 88.5)} disabled={!canUndo} onClick={undo} aria-keyshortcuts="Backspace Z">
+      <button type="button" className={`oval${lit("undo")}`} style={at(50, 88.5)} onClick={undo} aria-keyshortcuts="Backspace Z">
         <span className="eyebrow">Undo</span>
       </button>
 
       <div className="slot small" style={at(28, 83.5)}>
-        <button type="button" className="cap" onClick={newGame} aria-label="New game" aria-keyshortcuts="G" />
+        <button type="button" className={`cap${lit("new")}`} onClick={newGame} aria-label="New game" aria-keyshortcuts="G" />
         <span className="eyebrow tiny" aria-hidden="true">
           New game
         </span>
@@ -66,10 +60,12 @@ export function Device() {
       <div className="slot small" style={at(72, 83.5)}>
         <button
           type="button"
-          className={`cap${muted ? "" : " is-lit"}`}
-          onClick={toggleMute}
+          className={`cap${lit("sound")}`}
+          onClick={() => {
+            useGame.getState().flashControl("sound");
+            toggleMute();
+          }}
           aria-label="Sound"
-          aria-pressed={!muted}
           aria-keyshortcuts="M"
         />
         <span className="eyebrow tiny" aria-hidden="true">
