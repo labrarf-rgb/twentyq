@@ -4,9 +4,17 @@
 > the Android app. Change it only through the coordinator session, which copies it to both
 > repos. Each repo keeps its own dated log in `docs/SESSIONS.md`.
 
-Last spec update: 2026-11-01 (v6: Android device centred and sized to the phone; the overtime line is its own message. v5: web device fills the window, up to D = 800 px, with stats moved into the header on wide screens. v4: exact device geometry, LCD fit rules, no page scroll, required fit check. v3: buttons never change; turn 1 asks one category at a time. v2: the UI is now a handheld toy device with physical-style
-buttons and synthesized beeps. The answer buttons are labelled Unknown / No / Yes /
-Sometimes, and they never change. Turn 1 offers categories one at a time on the LCD (§2). **The engine, the KB schema, and the answer tokens are unchanged.**)
+Last spec update: 2026-11-01, v7. History:
+- **v7:** each category question (animal, vegetable, mineral) is its own numbered question.
+  The engine has a category phase, and `schemaVersion` is 2. **Engine change: the vectors
+  must be regenerated and the parity tests re-run.**
+- **v6:** the Android device is centred and sized to the phone. The overtime line is its own
+  message.
+- **v5:** the web device fills the window, up to D = 800 px.
+- **v4:** exact device geometry, LCD fit rules, no page scroll, and a required fit check.
+- **v3:** the buttons never change.
+- **v2:** a handheld toy UI with synthesized beeps.
+- **v1:** initial spec.
 
 ---
 
@@ -70,18 +78,21 @@ The whole game happens on one screen: the **device** (§7). Every step of the ga
      - Sometimes means partly or it depends
      - Unknown means you don't know or it doesn't apply
      - what the four categories mean
-2. **Turn 1 is always the category question.** The buttons stay exactly the same; the LCD
-   offers one category at a time, the way the toy does:
-   *"Is it an animal?"* → *"Is it a vegetable?"* → *"Is it a mineral?"* →
-   *"Is it something else?"*
-   - **YES** or **SOMETIMES** picks the category on screen. It becomes the turn-1 answer
-     (`animal | vegetable | mineral | other`).
-   - **NO** moves to the next category. A NO on *"Is it something else?"* means the turn-1
-     answer is `skip`.
-   - **UNKNOWN** at any point means the turn-1 answer is `skip`.
-   - **UNDO** during these prompts steps back one prompt. On the first prompt it does
-     nothing. UNDO from turn 2 returns to the first prompt, *"Is it an animal?"*.
-   - All of this is turn 1 (`Q1`), and the engine sees one category answer, exactly as in §4.
+2. **The game opens with category questions, and each one is its own numbered question**
+   (v7). The buttons stay exactly the same. The LCD asks, in this order, stopping as soon as
+   the category is settled:
+   - **Q1** *"Is it an animal?"*
+   - **Q2** *"Is it a vegetable?"* (only if Q1 wasn't YES)
+   - **Q3** *"Is it a mineral?"* (only if Q1 and Q2 weren't YES)
+
+   How each answer works:
+   - **YES** settles the category. Normal questions start on the next turn.
+   - **NO** or **SOMETIMES** moves on to the next category question.
+   - **UNKNOWN** stops asking category questions. Normal questions start on the next turn.
+   - After a NO to *"Is it a mineral?"* the category phase ends. There is no
+     *"Is it something else?"* question: three NOs already point the engine at "other".
+   - Each category question shows its own counter (`Q1`, `Q2`, `Q3`), counts toward the 20,
+     and is undone by UNDO like any other turn.
    - Category definitions for the sheet:
      - Animal: any animal, or something mostly made from one (leather, wool, egg).
      - Vegetable: a plant, or something made from plants (fruit, bread, wood, paper, cotton).
@@ -128,14 +139,14 @@ with NEW GAME counts nothing.
 
 ## 3. Knowledge base: `kb.json` (the contract)
 
-Schema version 1. **The web repo owns the master copy (`kb/kb.json`).** Android copies it
+Schema version 2. **The web repo owns the master copy (`kb/kb.json`).** Android copies it
 byte for byte with `tools/sync-kb.sh`, which copies `kb/kb.json` and
 `kb/test-vectors.json` from `../../WebAppProjects/TwentyQ-wa`. Nobody edits the Android copy
 by hand. A schema change needs both apps updated together, through the coordinator.
 
 ```jsonc
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,                       // v7: engine.category removed
   "kbVersion": "seed-2026.11.01",          // bump on every content change
   "categories": ["animal", "vegetable", "mineral", "other"],
   "engine": { ... },                        // §4 constants; both engines read these, never hard-code them
@@ -174,7 +185,7 @@ by hand. A schema change needs both apps updated together, through the coordinat
 ### Validator: `npm run kb:check` (web)
 
 It fails on any of these:
-- invalid JSON or wrong `schemaVersion`
+- invalid JSON or wrong `schemaVersion` (must be 2)
 - an unknown question id in any list
 - the same question in two lists for one thing
 - a duplicate thing id, thing name, or question id
@@ -203,7 +214,7 @@ The engine is a pure module with no UI or platform imports:
 
 It is a function of `(kb, seed, answerHistory)`, which makes Back an exact replay.
 
-**Constants** come from `kb.engine`: `likelihood`, `category`, `guessConfidence` (0.80),
+**Constants** come from `kb.engine`: `likelihood`, `guessConfidence` (0.80),
 `guessMinTurn` (8), `forceGuessTurn` (20), `maxTurns` (25), `topK` (3).
 
 ### State
@@ -217,15 +228,32 @@ It is a function of `(kb, seed, answerHistory)`, which makes Back an exact repla
 After every update: `s = Σ w[i]`, then `w[i] = w[i] / s` for each `i`, summing in index order.
 If `s == 0`, the game ends as **stumped**.
 
-### Turn 1: category
-For each thing `i`, multiply `w[i]` by:
-- `category.match` if the answer equals `category[i]`
-- `category.alt` if the answer is in `altCategories[i]`
-- `category.other` otherwise
+### Category phase (v7)
+The game starts in the category phase. It asks up to three **category questions**, in the
+fixed order `animal`, `vegetable`, `mineral`, one per turn starting at turn 1.
 
-Skip leaves the weights unchanged. Then normalize.
+**Value of a category question for a thing:** for category question `c` and thing `i`, the
+value `cv(i,c)` is:
+- `yes` if `category[i] == c`
+- `maybe` if `c` is in `altCategories[i]`
+- `no` otherwise
 
-### Deciding what turn `t` is (t ≥ 2)
+**Applying an answer** works exactly like a normal question, using the same `likelihood`
+table:
+- **yes:** multiply `w[i]` by `L[yes][cv(i,c)]`, normalize, and end the phase.
+- **no:** multiply by `L[no][cv(i,c)]` and normalize. Go on to the next category question,
+  or end the phase after `mineral`.
+- **maybe:** multiply by `L[maybe][cv(i,c)]` and normalize. Go on to the next category
+  question, or end the phase after `mineral`.
+- **skip:** no weight change, and end the phase.
+
+**Rules:**
+- Category turns never guess and never draw from the RNG.
+- Normal question selection (below) starts on the turn after the phase ends.
+- The `engine.category` constants block is **removed** from `kb.json`, so `schemaVersion`
+  goes to **2**.
+
+### Deciding what turn `t` is (after the category phase)
 1. Let `top` be the index of the highest `w`. Ties go to the lowest index.
 2. If `t >= forceGuessTurn`, turn `t` is a **guess of `top`**.
 3. Otherwise, if `t >= guessMinTurn` and `w[top] >= guessConfidence`, it is also a
@@ -253,7 +281,7 @@ Skip leaves the weights unchanged. Then normalize.
   float differences between the platforms.
 - **Pick:** `k = min(topK, count)` and `r = rng.next()`, then take the item at rank
   `floor(r · k)`. **Draw from the RNG exactly once per question turn**, including when
-  `k == 1`, and never on guess turns or turn 1.
+  `k == 1`, and never on guess turns or category turns.
 
 ### Applying answers
 - **Yes / Maybe / No** to question `q`: multiply each `w[i]` by `L[answer][v(i,q)]`, then normalize.
@@ -301,9 +329,9 @@ The TypeScript engine is the **reference implementation**.
     {
       "name": "cat-truthful",
       "seed": 12345,
-      "answers": ["animal", "yes", "no", "maybe", "skip", "back", "no", "right"],
+      "answers": ["yes", "yes", "no", "maybe", "skip", "back", "no", "right"],
       "expect": [
-        { "turn": 1, "kind": "category" },
+        { "turn": 1, "kind": "category", "id": "animal" },
         { "turn": 2, "kind": "question", "id": "has_fur" },
         { "turn": 9, "kind": "guess", "id": "cat" }
       ],
@@ -315,7 +343,7 @@ The TypeScript engine is the **reference implementation**.
 ```
 
 - Answer tokens:
-  - turn 1: `animal | vegetable | mineral | other | skip`
+  - category turns: `yes | no | maybe | skip`, the same as questions
   - questions: `yes | no | maybe | skip`
   - guesses: `right | wrong`
   - `back` undoes the last turn
@@ -328,7 +356,8 @@ The TypeScript engine is the **reference implementation**.
   - an overtime game reaching turn 25 stumped
   - a game with Skips
   - a game with several Backs, including a Back across a guess
-  - a category Skip (the UI never sends one, but the engine must handle it)
+  - a category settled at Q1, one at Q2, one at Q3, three NOs (other), a SOMETIMES on a
+    category question, and an UNKNOWN on a category question
   - at least 12 games in total
 
 ---
@@ -336,7 +365,8 @@ The TypeScript engine is the **reference implementation**.
 ## 6. Quality bar: self-play benchmark (web, `npm run kb:bench`)
 
 A simulated player plays a game for every thing:
-- For the category it answers `category`.
+- For each category question it answers from `cv` (yes, then no, then the random pick for
+  maybe, the same as questions).
 - For each question it answers from the thing's value:
   - `yes` → Yes, `no` → No
   - `maybe` → a random pick of Yes, No, or Maybe
