@@ -2,6 +2,11 @@
 
 Newest first. One dated entry per working session.
 
+## 2026-11-06 · Coordinator (web icons match the new Android icon)
+- Ray picked the Handheld icon (concept 1 in the Android repo's `docs/icon-ideas/`) for the Android app. The web icons now use the same art: `art/icon-source.svg` (the toy cropped to its shell, transparent corners) for `icon-512`, `icon-192`, `favicon-32` and `favicon.svg`, and the new `art/icon-tile.svg` (the toy on its ink square, the same as the Play Store icon) for `icon-maskable-512` and `apple-touch-icon`.
+- `scripts/make-icons.sh` now renders through macOS QuickLook (WebKit), because ImageMagick's built-in SVG renderer turned the buttons into polygons and dropped the hairline rings. QuickLook paints white corners, so a second render of the toy's silhouette is used as the alpha.
+- 81 tests and the build were green. Committed as `4aa8930` and deployed: live `version.json` reports `4aa8930`, and the live favicon, icon-512, maskable and apple-touch files are byte-identical to the committed ones.
+
 ## 2026-11-01 · Web build session 8 (KB to ~1,000: tooling and batch 1)
 - Branch `feature/kb-1000`. Committed spec v8 as given (§3 target ~1,000). Not deployed; the live site still has the 212-thing KB.
 - Tooling: `npm run kb:format` (compact one-thing-per-line `kb.json`; only about 8% smaller because it was already one thing per line, so I kept the schema and ids unchanged rather than switching to indices, which would be a schema change; gzip is 17 KB at 357 things, about 45 KB projected at 1,000), `npm run kb:bench:fast` (every 5th thing, 2 seeds) beside the full bench, and `kb:check` now summarizes its narrow-question and thin-thing warnings on one line each.
