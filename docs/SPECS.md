@@ -178,6 +178,10 @@ by hand. A schema change needs both apps updated together, through the coordinat
 - **`article`** is `"a"`, `"an"`, `"the"`, or `""`. The guess line reads
   `"I think it's " + (article ? article + " " : "") + lowercase-first(name) + "."`.
   Lowercasing applies only to the first letter, so names keep their own internal capitals.
+- **`proper`** (v9, optional boolean): `true` for a proper name such as *Santa Claus*, *the
+  Easter Bunny* or *Eiffel Tower*. The guess line then uses the name exactly as written, with
+  no lowercasing: *"I think it's the Easter Bunny."* Absent means false. Display only: the
+  engine ignores it, and `schemaVersion` stays 2.
 - **Order is meaningful.** Question order in the array breaks ties (§4), and thing order is
   each thing's index. Don't re-sort casually: any reorder means regenerating the test vectors.
 - **Size.** It started as a seed of 96 questions and 36 things. It is now `kb-2026.11.02.5`, with
@@ -643,7 +647,8 @@ Every game that reaches the end is appended to a local **game log**: web `localS
         { "id": "has_fur",    "a": "no" },    // question turns: the question id
         { "id": "guess:cat",  "a": "wrong" }  // guess turns: "guess:" + thing id
       ],
-      "actual": { "id": "dog" }          // win: the guessed thing. stumped: see §11.3, or null
+      "actual": { "id": "dog" },         // win: the guessed thing. stumped: see §11.3, or null
+      "near": [["komodo_dragon", 0.4123], ["bat", 0.2210]]  // only when actual is a new name (§11.2)
     }
   ]
 }
@@ -671,10 +676,20 @@ count under `cat:animal`, `cat:vegetable`, `cat:mineral`.
   `a `, `an `, or `the `.
 - Learned things are appended after the KB things, in order of the first log game that names
   them. Their display name is the text from that first game, trimmed.
-- Every one of their (question) and (category) values is `no`, the same convention as an
-  unlisted KB pair, so only counts make them differ. (v9 first draft said `unknown`. The web
-  bench showed `no` gets a taught thing guessed sooner: 39% vs 21% by turn 20 in the next game
-  and 83% vs 67% in the one after. The coordinator chose `no` on 2026-11-07.)
+- **They borrow from the things they resemble.** When a game teaches a name that matches no
+  KB thing, the log entry also stores `near`: the 5 KB things with the highest weight when the
+  game ended, **computed from that game's category and question answers only** (guess turns
+  ignored, so a wrongly guessed look-alike still counts), with the weights renormalized over
+  those 5 and rounded to 4 decimals. A learned thing's base value for each question is the
+  `near`-weighted mix of those things' answers:
+  `b(a) = Σ_k ŵ_k · L[a][v(near_k, q)]`, summed in list order, where `ŵ` is the stored weights
+  divided by their sum after dropping ids no longer in the KB. Category questions use
+  `cv(near_k, c)` the same way. The `near` list comes from the **first** log game that names the
+  thing. With no usable `near`, the base is `L[a][no]`, the same convention as an unlisted KB
+  pair.
+- (History: the first v9 draft used `unknown`, then `no`. In Ray-style play a taught dragon
+  answered Yes to 15 or more questions it was never asked about, and `no` sank it to rank 24 to
+  100 in the next game. Borrowing from look-alikes fixes that. Coordinator, 2026-11-07.)
 - The guess line for a learned thing is `"I think it's " + name + ". Am I right?"`, with the
   name exactly as typed.
 
@@ -761,10 +776,18 @@ unless the player uses Export, and that Forget erases it. Re-date the page.
   self-play, take the top 40, and for each one go down **every** thing and fix missing `yes`
   and `maybe`, answering as a typical player would. Column by column, not thing by thing,
   because that is where the unlisted `no`s hide.
-- **Categories as players answer them.** Keep the primary `category` by the definitions
-  (§2). For anything made, processed, or mixed (bread, cookie, chair, book, pizza), add the
-  other categories a real player would plausibly pick, including `other`, to
-  `altCategories`.
+- **Categories as players answer them** (revised 2026-11-07). The category questions are
+  scored by what players actually answer, not by the textbook definitions, so:
+  - the primary `category` is the one **most players would answer YES to**
+  - when no category gets a clear YES, the primary is `other`, and every category a real
+    player might still pick goes in `altCategories` (which makes it `maybe`)
+  - examples: a cookie is `other` with alt `vegetable`. A chair is `other` with alt
+    `vegetable` and `mineral`. A mom, a teacher or a hand is `other` with alt `animal`. A
+    dragon is `animal` with alt `other`. A dog stays `animal`, an apple `vegetable` and a rock
+    `mineral`.
+  - `other` in `altCategories` has no engine effect, since there is no "other" question. It is
+    allowed but changes nothing.
+  - the how-to sheet's category lines (§2) stay as a guide for players.
 - `kb:check` and the full self-play `kb:bench` still meet §6. Report the player bench
   (§11.5) before and after.
 
