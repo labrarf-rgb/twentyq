@@ -1,29 +1,41 @@
-import { useId, useMemo, useState } from "react";
+import { useId, useMemo, useState, type CSSProperties } from "react";
 import { resolveLog } from "@/engine";
 import { loadLog } from "@/lib/gameLog";
 import { cleanName, filterTyping, NAME_MAX, resolveTyped, suggest } from "@/lib/teach";
+import type { Rect } from "@/lib/placement";
 import { kbBase, useGame } from "@/store/game";
 
+/** True on a stumped end screen whose game is still in the log: the box has something to ask. */
+export function useTeachActive(): boolean {
+  return useGame((s) => s.view?.result?.outcome === "stumped" && s.loggedTs !== null);
+}
+
+/** Where the box sits: a free corner of the page (never over the device), or docked into the layout. */
+export type TeachMode = { kind: "overlay"; rect: Rect } | { kind: "dock" };
+
 /**
- * v9 (SPECS 11.3): after a stumped game, below the device and never on it, a small box asks what
- * the player was thinking of. It is a page overlay (so the device never changes size) and it never
- * blocks play: YES on the device still starts a new game, and ignoring the box records nothing.
+ * v9 (SPECS 11.3): after a stumped game, outside the device and never covering any part of it, a small
+ * box asks what the player was thinking of. It never blocks play: YES on the device still starts a new
+ * game, and ignoring the box records nothing.
  */
-export function TeachPanel() {
-  const stumped = useGame((s) => s.view?.result?.outcome === "stumped");
+export function TeachPanel({ mode }: { mode: TeachMode }) {
+  const active = useTeachActive();
   const taught = useGame((s) => s.taught);
   const loggedTs = useGame((s) => s.loggedTs);
-  if (!stumped || loggedTs === null) return null;
+  if (!active) return null;
+  const style =
+    mode.kind === "overlay" ? { left: mode.rect.left, top: mode.rect.top, width: mode.rect.width } : undefined;
+  const cls = `teach-panel ${mode.kind === "overlay" ? "overlay" : "docked"}`;
   return taught ? (
-    <div className="teach-panel" role="status">
+    <div className={cls} style={style} role="status">
       <p className="teach-thanks">Thanks. I&apos;ll remember that.</p>
     </div>
   ) : (
-    <TeachForm key={loggedTs} />
+    <TeachForm key={loggedTs} cls={cls} style={style} />
   );
 }
 
-function TeachForm() {
+function TeachForm({ cls, style }: { cls: string; style?: CSSProperties }) {
   const teach = useGame((s) => s.teach);
   const [text, setText] = useState("");
   const labelId = useId();
@@ -39,7 +51,8 @@ function TeachForm() {
 
   return (
     <form
-      className="teach-panel"
+      className={cls}
+      style={style}
       aria-labelledby={labelId}
       onSubmit={(e) => {
         e.preventDefault();
@@ -67,6 +80,8 @@ function TeachForm() {
           type="text"
           value={text}
           maxLength={NAME_MAX}
+          placeholder="a dragon"
+          aria-describedby={`${labelId}-hint`}
           autoComplete="off"
           autoCapitalize="off"
           spellCheck={false}
@@ -78,6 +93,9 @@ function TeachForm() {
           Teach me
         </button>
       </div>
+      <p id={`${labelId}-hint`} className="teach-hint">
+        Add a, an or the if it needs one.
+      </p>
     </form>
   );
 }

@@ -10,6 +10,8 @@ const REQUIRED: [number, number][] = [
   [1024, 768],
   [1280, 620],
   [1440, 900],
+  [800, 600], // v9: short landscape windows, where the panels have no free corner
+  [900, 500],
 ];
 // ?sizes=320x300,500x500 tries other viewports; ?break=1 injects an oversized LCD font to prove the check can fail.
 const params = new URLSearchParams(location.search);
@@ -249,82 +251,138 @@ async function runSize(w: number, h: number): Promise<SizeResult> {
     if (chars24 > boxRect.width + EPS) fail("24 characters do not fit a line", `${chars24.toFixed(1)} > ${boxRect.width.toFixed(1)}`);
   }
 
-  // ---- the page rules again with a full recap open and a finished 25-turn game
-  const s = dev.replay(ckb, 1, ["skip"]);
-  while (s.current) s.apply(s.current.kind === "guess" ? "wrong" : "skip");
-  st.setState({ started: true, history: s.entries.map((e: any) => e.answer), view: s.view(), thinking: false });
-  await tick();
-  await wait(50);
-  const toggle = [...doc.querySelectorAll(".link")].find((b) => /Show the questions/.test(b.textContent || "")) as HTMLElement | undefined;
-  if (!toggle) fail("recap toggle missing", "");
-  else {
-    toggle.click();
-    await wait(50);
-    pageRules("recap open");
-    const list = doc.querySelector(".recap-list") as HTMLElement | null;
-    if (!list) fail("recap list missing", "");
-    const dr2 = (doc.querySelector(".device") as HTMLElement).getBoundingClientRect();
-    if (Math.abs(dr2.width - D) > 0.5) fail("opening the recap changed D", `${D.toFixed(1)} -> ${dr2.width.toFixed(1)}`);
-    const pr = (doc.querySelector(".recap-panel") as HTMLElement).getBoundingClientRect();
-    if (pr.left < -0.5 || pr.top < -0.5 || pr.right > w + 0.5 || pr.bottom > h + 0.5) fail("recap panel outside viewport", JSON.stringify(pr));
-  }
-  // ---- v9: the "What were you thinking of?" panel, in its three states, on a stumped end screen.
-  // It is an overlay: D and the page rules must not change, it must stay inside the viewport,
-  // and it must never cover the buttons, the LCD or UNDO (so YES on the device always works).
+  // ---- panels (SPECS 11.3): the recap and the "What were you thinking of?" box must never cover any part
+  // of the device (shell, LCD, buttons, UNDO, NEW GAME, SOUND, labels, wordmark), in any state. Each sits in a
+  // free corner of the page (an overlay: D unchanged) or, where there is none, is docked into the layout
+  // (D shrinks to the space left, by the same formula). The box collapses to a link in the info row first.
+  const hit = (a: DOMRect, b: DOMRect) => a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5;
+  const nearestToCircle = (r: DOMRect, cx2: number, cy2: number) => Math.hypot(Math.max(r.left, Math.min(cx2, r.right)) - cx2, Math.max(r.top, Math.min(cy2, r.bottom)) - cy2);
+  const linkNamed = (re: RegExp) => [...doc.querySelectorAll(".link")].find((b) => re.test(b.textContent || "")) as HTMLElement | undefined;
+  const settle = async () => {
+    await tick();
+    await wait(80);
+  };
+  const assertPanel = (label: string, panel: HTMLElement) => {
+    pageRules(label);
+    const dev3 = doc.querySelector(".device") as HTMLElement;
+    const d3r = dev3.getBoundingClientRect();
+    const pr = panel.getBoundingClientRect();
+    const docked = panel.classList.contains("docked");
+    const wrapR = (doc.querySelector(".device-wrap") as HTMLElement).getBoundingClientRect();
+    if (!docked && Math.abs(d3r.width - D) > 0.5) fail("an overlay panel changed D", `${label}: ${D.toFixed(1)} -> ${d3r.width.toFixed(1)}`);
+    if (docked) {
+      const expect3 = Math.min(0.94 * wrapR.width, wrapR.height - 32, 800);
+      if (Math.abs(d3r.width - expect3) > 1.5) fail("docked: D does not match the formula", `${label}: ${d3r.width.toFixed(1)} vs ${expect3.toFixed(1)}`);
+      if (d3r.width < 180) fail("docked: the device got too small", `${label}: ${d3r.width.toFixed(1)}`);
+    }
+    if (pr.left < -0.5 || pr.top < -0.5 || pr.right > w + 0.5 || pr.bottom > h + 0.5) fail("panel outside viewport", `${label}: ${JSON.stringify(pr)}`);
+    const hdr = doc.querySelector(".topbar")!.getBoundingClientRect();
+    if (pr.top < hdr.bottom - 0.5) fail("panel covers the header", label);
+    if (narrow && hit(pr, info.getBoundingClientRect())) fail("panel covers the info row", label);
+    // the shell itself: the panel stays clear of the circle, not just of the controls
+    if (nearestToCircle(pr, d3r.left + d3r.width / 2, d3r.top + d3r.height / 2) < d3r.width / 2 - 0.5) fail("panel overlaps the shell", `${label}: ${JSON.stringify(pr)}`);
+    const covered: [string, Element, boolean][] = [["lcd bezel", doc.querySelector(".lcd-bezel")!, false], ["undo", doc.querySelector(".oval")!, false], ["wordmark", doc.querySelector(".wordmark")!, true]];
+    doc.querySelectorAll(".slot .cap").forEach((e, i) => covered.push([`button ${i}`, e, false]));
+    doc.querySelectorAll(".slot-label, .eyebrow.tiny").forEach((e) => covered.push([`label ${e.textContent}`, e, true]));
+    for (const [name, el, text] of covered) if (hit(pr, text ? textRect(win, el) : el.getBoundingClientRect())) fail("panel covers a device element", `${label}: ${name}`);
+    if (panel.scrollWidth > panel.clientWidth + 1 && !panel.classList.contains("recap-panel")) fail("panel clips sideways", label);
+  };
   const setInput = (el: HTMLInputElement, v: string) => {
     const setter = Object.getOwnPropertyDescriptor((win as any).HTMLInputElement.prototype, "value")!.set!;
     setter.call(el, v);
     el.dispatchEvent(new (win as any).Event("input", { bubbles: true }));
   };
-  const teachChecks = async (label: string, expectPicks: number | null) => {
-    await tick();
-    await wait(60);
-    const panel = doc.querySelector(".teach-panel") as HTMLElement | null;
-    if (!panel) return fail("teach panel missing", label);
+  const closedChecks = (label: string) => {
     pageRules(label);
-    const d3 = (doc.querySelector(".device") as HTMLElement).getBoundingClientRect();
-    if (Math.abs(d3.width - D) > 0.5) fail("the teach panel changed D", `${label}: ${D.toFixed(1)} -> ${d3.width.toFixed(1)}`);
-    const pr = panel.getBoundingClientRect();
-    if (pr.left < -0.5 || pr.top < -0.5 || pr.right > w + 0.5 || pr.bottom > h + 0.5) fail("teach panel outside viewport", `${label}: ${JSON.stringify(pr)}`);
-    const picks = doc.querySelectorAll(".teach-picks .chip").length;
-    if (expectPicks !== null && picks !== expectPicks) fail("teach suggestions", `${label}: ${picks} shown, expected ${expectPicks}`);
-    if (panel.scrollWidth > panel.clientWidth + 1) fail("teach panel clips sideways", label);
-    const hit = (a: DOMRect, b: DOMRect) => a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5;
-    const covered: [string, Element][] = [["lcd bezel", doc.querySelector(".lcd-bezel")!], ["undo", doc.querySelector(".oval")!]];
-    doc.querySelectorAll(".slot .cap").forEach((e, i) => covered.push([`button ${i}`, e]));
-    covered.push(["wordmark", doc.querySelector(".wordmark")!]);
-    doc.querySelectorAll(".slot-label, .eyebrow.tiny").forEach((e) => covered.push([`label ${e.textContent}`, e]));
-    for (const [name, el] of covered) {
-      const r = el.matches(".slot-label, .eyebrow.tiny, .wordmark") ? textRect(win, el) : el.getBoundingClientRect();
-      if (hit(pr, r)) fail("teach panel covers a device control", `${label}: ${name}`);
-    }
-    const header2 = doc.querySelector(".topbar")!.getBoundingClientRect();
-    if (pr.top < header2.bottom - 0.5) fail("teach panel covers the header", label);
-    // the info row (narrow) or header (wide) must stay reachable
-    if (narrow && hit(pr, info.getBoundingClientRect())) fail("teach panel covers the info row", label);
+    const dd = (doc.querySelector(".device") as HTMLElement).getBoundingClientRect();
+    if (Math.abs(dd.width - D) > 0.5) fail("D changed with every panel closed", `${label}: ${D.toFixed(1)} -> ${dd.width.toFixed(1)}`);
+    if (info.scrollHeight > info.clientHeight + 1 || info.scrollWidth > info.clientWidth + 1) fail("info block clipped", `${label}: ${info.scrollWidth}x${info.scrollHeight} in ${info.clientWidth}x${info.clientHeight}`);
+    if (header.scrollWidth > header.clientWidth + 1) fail("header overflows sideways", label);
+    const ir = info.getBoundingClientRect();
+    if (ir.height > 48.5) fail("info taller than 48px", `${label}: ${ir.height}`);
   };
-  {
-    const s2 = dev.replay(ckb, 1, ["skip"]);
-    while (s2.current) s2.apply(s2.current.kind === "guess" ? "wrong" : "skip");
-    st.setState({ started: true, history: s2.entries.map((e: any) => e.answer), view: s2.view(), thinking: false, loggedTs: 1, taught: false });
-    if (toggle && doc.querySelector(".recap-panel")) toggle.click(); // close the recap first
-    await teachChecks("teach prompt", 0);
-    const input = doc.querySelector(".teach-input") as HTMLInputElement | null;
-    if (!input) fail("teach input missing", "");
+
+  // a finished 25-turn game that was stumped
+  const s2 = dev.replay(ckb, 1, ["skip"]);
+  while (s2.current) s2.apply(s2.current.kind === "guess" ? "wrong" : "skip");
+  st.setState({ started: true, history: s2.entries.map((e: any) => e.answer), view: s2.view(), thinking: false, loggedTs: null, taught: false });
+  await settle();
+  closedChecks("stumped, no teach box yet");
+  const recapToggle = linkNamed(/Show the questions/);
+  if (!recapToggle) fail("recap toggle missing", "");
+  else {
+    recapToggle.click();
+    await settle();
+    const rp = doc.querySelector(".recap-panel") as HTMLElement | null;
+    if (!rp) fail("recap panel missing", "");
     else {
-      setInput(input, "a");
-      await teachChecks("teach with 5 suggestions", 5);
-      setInput(input, "W".repeat(30));
-      await tick();
-      if (input.value.length > 24) fail("teach input accepts more than 24 characters", `${input.value.length}`);
-      setInput(input, "<b>dr*ag!on</b>");
-      await tick();
-      if (/[^A-Za-z0-9 '-]/.test(input.value)) fail("teach input accepts a disallowed character", input.value);
+      assertPanel("recap open", rp);
+      if (!doc.querySelector(".recap-list")) fail("recap list missing", "");
     }
-    st.setState({ taught: true });
-    await teachChecks("teach thanks", null);
-    st.setState({ loggedTs: null, taught: false });
+    recapToggle.click();
+    await settle();
+    if (doc.querySelector(".recap-panel")) fail("recap panel did not close", "");
+    closedChecks("recap closed again");
   }
+
+  // the teach box: collapsed or in a free corner, then open with 5 suggestions, then thanks
+  st.setState({ loggedTs: 1, taught: false });
+  await settle();
+  let box = doc.querySelector(".teach-panel") as HTMLElement | null;
+  const teachLink = linkNamed(/What were you thinking of/);
+  if (box) {
+    if (teachLink) fail("teach box open and its link both shown", "");
+    assertPanel("teach box in a free corner", box);
+  } else {
+    if (!teachLink) fail("no teach box and no link to open it", "");
+    else {
+      closedChecks("teach box collapsed to the info row link");
+      teachLink.click();
+      await settle();
+      box = doc.querySelector(".teach-panel") as HTMLElement | null;
+      if (!box) fail("the link did not open the teach box", "");
+      else assertPanel("teach box docked, open", box);
+    }
+  }
+  box = doc.querySelector(".teach-panel") as HTMLElement | null;
+  const input = doc.querySelector(".teach-input") as HTMLInputElement | null;
+  if (!box || !input) fail("teach input missing", "");
+  else {
+    if (input.placeholder !== "a dragon") fail("teach placeholder", input.placeholder);
+    if (!/Add a, an or the if it needs one\./.test(box.textContent || "")) fail("teach hint missing", "");
+    setInput(input, "a");
+    await settle();
+    box = doc.querySelector(".teach-panel") as HTMLElement;
+    const picks = doc.querySelectorAll(".teach-picks .chip").length;
+    if (picks !== 5) fail("teach suggestions", `${picks} shown, expected 5`);
+    assertPanel("teach box with 5 suggestions", box);
+    // recap open together with the box: neither may cover the other or the device
+    recapToggle?.click();
+    await settle();
+    const rp2 = doc.querySelector(".recap-panel") as HTMLElement | null;
+    box = doc.querySelector(".teach-panel") as HTMLElement | null;
+    if (rp2 && box) {
+      assertPanel("recap open with the teach box open", rp2);
+      assertPanel("teach box open with the recap open", box);
+      if (hit(rp2.getBoundingClientRect(), box.getBoundingClientRect())) fail("recap and teach box overlap", "");
+    } else if (rp2 && !box) fail("teach box vanished when the recap opened", "");
+    recapToggle?.click();
+    await settle();
+    setInput(doc.querySelector(".teach-input") as HTMLInputElement, "W".repeat(30));
+    await tick();
+    if ((doc.querySelector(".teach-input") as HTMLInputElement).value.length > 24) fail("teach input accepts more than 24 characters", "");
+    setInput(doc.querySelector(".teach-input") as HTMLInputElement, "<b>dr*ag!on</b>");
+    await tick();
+    if (/[^A-Za-z0-9 '-]/.test((doc.querySelector(".teach-input") as HTMLInputElement).value)) fail("teach input accepts a disallowed character", "");
+  }
+  st.setState({ taught: true });
+  await settle();
+  box = doc.querySelector(".teach-panel") as HTMLElement | null;
+  if (box) assertPanel("teach thanks", box);
+  await wait(2400); // a docked box closes itself after the thanks
+  st.setState({ loggedTs: null, taught: false });
+  await settle();
+  closedChecks("teach finished");
   frame.remove();
   return { size: `${w}x${h}`, pass: failures.length === 0, deviceD: Math.round(D * 10) / 10, expectedD: Math.round(expectedD * 10) / 10, fontPx: Math.round(fontPx * 100) / 100, strings: uniq.size, maxLines, failures };
 }
