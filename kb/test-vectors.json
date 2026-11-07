@@ -2168,10 +2168,18 @@
      "turns": [
       {
        "id": "cat:animal",
-       "a": "yes"
+       "a": "no"
       },
       {
-       "id": "has_tail",
+       "id": "cat:vegetable",
+       "a": "no"
+      },
+      {
+       "id": "cat:mineral",
+       "a": "no"
+      },
+      {
+       "id": "heavier_than_person",
        "a": "no"
       },
       {
@@ -2179,91 +2187,83 @@
        "a": "yes"
       },
       {
-       "id": "has_legs",
-       "a": "yes"
-      },
-      {
-       "id": "lives_in_africa",
-       "a": "yes"
-      },
-      {
-       "id": "has_wings",
+       "id": "is_idea",
        "a": "no"
       },
       {
-       "id": "makes_sound",
-       "a": "yes"
-      },
-      {
-       "id": "has_fur",
+       "id": "bigger_than_breadbox",
        "a": "no"
       },
       {
-       "id": "eats_insects",
-       "a": "yes"
-      },
-      {
-       "id": "guess:frog",
-       "a": "wrong"
-      },
-      {
-       "id": "guess:toad",
-       "a": "wrong"
-      },
-      {
-       "id": "climbs",
+       "id": "is_alive",
        "a": "no"
       },
       {
-       "id": "is_nocturnal",
-       "a": "yes"
-      },
-      {
-       "id": "guess:centipede",
-       "a": "wrong"
-      },
-      {
-       "id": "guess:cricket",
-       "a": "wrong"
-      },
-      {
-       "id": "lives_in_europe",
-       "a": "yes"
-      },
-      {
-       "id": "is_insect",
+       "id": "is_white",
        "a": "no"
       },
       {
-       "id": "guess:hedgehog",
+       "id": "is_weather",
+       "a": "yes"
+      },
+      {
+       "id": "guess:dew",
        "a": "wrong"
       },
       {
-       "id": "guess:owl",
+       "id": "is_transparent",
+       "a": "yes"
+      },
+      {
+       "id": "guess:wind",
        "a": "wrong"
       },
       {
-       "id": "guess:chicken",
+       "id": "guess:rain",
        "a": "wrong"
       },
       {
-       "id": "guess:roly_poly",
+       "id": "is_cold",
+       "a": "yes"
+      },
+      {
+       "id": "guess:breeze",
        "a": "wrong"
       },
       {
-       "id": "guess:bat",
+       "id": "is_round",
+       "a": "no"
+      },
+      {
+       "id": "guess:frost",
        "a": "wrong"
       },
       {
-       "id": "guess:kiwi_bird",
+       "id": "guess:puddle",
        "a": "wrong"
       },
       {
-       "id": "guess:mosquito",
+       "id": "guess:fog",
        "a": "wrong"
       },
       {
-       "id": "guess:spider",
+       "id": "guess:snowflake",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:hail",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:blizzard",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:snow",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:stream",
        "a": "wrong"
       }
      ],
@@ -2279,102 +2279,102 @@
      "turns": [
       {
        "id": "cat:animal",
-       "a": "yes"
-      },
-      {
-       "id": "lays_eggs",
-       "a": "yes"
-      },
-      {
-       "id": "bigger_than_breadbox",
        "a": "no"
       },
       {
-       "id": "has_wings",
+       "id": "cat:vegetable",
        "a": "no"
       },
       {
-       "id": "has_legs",
+       "id": "cat:mineral",
        "a": "yes"
       },
       {
-       "id": "has_tail",
+       "id": "found_outdoors",
+       "a": "yes"
+      },
+      {
+       "id": "is_vehicle",
        "a": "no"
       },
       {
-       "id": "lives_in_north_america",
+       "id": "can_hold",
+       "a": "no"
+      },
+      {
+       "id": "has_handle",
+       "a": "no"
+      },
+      {
+       "id": "is_manmade",
+       "a": "no"
+      },
+      {
+       "id": "bigger_than_car",
+       "a": "no"
+      },
+      {
+       "id": "is_wet",
        "a": "yes"
       },
       {
-       "id": "hops_jumps",
+       "id": "is_liquid",
        "a": "yes"
       },
       {
-       "id": "is_reptile",
+       "id": "guess:rain",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:water",
+       "a": "wrong"
+      },
+      {
+       "id": "heavier_than_person",
+       "a": "no"
+      },
+      {
+       "id": "guess:puddle",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:snow",
+       "a": "wrong"
+      },
+      {
+       "id": "is_weather",
        "a": "yes"
       },
       {
-       "id": "guess:frog",
+       "id": "guess:dew",
        "a": "wrong"
       },
       {
-       "id": "guess:toad",
-       "a": "wrong"
-      },
-      {
-       "id": "lives_in_africa",
+       "id": "is_cold",
        "a": "yes"
       },
       {
-       "id": "guess:flea",
+       "id": "guess:blizzard",
        "a": "wrong"
       },
       {
-       "id": "eats_insects",
-       "a": "yes"
-      },
-      {
-       "id": "guess:spider",
+       "id": "guess:frost",
        "a": "wrong"
       },
       {
-       "id": "guess:lizard",
+       "id": "guess:hail",
        "a": "wrong"
       },
       {
-       "id": "guess:centipede",
+       "id": "guess:winter",
        "a": "wrong"
       },
       {
-       "id": "guess:ant",
+       "id": "guess:fog",
        "a": "wrong"
       },
       {
-       "id": "guess:cricket",
-       "a": "wrong"
-      },
-      {
-       "id": "guess:grasshopper",
-       "a": "wrong"
-      },
-      {
-       "id": "guess:chameleon",
-       "a": "wrong"
-      },
-      {
-       "id": "guess:dragonfly",
-       "a": "wrong"
-      },
-      {
-       "id": "guess:caterpillar",
-       "a": "wrong"
-      },
-      {
-       "id": "guess:tree_frog",
-       "a": "wrong"
-      },
-      {
-       "id": "guess:bullfrog",
+       "id": "guess:ice",
        "a": "wrong"
       }
      ],
@@ -2384,23 +2384,20 @@
     }
    ],
    "answers": [
-    "yes",
-    "no",
-    "yes",
-    "yes",
-    "yes",
     "no",
     "no",
     "yes",
-    "yes",
-    "wrong",
-    "wrong",
-    "yes",
-    "wrong",
-    "wrong",
-    "wrong",
+    "no",
+    "no",
+    "no",
     "no",
     "yes",
+    "no",
+    "yes",
+    "no",
+    "wrong",
+    "maybe",
+    "no",
     "right"
    ],
    "thingCount": 995,
@@ -2418,106 +2415,91 @@
     },
     {
      "turn": 2,
-     "kind": "question",
-     "id": "has_tail"
+     "kind": "category",
+     "id": "vegetable"
     },
     {
      "turn": 3,
-     "kind": "question",
-     "id": "found_outdoors"
+     "kind": "category",
+     "id": "mineral"
     },
     {
      "turn": 4,
      "kind": "question",
-     "id": "lays_eggs"
+     "id": "bigger_than_breadbox"
     },
     {
      "turn": 5,
      "kind": "question",
-     "id": "lives_in_australia"
+     "id": "has_handle"
     },
     {
      "turn": 6,
      "kind": "question",
-     "id": "has_wings"
+     "id": "is_round"
     },
     {
      "turn": 7,
      "kind": "question",
-     "id": "eats_plants"
+     "id": "found_in_house"
     },
     {
      "turn": 8,
      "kind": "question",
-     "id": "eats_insects"
+     "id": "found_outdoors"
     },
     {
      "turn": 9,
      "kind": "question",
-     "id": "has_four_legs"
+     "id": "is_manmade"
     },
     {
      "turn": 10,
-     "kind": "guess",
-     "id": "frog"
+     "kind": "question",
+     "id": "is_weather"
     },
     {
      "turn": 11,
-     "kind": "guess",
-     "id": "toad"
+     "kind": "question",
+     "id": "is_white"
     },
     {
      "turn": 12,
-     "kind": "question",
-     "id": "lives_in_north_america"
+     "kind": "guess",
+     "id": "rain"
     },
     {
      "turn": 13,
-     "kind": "guess",
-     "id": "spider"
+     "kind": "question",
+     "id": "makes_sound"
     },
     {
      "turn": 14,
-     "kind": "guess",
-     "id": "centipede"
+     "kind": "question",
+     "id": "is_idea"
     },
     {
      "turn": 15,
-     "kind": "guess",
-     "id": "lizard"
-    },
-    {
-     "turn": 16,
-     "kind": "question",
-     "id": "is_insect"
-    },
-    {
-     "turn": 17,
-     "kind": "question",
-     "id": "is_reptile"
-    },
-    {
-     "turn": 18,
      "kind": "guess",
      "id": "learned:zorp"
     }
    ],
    "result": {
     "outcome": "win",
-    "turn": 18
+    "turn": 15
    },
    "finalWeightsTop3": [
     [
      "learned:zorp",
-     0.4069235672422497
+     0.4779243386863643
     ],
     [
-     "gecko",
-     0.2434302249190469
+     "snow",
+     0.06423469291163218
     ],
     [
-     "snake",
-     0.030428778114880862
+     "lightning",
+     0.05100990319453143
     ]
    ]
   },
@@ -3638,11 +3620,9 @@
     "yes",
     "yes",
     "no",
+    "no",
     "wrong",
     "wrong",
-    "wrong",
-    "maybe",
-    "yes",
     "right"
    ],
    "thingCount": 996,
@@ -3709,51 +3689,41 @@
     },
     {
      "turn": 11,
-     "kind": "guess",
-     "id": "spoon"
+     "kind": "question",
+     "id": "is_dangerous"
     },
     {
      "turn": 12,
      "kind": "guess",
-     "id": "fork"
+     "id": "spoon"
     },
     {
      "turn": 13,
      "kind": "guess",
-     "id": "knife"
+     "id": "fork"
     },
     {
      "turn": 14,
-     "kind": "question",
-     "id": "is_tool"
-    },
-    {
-     "turn": 15,
-     "kind": "question",
-     "id": "is_container"
-    },
-    {
-     "turn": 16,
      "kind": "guess",
      "id": "learned:blip frobnitz"
     }
    ],
    "result": {
     "outcome": "win",
-    "turn": 16
+    "turn": 14
    },
    "finalWeightsTop3": [
     [
      "learned:blip frobnitz",
-     0.32194996550121474
+     0.3362804827631359
     ],
     [
-     "pot",
-     0.1286885845480895
+     "whisk",
+     0.06420976665880525
     ],
     [
-     "refrigerator",
-     0.12153921873986233
+     "ladle",
+     0.06420976665880525
     ]
    ]
   },

@@ -96,14 +96,14 @@ describe("learning (SPECS 11.2)", () => {
     expect(c.N).toBe(kb.things.length + 2);
     expect(c.nKb).toBe(kb.things.length);
     expect(c.things[kb.things.length]).toMatchObject({ id: "learned:zorp", learned: true });
-    // learned things start unknown everywhere except where counts say otherwise
+    // learned things start as no everywhere except where counts say otherwise
     const zorp = kb.things.length;
     const q = kb.questions.findIndex((x) => x.id === "can_fly");
     const other = kb.questions.findIndex((x) => x.id === "is_alive");
-    expect(c.P[0][other * c.N + zorp]).toBe(c.lik[0][3]);
+    expect(c.P[0][other * c.N + zorp]).toBe(c.lik[0][2]);
     const K = kb.engine.learnPriorStrength ?? 2;
-    expect(c.P[0][q * c.N + zorp]).toBe((K * c.lik[0][3] + 2) / (K + 3));
-    expect(c.P[1][q * c.N + zorp]).toBe((K * c.lik[1][3] + 1) / (K + 3));
+    expect(c.P[0][q * c.N + zorp]).toBe((K * c.lik[0][2] + 2) / (K + 3));
+    expect(c.P[1][q * c.N + zorp]).toBe((K * c.lik[1][2] + 1) / (K + 3));
   });
 
   it("maps a name that matches a KB thing to that thing", () => {
@@ -115,9 +115,9 @@ describe("learning (SPECS 11.2)", () => {
   });
 
   it("a learned thing can be guessed, by name", () => {
-    // A player thinking of "a zorp", which answers every question the way a cat does.
+    // A player thinking of "a zorp", which answers every question the way rain does.
     const base = compileKB(kb);
-    const cat = base.tIndex.get("cat")!;
+    const like = base.tIndex.get("rain")!;
     const playOnce = (c: ReturnType<typeof compileKB>, seed: number) => {
       const s = replay(c, seed, []);
       const zorp = c.tIndex.get("learned:zorp");
@@ -125,7 +125,7 @@ describe("learning (SPECS 11.2)", () => {
         const cur = s.current;
         if (cur.kind === "guess") s.apply(cur.thing === zorp ? "right" : "wrong");
         else {
-          const v = cur.kind === "category" ? c.cats[cat * 3 + cur.cat] : c.values[cat * c.Q + cur.q];
+          const v = cur.kind === "category" ? c.cats[like * 3 + cur.cat] : c.values[like * c.Q + cur.q];
           s.apply(v === 0 ? "yes" : v === 1 ? "maybe" : v === 3 ? "skip" : "no");
         }
       }

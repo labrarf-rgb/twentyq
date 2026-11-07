@@ -27,9 +27,9 @@ export interface CompiledKB {
   /** KB things only. Indices >= nKb are learned things. */
   nKb: number;
   Q: number;
-  /** values[i * Q + q] is V_YES | V_MAYBE | V_NO | V_UNKNOWN. Unlisted pairs are no. Learned rows are all unknown. */
+  /** values[i * Q + q] is V_YES | V_MAYBE | V_NO | V_UNKNOWN. Unlisted pairs are no. Learned rows are all no. */
   values: Uint8Array;
-  /** cats[i * 3 + c] is cv(i, c): V_YES | V_MAYBE | V_NO, or V_UNKNOWN for a learned thing. */
+  /** cats[i * 3 + c] is cv(i, c): V_YES | V_MAYBE | V_NO, or V_NO for a learned thing. */
   cats: Uint8Array;
   /** lik[a][v] for a in yes, maybe, no (0..2) and v a value code. */
   lik: number[][];
@@ -45,15 +45,7 @@ export interface CompiledKB {
   tIndex: Map<string, number>;
 }
 
-/**
- * Experiments only (the benches): what a learned thing's cells are before counts. SPECS 11.2 says
- * `unknown` and that is the default; `no` is the KB's own rule for an unlisted pair. Never set by the app.
- */
-export interface CompileOptions {
-  learnedBase?: "unknown" | "no";
-}
-
-export function compileKB(kb: KB, log: readonly LogGame[] = [], opts: CompileOptions = {}): CompiledKB {
+export function compileKB(kb: KB, log: readonly LogGame[] = []): CompiledKB {
   const nKb = kb.things.length;
   const Q = kb.questions.length;
   const qIndex = new Map(kb.questions.map((q, i) => [q.id, i]));
@@ -64,8 +56,8 @@ export function compileKB(kb: KB, log: readonly LogGame[] = [], opts: CompileOpt
   const tIndex = new Map(things.map((t, i) => [t.id, i]));
 
   const values = new Uint8Array(N * Q).fill(V_NO);
-  const learnedCode = opts.learnedBase === "no" ? V_NO : V_UNKNOWN;
-  values.fill(learnedCode, nKb * Q);
+  // SPECS 11.2: a learned thing starts as `no` everywhere, the same convention as an unlisted KB pair,
+  // so only counts make it differ. (`values` is already filled with V_NO.)
   const put = (i: number, ids: string[] | undefined, code: number) => {
     for (const id of ids ?? []) {
       const q = qIndex.get(id);
@@ -78,7 +70,7 @@ export function compileKB(kb: KB, log: readonly LogGame[] = [], opts: CompileOpt
     put(i, t.maybe, V_MAYBE);
     put(i, t.unknown, V_UNKNOWN);
   });
-  const cats = new Uint8Array(N * 3).fill(learnedCode);
+  const cats = new Uint8Array(N * 3).fill(V_NO);
   for (let i = 0; i < nKb; i++) for (let c = 0; c < 3; c++) cats[i * 3 + c] = categoryValue(kb, i, c);
 
   const L = kb.engine.likelihood;

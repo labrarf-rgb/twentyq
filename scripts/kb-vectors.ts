@@ -152,9 +152,9 @@ function learnedGame(name: string, like: string, seed: number, log: LogGame[], t
   return { c, r, game: buildGame(name, seed, r.tokens, c, log) };
 }
 
-// 1. A taught fake thing is guessed by name. The player answers like a frog; the KB has no zorp.
-const zorpLog = [logGame("frog", 101, { name: "Zorp" }), logGame("frog", 102, { name: "a zorp" })];
-const zorpWin = learnedGame("learned-guesses-a-learned-thing", "frog", 103, zorpLog, "learned:zorp");
+// 1. A taught fake thing is guessed by name. The player answers like rain; the KB has no zorp.
+const zorpLog = [logGame("rain", 101, { name: "Zorp" }), logGame("rain", 102, { name: "a zorp" })];
+const zorpWin = learnedGame("learned-guesses-a-learned-thing", "rain", 103, zorpLog, "learned:zorp");
 must(zorpWin.r.session.result?.outcome === "win" && zorpWin.game.expect.some((e) => e.kind === "guess" && e.id === "learned:zorp"), "a game that guesses a learned thing by name");
 games.push(zorpWin.game);
 

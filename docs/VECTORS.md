@@ -51,8 +51,10 @@ and a name that matches a KB thing.
 2. **normalize(name)**: trim, collapse every run of whitespace to one space, lowercase, then
    drop **one** leading `"a "`, `"an "` or `"the "` (checked in that order, once), then trim.
    `"A-frame"` keeps its `a` because there is no space after it. A name that is just `"a"` stays `"a"`.
-3. **Learned things:** every `(question)` and `(category)` value is `unknown`, so their prior
-   probability for each answer is `lik[a][unknown]` (1/3 with today's table).
+3. **Learned things:** every `(question)` and `(category)` value is **`no`** (SPECS §11.2, changed
+   from `unknown` on 2026-11-07: the same convention as an unlisted KB pair), so their prior
+   probability for each answer is `lik[a][no]` (yes 0.05, maybe 0.3, no 0.85 with today's table).
+   `values[]` and `cats[]` for a learned row hold the `no` code, nothing else.
 4. **Counts.** For each resolved game, for each turn `{id, a}` with `a` in `yes|maybe|no`:
    - `id` starting `cat:` → category column `cat:` + category id, only for the first three
      categories (animal, vegetable, mineral)
@@ -61,7 +63,7 @@ and a name that matches a KB thing.
    - `counts[thing][column][a] += 1`. `skip`, `right`, `wrong` are never counted.
 5. **Probability**, per thing `i`, column (question `q` or category `c`) and answer `a` in
    `yes, maybe, no` (index 0, 1, 2). `b = lik[a][value(i, column)]`, where `value` is the KB
-   value (`cv(i, c)` for categories, `unknown` for learned things), `n = c_yes + c_maybe + c_no`:
+   value (`cv(i, c)` for categories, `no` for learned things), `n = c_yes + c_maybe + c_no`:
    - `n == 0`: `P = b`, **the table value with no arithmetic**. Never write `(K*b + 0)/(K + 0)`:
      the result is not always bit-identical, and the pre-v9 vectors depend on it.
    - otherwise `P = (K * b + c_a) / (K + n)`, evaluated in that order in doubles
