@@ -671,8 +671,10 @@ count under `cat:animal`, `cat:vegetable`, `cat:mineral`.
   `a `, `an `, or `the `.
 - Learned things are appended after the KB things, in order of the first log game that names
   them. Their display name is the text from that first game, trimmed.
-- Every one of their (question) and (category) values is `unknown`, so only counts make them
-  differ.
+- Every one of their (question) and (category) values is `no`, the same convention as an
+  unlisted KB pair, so only counts make them differ. (v9 first draft said `unknown`. The web
+  bench showed `no` gets a taught thing guessed sooner: 39% vs 21% by turn 20 in the next game
+  and 83% vs 67% in the one after. The coordinator chose `no` on 2026-11-07.)
 - The guess line for a learned thing is `"I think it's " + name + ". Am I right?"`, with the
   name exactly as typed.
 
@@ -692,9 +694,13 @@ bench (§11.5), using simulated repeat games.
 
 ### 11.3 "What were you thinking of?" (both apps)
 
-After a **stumped** game, below the device and never on it:
+After a **stumped** game, outside the device and **never covering any part of it** (shell,
+LCD, the four buttons, UNDO, NEW GAME, SOUND, labels, wordmark), at any window size:
 - a short prompt *"What were you thinking of?"*, a single-line text field, and a quiet
   **Teach me** button (Enter also submits)
+- the field's placeholder is *"a dragon"*, and a quiet hint under it reads *"Add a, an or the
+  if it needs one."* The name is kept exactly as typed, so a player who types the article gets
+  a natural guess line. The app never adds an article itself.
 - as the player types, up to 5 suggestions from KB thing names and learned names
   (case-insensitive, matching the start of any word). Choosing one records `{ "id": … }`
   (learned names record `{ "name": … }` with their original text).
@@ -704,9 +710,17 @@ After a **stumped** game, below the device and never on it:
 - it never blocks play: YES on the device still starts a new game, and ignoring the prompt
   leaves `actual: null`
 
-**Limits:** at most 24 characters, letters, digits, spaces, apostrophes, and hyphens only.
-No word may be longer than one LCD line can hold, as measured by the fit check. Each app's
-fit check adds the longest allowed learned-name guess line.
+**Limits:** at most 24 characters, letters, digits, spaces, apostrophes, and hyphens only,
+and **no word longer than 23 characters** (the guess line puts `.` right after the name, and
+an LCD line holds 24). Both apps use these exact numbers. Each app's fit check adds the
+longest allowed learned-name guess lines.
+
+**Where it goes when there's no room.** Where a free area beside or below the device exists,
+the box sits there. Where it doesn't (short landscape windows such as 800x600 and 900x500),
+it collapses to a one-line *"What were you thinking of?"* link in the info row. The link
+opens the box as a panel that does not cover the device, the same way the recap panel works.
+The web fit check adds 800x600 and 900x500 and asserts that the box, open or collapsed,
+never overlaps any device element.
 
 **Wins** record `actual` automatically. Nothing is asked.
 
@@ -717,6 +731,10 @@ fit check adds the longest allowed learned-name guess line.
 - **Forget what I've learned:** asks to confirm, then clears the log. Stats are not touched.
 
 Copy follows `design-pref-rfcl`: sentence case and no em dashes.
+
+**Privacy page.** `public/privacy.html` (also the Play policy URL) says plainly that the app
+keeps a log of finished games on the device to learn from, that it never leaves the device
+unless the player uses Export, and that Forget erases it. Re-date the page.
 
 ### 11.4 KB pass (web session that owns the KB)
 
