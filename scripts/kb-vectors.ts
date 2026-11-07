@@ -3,8 +3,10 @@
 import { writeFileSync } from "node:fs";
 import { applyBacks, replay } from "../src/engine/engine";
 import { compileKB } from "../src/engine/kb";
+import { kbThingByName } from "../src/engine/learn";
+import { nearOf } from "../src/engine/near";
 import { mulberry32 } from "../src/engine/rng";
-import type { AnswerToken } from "../src/engine/types";
+import type { AnswerToken, LogActual, LogGame } from "../src/engine/types";
 import { loadKB, VECTORS_PATH } from "./lib/kb-io";
 import { play, type PlayOptions } from "./lib/player";
 
@@ -73,27 +75,30 @@ function prngVectors() {
   });
 }
 
-function buildGame(name: string, seed: number, tokens: (AnswerToken | "back")[]) {
-  const s = replay(ckb, seed, applyBacks(tokens));
+function buildGame(name: string, seed: number, tokens: (AnswerToken | "back")[], c: ReturnType<typeof compileKB> = ckb, learned?: LogGame[]) {
+  const s = replay(c, seed, applyBacks(tokens));
   const expectTurns = s.entries.map((e) => ({ turn: e.turn, kind: e.kind, id: e.id }));
   if (s.current) {
-    const c = s.current;
+    const cur = s.current;
     const e =
-      c.kind === "category"
-        ? { turn: c.turn, kind: c.kind, id: kb.categories[c.cat] }
-        : c.kind === "question"
-          ? { turn: c.turn, kind: c.kind, id: kb.questions[c.q].id }
-          : { turn: c.turn, kind: c.kind, id: kb.things[c.thing].id };
+      cur.kind === "category"
+        ? { turn: cur.turn, kind: cur.kind, id: kb.categories[cur.cat] }
+        : cur.kind === "question"
+          ? { turn: cur.turn, kind: cur.kind, id: kb.questions[cur.q].id }
+          : { turn: cur.turn, kind: cur.kind, id: c.things[cur.thing].id };
     expectTurns.push(e as never);
   }
   if (!s.result) throw new Error(`${name} did not finish`);
   return {
     name,
     seed,
+    // v9 (SPECS 11.6): the game log applied before the game is played. Absent means an empty log.
+    ...(learned ? { learned } : {}),
     answers: tokens,
+    ...(learned ? { thingCount: c.N, learnedThings: c.things.slice(c.nKb).map((t) => ({ id: t.id, name: t.name })) } : {}),
     expect: expectTurns,
     result: s.result,
-    finalWeightsTop3: s.topN(3).map((i) => [kb.things[i].id, s.w[i]]),
+    finalWeightsTop3: s.topN(3).map((i) => [c.things[i].id, s.w[i]]),
   };
 }
 
@@ -119,6 +124,112 @@ for (const spec of specs) {
   }
   check?.(r);
   games.push(buildGame(name, opts.seed, r.tokens));
+}
+
+// ---- v9 (SPECS 11.6): games played on a device that has learned from a game log.
+// Each log is built by simulating real games on the plain KB, so the counts are realistic.
+// Names are fake on purpose ("zorp", "blip frobnitz"): they can never become KB things.
+const tidx = (id: string) => idx(id);
+let tsClock = 1762480000000;
+
+/** A log entry from a simulated game on the plain KB: a player who answers like `like`, then `actual`. */
+function logGame(like: string, seed: number, actual: LogActual, opts: Partial<PlayOptions> = {}): LogGame {
+  const rnd = mulberry32(seed ^ 0x51ed270b);
+  const r = play(ckb, { thing: -1, answerAs: tidx(like), seed, maybe: "random", rnd, noiseRnd: rnd, wrongAlways: true, ...opts });
+  const turns = r.session.entries.map((e) => ({
+    id: e.kind === "category" ? "cat:" + e.id : e.kind === "guess" ? "guess:" + e.id : e.id!,
+    a: e.answer as string,
+  }));
+  const res = r.session.result!;
+  tsClock += 61000;
+  const game: LogGame = { ts: tsClock, kbVersion: kb.kbVersion, outcome: res.outcome, turn: res.turn, turns, actual };
+  // SPECS 11.1: a game that teaches a name the KB does not have also stores `near`.
+  if (actual && "name" in actual && kbThingByName(kb, actual.name) < 0) game.near = nearOf(ckb, r.session.entries);
+  return game;
+}
+
+function learnedGame(name: string, like: string, seed: number, log: LogGame[], target: string | null, maybe: PlayOptions["maybe"] = "random") {
+  const c = compileKB(kb, log);
+  const rnd = mulberry32(seed ^ 0x2545f491);
+  const ti = target === null ? -1 : c.tIndex.get(target);
+  must(ti !== undefined, `${name}: learned thing "${target}" does not exist`);
+  const r = play(c, { thing: ti!, answerAs: tidx(like), seed, maybe, rnd, noiseRnd: rnd });
+  return { c, r, game: buildGame(name, seed, r.tokens, c, log) };
+}
+
+// 1. A taught fake thing is guessed by name. The player answers like rain; the KB has no zorp.
+const zorpLog = [logGame("rain", 101, { name: "Zorp" }), logGame("rain", 102, { name: "a zorp" })];
+const zorpWin = learnedGame("learned-guesses-a-learned-thing", "rain", 103, zorpLog, "learned:zorp");
+must(zorpWin.r.session.result?.outcome === "win" && zorpWin.game.expect.some((e) => e.kind === "guess" && e.id === "learned:zorp"), "a game that guesses a learned thing by name");
+games.push(zorpWin.game);
+
+// 2. Learned counts change a question choice: dog games taught as answers a horse would give.
+const dogLog = [1, 2, 3, 4].map((n) => logGame("horse", 200 + n, { id: "dog" }));
+{
+  const plain = play(ckb, { thing: tidx("dog"), seed: 4711, maybe: "maybe" });
+  const c = compileKB(kb, dogLog);
+  const learned = play(c, { thing: tidx("dog"), seed: 4711, maybe: "maybe" });
+  const qs = (r: typeof plain) => r.session.entries.filter((e) => e.kind === "question").map((e) => e.id).join(",");
+  must(qs(plain) !== qs(learned), "learned counts must change the questions asked (learned-changes-the-questions)");
+  games.push(buildGame("learned-changes-the-questions", 4711, learned.tokens, c, dogLog));
+}
+
+// 3. The same new thing named with different spelling and case, plus a second new thing.
+const spellLog = [
+  logGame("spoon", 301, { name: "  Blip   Frobnitz " }),
+  logGame("spoon", 302, { name: "the BLIP frobnitz" }),
+  logGame("rain", 303, { name: "Zorp" }),
+  logGame("spoon", 304, { name: "a blip frobnitz" }),
+  logGame("rain", 305, { name: "an ZORP" }),
+];
+const spell = learnedGame("learned-same-name-different-spelling", "spoon", 306, spellLog, "learned:blip frobnitz");
+must(spell.c.things.slice(spell.c.nKb).map((t) => t.id).join("|") === "learned:blip frobnitz|learned:zorp", "two learned things, in order of first mention");
+must(spell.c.things[spell.c.nKb].name === "Blip   Frobnitz" || spell.c.things[spell.c.nKb].name === "Blip   Frobnitz".trim(), "display name is the first game's trimmed text");
+games.push(spell.game);
+
+// 4. Unusable log games are ignored: an id that is not in the KB, a null actual, an empty name,
+// skips, guess turns and turn ids the KB does not have. The result must equal a game on an empty log.
+const noiseLog: LogGame[] = [
+  logGame("cat", 401, { id: "thing_that_is_not_in_the_kb" }),
+  logGame("cat", 402, null),
+  logGame("cat", 403, { name: "   " }),
+  { ...logGame("cat", 404, { id: "cat" }, { skipEvery: 1, categoryScript: ["skip"] }) }, // every answer skipped: nothing to count
+  { ...logGame("cat", 405, null), turns: [{ id: "question_removed_from_the_kb", a: "yes" }, { id: "guess:cat", a: "wrong" }, { id: "cat:animal", a: "yes" }] },
+];
+{
+  const withLog = learnedGame("learned-ignores-unusable-games", "cat", 406, noiseLog, null);
+  const empty = play(ckb, { thing: -1, answerAs: tidx("cat"), seed: 406, maybe: "random", rnd: mulberry32(406 ^ 0x2545f491), noiseRnd: mulberry32(406 ^ 0x2545f491) });
+  must(withLog.c.N === ckb.N, "unusable log games must add no learned things");
+  must(JSON.stringify(replay(ckb, 406, empty.history).w) === JSON.stringify(withLog.r.session.w), "an unusable log must change nothing");
+  games.push(withLog.game);
+}
+
+// 5. A name that matches a KB thing's name (ignoring a leading article) teaches that KB thing.
+const catLog = [logGame("dog", 501, { name: "The Cat" }), logGame("dog", 502, { id: "cat" })];
+{
+  const g5 = learnedGame("learned-name-matches-a-kb-thing", "dog", 503, catLog, "cat");
+  must(g5.c.N === ckb.N, "a name that matches a KB thing adds no learned thing");
+  games.push(g5.game);
+}
+
+// 6. `near` with a stale id: the first game naming the thing lists a KB thing that no longer exists. It is dropped
+// and the rest renormalized. A second thing's only near entry is stale, so its base falls back to `no`.
+{
+  const good = logGame("bicycle", 601, { name: "Gizmo Cart" });
+  must(!!good.near && good.near.length === 5, "near has 5 entries");
+  const stale: LogGame = { ...good, near: [["thing_gone_from_the_kb", 0.6], ...good.near!.slice(0, 3)] };
+  const onlyStale: LogGame = { ...logGame("piano", 602, { name: "Wobble Box" }), near: [["also_gone_from_the_kb", 1]] };
+  const logS = [stale, onlyStale, logGame("bicycle", 603, { name: "gizmo cart" })];
+  const g6 = learnedGame("learned-near-with-a-stale-id", "bicycle", 604, logS, "learned:gizmo cart");
+  must(g6.c.things.slice(g6.c.nKb).map((t) => t.id).join("|") === "learned:gizmo cart|learned:wobble box", "two learned things in the stale-near log");
+  games.push(g6.game);
+}
+// 7. A taught name with a rich profile (many Yes answers the first game never asked about): the borrowing case.
+{
+  const richLog = [logGame("lion", 701, { name: "A Fire Lizard" })];
+  must(!!richLog[0].near && richLog[0].near.length === 5, "rich near");
+  const g7 = learnedGame("learned-borrows-from-near", "lion", 702, richLog, "learned:fire lizard");
+  games.push(g7.game);
 }
 
 // Coverage assertions from SPECS §5.
@@ -149,7 +260,12 @@ must(
   "a Back across a guess",
 );
 
-const out = { kbVersion: kb.kbVersion, prng: prngVectors(), games };
+const out = {
+  kbVersion: kb.kbVersion,
+  format: "See docs/VECTORS.md in the web repo: the optional per-game `learned` field is a game log (SPECS 11.1) applied before the game is played.",
+  prng: prngVectors(),
+  games,
+};
 writeFileSync(VECTORS_PATH, JSON.stringify(out, null, 1) + "\n");
 console.log(`✓ wrote ${games.length} games for ${kb.kbVersion} to kb/test-vectors.json`);
-for (const g of games) console.log(`  ${g.name.padEnd(28)} ${g.result.outcome} @ ${g.result.turn}  (${g.answers.length} tokens)`);
+for (const g of games) console.log(`  ${g.name.padEnd(38)} ${g.result.outcome} @ ${g.result.turn}  (${g.answers.length} tokens)`);

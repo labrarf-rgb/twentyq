@@ -30,6 +30,9 @@ export function checkKB(kb: Raw): CheckResult {
 
   if (kb?.schemaVersion !== 2) err(`schemaVersion must be 2 (got ${JSON.stringify(kb?.schemaVersion)})`);
   if (kb?.engine && "category" in kb.engine) err("engine.category was removed in schema 2 (category questions use the likelihood table)");
+  // v9: the learning prior must be present and in 1..4 (SPECS 11.2)
+  const lps = kb?.engine?.learnPriorStrength;
+  if (typeof lps !== "number" || !(lps >= 1 && lps <= 4)) err(`engine.learnPriorStrength must be a number from 1 to 4 (got ${JSON.stringify(lps)})`);
   if (!Array.isArray(kb?.questions) || !Array.isArray(kb?.things) || !Array.isArray(kb?.categories)) {
     err("questions, things and categories must be arrays");
     return { errors, warnings };
@@ -59,6 +62,7 @@ export function checkKB(kb: Raw): CheckResult {
       if (c === t.category) err(`${t.id}: altCategories repeats its own category "${c}"`);
     }
     if (!ARTICLES.includes(t.article)) err(`${t.id}: invalid article ${JSON.stringify(t.article)}`);
+    if ("proper" in t && typeof t.proper !== "boolean") err(`${t.id}: proper must be true or false (got ${JSON.stringify(t.proper)})`);
 
     const vals = new Map<string, string>();
     for (const list of ["yes", "maybe", "unknown"] as const) {

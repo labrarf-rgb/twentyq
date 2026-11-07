@@ -178,6 +178,10 @@ by hand. A schema change needs both apps updated together, through the coordinat
 - **`article`** is `"a"`, `"an"`, `"the"`, or `""`. The guess line reads
   `"I think it's " + (article ? article + " " : "") + lowercase-first(name) + "."`.
   Lowercasing applies only to the first letter, so names keep their own internal capitals.
+- **`proper`** (v9, optional boolean): `true` for a proper name such as *Santa Claus*, *the
+  Easter Bunny* or *Eiffel Tower*. The guess line then uses the name exactly as written, with
+  no lowercasing: *"I think it's the Easter Bunny."* Absent means false. Display only: the
+  engine ignores it, and `schemaVersion` stays 2.
 - **Order is meaningful.** Question order in the array breaks ties (§4), and thing order is
   each thing's index. Don't re-sort casually: any reorder means regenerating the test vectors.
 - **Size.** It started as a seed of 96 questions and 36 things. It is now `kb-2026.11.02.5`, with
@@ -643,7 +647,8 @@ Every game that reaches the end is appended to a local **game log**: web `localS
         { "id": "has_fur",    "a": "no" },    // question turns: the question id
         { "id": "guess:cat",  "a": "wrong" }  // guess turns: "guess:" + thing id
       ],
-      "actual": { "id": "dog" }          // win: the guessed thing. stumped: see §11.3, or null
+      "actual": { "id": "dog" },         // win: the guessed thing. stumped: see §11.3, or null
+      "near": [["komodo_dragon", 0.4123], ["bat", 0.2210]]  // only when actual is a new name (§11.2)
     }
   ]
 }
@@ -671,8 +676,20 @@ count under `cat:animal`, `cat:vegetable`, `cat:mineral`.
   `a `, `an `, or `the `.
 - Learned things are appended after the KB things, in order of the first log game that names
   them. Their display name is the text from that first game, trimmed.
-- Every one of their (question) and (category) values is `unknown`, so only counts make them
-  differ.
+- **They borrow from the things they resemble.** When a game teaches a name that matches no
+  KB thing, the log entry also stores `near`: the 5 KB things with the highest weight when the
+  game ended, **computed from that game's category and question answers only** (guess turns
+  ignored, so a wrongly guessed look-alike still counts), with the weights renormalized over
+  those 5 and rounded to 4 decimals. A learned thing's base value for each question is the
+  `near`-weighted mix of those things' answers:
+  `b(a) = Σ_k ŵ_k · L[a][v(near_k, q)]`, summed in list order, where `ŵ` is the stored weights
+  divided by their sum after dropping ids no longer in the KB. Category questions use
+  `cv(near_k, c)` the same way. The `near` list comes from the **first** log game that names the
+  thing. With no usable `near`, the base is `L[a][no]`, the same convention as an unlisted KB
+  pair.
+- (History: the first v9 draft used `unknown`, then `no`. In Ray-style play a taught dragon
+  answered Yes to 15 or more questions it was never asked about, and `no` sank it to rank 24 to
+  100 in the next game. Borrowing from look-alikes fixes that. Coordinator, 2026-11-07.)
 - The guess line for a learned thing is `"I think it's " + name + ". Am I right?"`, with the
   name exactly as typed.
 
@@ -692,9 +709,13 @@ bench (§11.5), using simulated repeat games.
 
 ### 11.3 "What were you thinking of?" (both apps)
 
-After a **stumped** game, below the device and never on it:
+After a **stumped** game, outside the device and **never covering any part of it** (shell,
+LCD, the four buttons, UNDO, NEW GAME, SOUND, labels, wordmark), at any window size:
 - a short prompt *"What were you thinking of?"*, a single-line text field, and a quiet
   **Teach me** button (Enter also submits)
+- the field's placeholder is *"a dragon"*, and a quiet hint under it reads *"Add a, an or the
+  if it needs one."* The name is kept exactly as typed, so a player who types the article gets
+  a natural guess line. The app never adds an article itself.
 - as the player types, up to 5 suggestions from KB thing names and learned names
   (case-insensitive, matching the start of any word). Choosing one records `{ "id": … }`
   (learned names record `{ "name": … }` with their original text).
@@ -704,9 +725,17 @@ After a **stumped** game, below the device and never on it:
 - it never blocks play: YES on the device still starts a new game, and ignoring the prompt
   leaves `actual: null`
 
-**Limits:** at most 24 characters, letters, digits, spaces, apostrophes, and hyphens only.
-No word may be longer than one LCD line can hold, as measured by the fit check. Each app's
-fit check adds the longest allowed learned-name guess line.
+**Limits:** at most 24 characters, letters, digits, spaces, apostrophes, and hyphens only,
+and **no word longer than 23 characters** (the guess line puts `.` right after the name, and
+an LCD line holds 24). Both apps use these exact numbers. Each app's fit check adds the
+longest allowed learned-name guess lines.
+
+**Where it goes when there's no room.** Where a free area beside or below the device exists,
+the box sits there. Where it doesn't (short landscape windows such as 800x600 and 900x500),
+it collapses to a one-line *"What were you thinking of?"* link in the info row. The link
+opens the box as a panel that does not cover the device, the same way the recap panel works.
+The web fit check adds 800x600 and 900x500 and asserts that the box, open or collapsed,
+never overlaps any device element.
 
 **Wins** record `actual` automatically. Nothing is asked.
 
@@ -717,6 +746,10 @@ fit check adds the longest allowed learned-name guess line.
 - **Forget what I've learned:** asks to confirm, then clears the log. Stats are not touched.
 
 Copy follows `design-pref-rfcl`: sentence case and no em dashes.
+
+**Privacy page.** `public/privacy.html` (also the Play policy URL) says plainly that the app
+keeps a log of finished games on the device to learn from, that it never leaves the device
+unless the player uses Export, and that Forget erases it. Re-date the page.
 
 ### 11.4 KB pass (web session that owns the KB)
 
@@ -743,10 +776,18 @@ Copy follows `design-pref-rfcl`: sentence case and no em dashes.
   self-play, take the top 40, and for each one go down **every** thing and fix missing `yes`
   and `maybe`, answering as a typical player would. Column by column, not thing by thing,
   because that is where the unlisted `no`s hide.
-- **Categories as players answer them.** Keep the primary `category` by the definitions
-  (§2). For anything made, processed, or mixed (bread, cookie, chair, book, pizza), add the
-  other categories a real player would plausibly pick, including `other`, to
-  `altCategories`.
+- **Categories as players answer them** (revised 2026-11-07). The category questions are
+  scored by what players actually answer, not by the textbook definitions, so:
+  - the primary `category` is the one **most players would answer YES to**
+  - when no category gets a clear YES, the primary is `other`, and every category a real
+    player might still pick goes in `altCategories` (which makes it `maybe`)
+  - examples: a cookie is `other` with alt `vegetable`. A chair is `other` with alt
+    `vegetable` and `mineral`. A mom, a teacher or a hand is `other` with alt `animal`. A
+    dragon is `animal` with alt `other`. A dog stays `animal`, an apple `vegetable` and a rock
+    `mineral`.
+  - `other` in `altCategories` has no engine effect, since there is no "other" question. It is
+    allowed but changes nothing.
+  - the how-to sheet's category lines (§2) stay as a guide for players.
 - `kb:check` and the full self-play `kb:bench` still meet §6. Report the player bench
   (§11.5) before and after.
 

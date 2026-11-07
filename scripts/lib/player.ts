@@ -1,6 +1,6 @@
 // A simulated player used by kb:vectors and kb:bench (SPECS §6).
 import { replay } from "../../src/engine/engine";
-import { categoryValue, V_MAYBE, V_NO, V_UNKNOWN, V_YES, type CompiledKB } from "../../src/engine/kb";
+import { V_MAYBE, V_NO, V_UNKNOWN, V_YES, type CompiledKB } from "../../src/engine/kb";
 import type { AnswerToken, QuestionAnswer, Session } from "../../src/engine/index";
 
 export type MaybePolicy = "random" | "maybe" | "yes";
@@ -25,7 +25,7 @@ export function truthfulAnswer(ckb: CompiledKB, ti: number, q: number, rnd: () =
 
 /** v7: how that player answers category question `c` (0 animal, 1 vegetable, 2 mineral), from cv. */
 export function categoryAnswer(ckb: CompiledKB, ti: number, c: number, rnd: () => number, maybe: MaybePolicy = "random"): QuestionAnswer {
-  return answerForValue(categoryValue(ckb.kb, ti, c), rnd, maybe);
+  return answerForValue(ckb.cats[ti * 3 + c], rnd, maybe);
 }
 
 /** Replace a Yes/No/Maybe with a different random one of the three. */
@@ -45,8 +45,10 @@ export interface PlayResult {
 }
 
 export interface PlayOptions {
-  /** Index of the thing in mind. */
+  /** Index of the thing in mind: Right is answered when the engine guesses it. */
   thing: number;
+  /** Answer questions the way this thing would (default: `thing`). For a player thinking of something the KB does not have. */
+  answerAs?: number;
   seed: number;
   maybe?: MaybePolicy;
   rnd?: () => number;
@@ -87,9 +89,9 @@ export function play(ckb: CompiledKB, o: PlayOptions): PlayResult {
   let wrongGuesses = 0;
 
   const truthfulFor = (cur: NonNullable<Session["current"]>): AnswerToken => {
-    if (cur.kind === "question") return truthfulAnswer(ckb, o.thing, cur.q, rnd, o.maybe);
+    if (cur.kind === "question") return truthfulAnswer(ckb, o.answerAs ?? o.thing, cur.q, rnd, o.maybe);
     if (cur.kind === "guess") return "wrong";
-    return categoryAnswer(ckb, o.thing, cur.cat, rnd, o.maybe);
+    return categoryAnswer(ckb, o.answerAs ?? o.thing, cur.cat, rnd, o.maybe);
   };
 
   while (s.current) {
@@ -98,14 +100,14 @@ export function play(ckb: CompiledKB, o: PlayOptions): PlayResult {
     if (cur.kind === "category") {
       if (o.detourTurns?.includes(cur.turn) && !detoured.has(cur.turn)) {
         detoured.add(cur.turn);
-        const truth = categoryAnswer(ckb, o.thing, cur.cat, rnd, o.maybe);
+        const truth = categoryAnswer(ckb, o.answerAs ?? o.thing, cur.cat, rnd, o.maybe);
         push(truth === "yes" ? "no" : "yes"); // deliberately the other way
         if (s.current) push(truthfulFor(s.current));
         push("back");
         push("back");
         continue;
       }
-      let a: QuestionAnswer = o.categoryScript?.[cur.cat] ?? categoryAnswer(ckb, o.thing, cur.cat, rnd, o.maybe);
+      let a: QuestionAnswer = o.categoryScript?.[cur.cat] ?? categoryAnswer(ckb, o.answerAs ?? o.thing, cur.cat, rnd, o.maybe);
       if (o.noise && !o.categoryScript && (o.noiseRnd ?? rnd)() < o.noise) a = flip(a, o.noiseRnd ?? rnd);
       push(a);
       continue;
@@ -113,7 +115,7 @@ export function play(ckb: CompiledKB, o: PlayOptions): PlayResult {
     if (cur.kind === "question") {
       if (o.detourTurns?.includes(cur.turn) && !detoured.has(cur.turn)) {
         detoured.add(cur.turn);
-        const truth = truthfulAnswer(ckb, o.thing, cur.q, rnd, o.maybe);
+        const truth = truthfulAnswer(ckb, o.answerAs ?? o.thing, cur.q, rnd, o.maybe);
         push(truth === "yes" ? "no" : "yes"); // deliberately the other way
         if (s.current) push(truthfulFor(s.current));
         push("back");
@@ -121,7 +123,7 @@ export function play(ckb: CompiledKB, o: PlayOptions): PlayResult {
         continue;
       }
       questionsSeen++;
-      let a: QuestionAnswer = o.allQuestions ?? truthfulAnswer(ckb, o.thing, cur.q, rnd, o.maybe);
+      let a: QuestionAnswer = o.allQuestions ?? truthfulAnswer(ckb, o.answerAs ?? o.thing, cur.q, rnd, o.maybe);
       if (o.skipEvery && questionsSeen % o.skipEvery === 0) a = "skip";
       else if (o.noise && !o.allQuestions && (o.noiseRnd ?? rnd)() < o.noise) a = flip(a, o.noiseRnd ?? rnd);
       push(a);

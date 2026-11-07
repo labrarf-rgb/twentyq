@@ -2,7 +2,7 @@
 "schemaVersion":2,
 "kbVersion":"kb-2026.11.02.5",
 "categories":["animal","vegetable","mineral","other"],
-"engine":{"likelihood":{"yes":{"yes":0.85,"maybe":0.4,"no":0.05,"unknown":0.3333333333333333},"maybe":{"yes":0.1,"maybe":0.3,"no":0.1,"unknown":0.3333333333333333},"no":{"yes":0.05,"maybe":0.3,"no":0.85,"unknown":0.3333333333333333}},"guessConfidence":0.8,"guessMinTurn":8,"forceGuessTurn":20,"maxTurns":25,"topK":3},
+"engine":{"likelihood":{"yes":{"yes":0.85,"maybe":0.4,"no":0.05,"unknown":0.3333333333333333},"maybe":{"yes":0.1,"maybe":0.3,"no":0.1,"unknown":0.3333333333333333},"no":{"yes":0.05,"maybe":0.3,"no":0.85,"unknown":0.3333333333333333}},"guessConfidence":0.3,"guessMinTurn":6,"forceGuessTurn":20,"maxTurns":25,"topK":2,"learnPriorStrength":2},
 "questions":[
 {"id":"is_alive","text":"Is it alive?","group":"basics"},
 {"id":"is_manmade","text":"Is it made by people?","group":"basics"},

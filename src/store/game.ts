@@ -1,11 +1,19 @@
 import { create } from "zustand";
-import { compileKB, replay, type AnswerToken, type GameView, type KB } from "@/engine";
+import { compileKB, kbThingByName, nearOf, replay, type AnswerToken, type GameView, type KB, type LogActual, type LogGame } from "@/engine";
+import { appendGame, loadLog, removeGame, setActual } from "@/lib/gameLog";
 import { play, type SfxName } from "@/audio/sfx";
 import { CONFIRM_MESSAGE, IDLE_MESSAGE, messagesFor, type Message } from "@/lib/messages";
 import { loadStats, saveStats, withGame, type Stats } from "@/lib/stats";
 import kbJson from "../../kb/kb.json";
 
-export const ckb = compileKB(kbJson as unknown as KB);
+const kbData = kbJson as unknown as KB;
+/**
+ * The compiled KB for the game on screen: the KB plus what the game log has taught it (v9).
+ * It is frozen per game: `start()` recompiles it, and nothing else does, so UNDO replays with the
+ * same compile and a game never learns from itself. An ES live binding, so importers see updates.
+ */
+export let ckb = compileKB(kbData, loadLog());
+export const kbBase = kbData;
 
 export type Slot = 0 | 1 | 2 | 3;
 /** Anything on the device that animates when pressed. */
@@ -39,6 +47,11 @@ interface GameState {
   skipTick: number;
   flash: Control | null;
   stats: Stats;
+  /** `ts` of this game's entry in the game log once it has ended, else null. */
+  loggedTs: number | null;
+  /** True once the player has told me what they were thinking of (stumped games only). */
+  taught: boolean;
+  teach: (actual: LogActual) => void;
   press: (slot: Slot) => void;
   undo: () => void;
   flashControl: (c: Control) => void;
@@ -76,6 +89,25 @@ function clearTimers() {
   thinkTimer = holdTimer = undefined;
 }
 
+/** The log entry for a game that has just ended (SPECS 11.1). */
+function logGameFor(view: GameView, ts: number): LogGame {
+  const result = view.result!;
+  const turns = view.entries.map((e) => ({
+    id: e.kind === "category" ? "cat:" + e.id : e.kind === "guess" ? "guess:" + e.id : e.id!,
+    a: e.answer as string,
+  }));
+  let actual: LogActual = null;
+  if (result.outcome === "win") {
+    // Wins record the guessed thing. A learned thing goes in by name, which is how the log refers to it.
+    const last = view.entries[view.entries.length - 1];
+    const t = ckb.things[ckb.tIndex.get(last.id!)!];
+    actual = t.learned ? { name: t.name } : { id: t.id };
+  }
+  const game: LogGame = { ts, kbVersion: kbData.kbVersion, outcome: result.outcome, turn: result.turn, turns, actual };
+  if (actual && "name" in actual && kbThingByName(kbData, actual.name) < 0) game.near = nearOf(ckb, view.entries);
+  return game;
+}
+
 export const useGame = create<GameState>((set, get) => {
   /** Put messages on the LCD; the first one's sound plays now. */
   function show(messages: Message[]) {
@@ -99,8 +131,20 @@ export const useGame = create<GameState>((set, get) => {
     if (prev?.result && !view.result) stats = withGame(stats, prev.result, -1);
     if (view.result && !prev?.result) stats = withGame(stats, view.result, 1);
     if (stats !== get().stats) saveStats(stats);
+    // The game log follows the stats: a finished game is appended, and UNDO from the end takes it back out.
+    let loggedTs = get().loggedTs;
+    let taught = get().taught;
+    if (prev?.result && !view.result) {
+      if (loggedTs !== null) removeGame(loggedTs);
+      loggedTs = null;
+      taught = false;
+    }
+    if (view.result && !prev?.result) {
+      loggedTs = appendGame(logGameFor(view, Date.now())).ts;
+      taught = false;
+    }
     clearTimers();
-    set({ history, view, stats, confirming: false });
+    set({ history, view, stats, confirming: false, loggedTs, taught });
     const msgs = messagesFor(ckb, view);
     if (opts.think && view.current && !reducedMotion()) {
       set({ thinking: true });
@@ -112,7 +156,8 @@ export const useGame = create<GameState>((set, get) => {
 
   function start() {
     clearTimers();
-    set({ started: true, seed: newSeed(), history: [], view: null, confirming: false });
+    ckb = compileKB(kbData, loadLog()); // the one place the log is read into the engine
+    set({ started: true, seed: newSeed(), history: [], view: null, confirming: false, loggedTs: null, taught: false });
     go([], { think: false });
   }
 
@@ -133,6 +178,18 @@ export const useGame = create<GameState>((set, get) => {
     skipTick: 0,
     flash: null,
     stats: loadStats(),
+    loggedTs: null,
+    taught: false,
+
+    teach: (actual) => {
+      const { loggedTs, view } = get();
+      if (loggedTs === null || !view?.result || view.result.outcome !== "stumped") return;
+      // If the log was cleared since the game ended there is nothing to attach it to: close the box.
+      // A name the KB does not have also stores which KB things this game looked like (SPECS 11.2).
+      const near = actual && "name" in actual && kbThingByName(kbData, actual.name) < 0 ? nearOf(ckb, view.entries) : undefined;
+      if (setActual(loggedTs, actual, near)) set({ taught: true });
+      else set({ loggedTs: null });
+    },
 
     press: (slot) => {
       const s = get();

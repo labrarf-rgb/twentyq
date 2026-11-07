@@ -191,6 +191,23 @@ html {
   letter-spacing: 0.1em;
 }
 @media (max-width: 599.98px) {
+  /* up to three short lines fit the 48px row once the "What were you thinking of?" link is there */
+  .info {
+    gap: 0 10px;
+  }
+  .info .link {
+    padding: 0 2px;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+  }
+  .stats {
+    font-size: 0.7rem;
+  }
+  .sound-state {
+    font-size: 0.6rem;
+  }
+}
+@media (max-width: 599.98px) {
   /* Narrow: the header keeps only the wordmark and toggle; the info block is a row under the device. */
   .info {
     position: fixed;
@@ -200,7 +217,8 @@ html {
     box-sizing: border-box;
     height: 48px;
     max-height: 48px;
-    padding: 2px 16px;
+    padding: 0 16px;
+    line-height: 1.25;
     justify-content: center;
     align-content: center;
     text-align: center;
@@ -249,15 +267,11 @@ html {
   transform: scale(0.98);
 }
 /* ---- recap ---- */
-/* An overlay, so opening it never changes the device's size. It scrolls inside itself. */
+/* A panel outside the device, never over it: in a free corner of the page (.overlay, placed by
+   src/lib/placement.ts, so D never changes) or, where there is none, docked into the layout (.docked).
+   It scrolls inside itself. */
 .recap-panel {
-  position: fixed;
-  z-index: 3;
-  top: 52px;
-  right: 12px;
   box-sizing: border-box;
-  width: min(calc(100vw - 24px), 420px);
-  max-height: calc(100dvh - 64px);
   overflow-y: auto;
   background: var(--card);
   border: 1px solid var(--line);
@@ -265,15 +279,13 @@ html {
   box-shadow: var(--shadow);
   padding: 4px 14px;
 }
-@media (max-width: 599.98px) {
-  .recap-panel {
-    top: auto;
-    right: 12px;
-    left: 12px;
-    width: auto;
-    bottom: 56px;
-    max-height: 55dvh;
-  }
+.recap-panel.overlay {
+  position: fixed;
+  z-index: 3;
+}
+.recap-panel.docked {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 .recap-list {
   list-style: none;
@@ -298,6 +310,146 @@ html {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--accent);
+}
+
+/* ---- "What were you thinking of?" (v9) ---- */
+/* Outside the device, never over it (SPECS 11.3). In a free corner (.overlay, placed by
+   src/lib/placement.ts, so D never changes) or, where there is none, docked into the layout (.docked)
+   and opened from a link in the info row. */
+.teach-panel {
+  box-sizing: border-box;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  box-shadow: var(--shadow);
+  padding: 6px 12px 8px;
+  text-align: left;
+}
+.teach-panel.overlay {
+  position: fixed;
+  z-index: 3;
+}
+.teach-panel.docked {
+  flex: none;
+}
+.dock {
+  box-sizing: border-box;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+.dock-side {
+  flex: none;
+  width: 344px;
+  padding: 12px;
+  border-left: 1px solid var(--rule);
+}
+.dock-bottom {
+  flex: none;
+  max-height: 42dvh;
+  padding: 8px 12px;
+  border-top: 1px solid var(--rule);
+}
+@media (max-width: 599.98px) {
+  .dock-bottom {
+    margin-bottom: 48px; /* clear of the fixed info row */
+  }
+  .stage.has-dock-bottom {
+    padding-bottom: 0;
+  }
+}
+.teach-label {
+  display: block;
+  font-family: "Spectral", Georgia, serif;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  margin: 0 0 3px;
+}
+.teach-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.teach-input {
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  padding: 0 10px;
+}
+.teach-btn {
+  height: 34px;
+  padding: 0 14px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+.teach-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.teach-picks {
+  list-style: none;
+  margin: 0 0 4px;
+  padding: 0 0 2px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  max-height: 56px; /* two rows; typing narrows the list */
+  overflow: hidden;
+}
+.chip {
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--soft);
+  font: inherit;
+  font-size: 0.76rem;
+  line-height: 1.2;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.chip:hover {
+  color: var(--ink);
+  border-color: var(--soft);
+}
+.teach-hint {
+  margin: 4px 0 0;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  color: var(--soft);
+}
+.teach-thanks {
+  margin: 0;
+  font-family: "Spectral", Georgia, serif;
+  font-size: 0.95rem;
+}
+/* how to play: my games */
+.mine {
+  border-top: 1px solid var(--rule);
+  margin: 14px 0;
+  padding-top: 10px;
+}
+.mine-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  align-items: center;
+}
+.mine p {
+  margin: 4px 0;
 }
 
 /* ---- how to play sheet ---- */
@@ -450,7 +602,10 @@ kbd {
 .lcd-measure {
   position: absolute;
   left: 0;
-  right: 0;
+  /* 1px of slack: a line of exactly 24 characters is exactly as wide as the box, and sub-pixel
+     rounding at some window sizes tipped its last word onto a new line (found by the fit check
+     on the longest learned-name guess lines). */
+  right: -1px;
   top: 0;
   visibility: hidden;
   pointer-events: none;

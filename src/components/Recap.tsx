@@ -1,4 +1,5 @@
 import { recapRows } from "@/lib/messages";
+import type { Rect } from "@/lib/placement";
 import { ckb, useGame } from "@/store/game";
 
 /** True once there is at least one turn to show. */
@@ -11,6 +12,16 @@ export function RecapToggle({ open, onToggle }: { open: boolean; onToggle: () =>
     <button type="button" className="link" aria-expanded={open} onClick={onToggle}>
       {open ? "Hide the questions" : "Show the questions"}
     </button>
+  );
+}
+
+/** The recap in its panel: a free corner of the page, or docked into the layout. Scrolls inside itself. */
+export function RecapPanel({ rect }: { rect?: Rect }) {
+  const style = rect ? { left: rect.left, top: rect.top, width: rect.width, maxHeight: rect.height } : undefined;
+  return (
+    <div className={`recap-panel ${rect ? "overlay" : "docked"}`} style={style}>
+      <RecapList />
+    </div>
   );
 }
 
