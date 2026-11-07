@@ -2,6 +2,26 @@
 
 Newest first. One dated entry per working session.
 
+## 2026-11-07 · Web build session 9, addendum 2 (borrowing from look-alikes, `proper`)
+Spec commit `7ab52a2`. Same branch, still not merged, pushed or deployed.
+- **`near` (§11.1, §11.2).** When a game's `actual` is a name that matches no KB thing, the log entry also stores `near`: the 5 KB things the game looked most like, as `[id, weight]`, highest first. `src/engine/near.ts` computes it from that game's category and question answers only (skips and guess turns ignored, so a wrongly guessed Komodo dragon still counts), over a fresh `1/N` vector on the compile the game was played on, normalized in index order, KB things only, ties to the lower index, renormalized over the 5, rounded half-up to 4 decimals. The teach box stores it when the player teaches a name (a win on a learned thing stores it too, harmlessly: only the first game that names a thing counts). A name that matches a KB thing stores none.
+- **Borrowing.** A learned thing's base for every question and category cell is `Σ_k ŵ_k · L[a][v(near_k, cell)]` in list order, from the **first** log game that names it, with stale ids dropped and the weights renormalized. No usable `near` (missing, empty, all stale, weights not above 0) falls back to `L[a][no]`. Counts apply on top exactly as before, and an untouched cell is the mix itself with no further arithmetic. The `values[]` rows of a learned thing are now placeholders; `P` is what the engine reads.
+- **`proper` (§3).** Optional boolean on a KB thing: the guess line keeps the name as written (`the Easter Bunny`). `kb:check` rejects a non-boolean, `ThingInfo` carries it, and the fit check already renders every guess line through `messagesFor`, so a flagged thing is measured like any other. Tested with a fixture (the KB session sets the real flags).
+- **Vectors.** Learned vectors regenerated, and every non-learned vector is byte-identical. Two new: `learned-near-with-a-stale-id` (a `near` list that names a thing the KB does not have, plus a second thing whose only `near` entry is stale and so falls back to `no`) and `learned-borrows-from-near`. Every other name-taught log in the vectors now carries `near` too. `docs/VECTORS.md` has the exact rules for Android: what to keep, the sum order, how to write `near`, and the fallback.
+- **Bench (0.3 / 6 / 2, K = 2), win by turn 20 / 25:**
+
+  | | game 1 | game 2 | game 3 |
+  |---|---|---|---|
+  | novel-10, own log | 0 / 0 | **95.0 / 97.0** | **100 / 100** |
+  | novel-10, shared log | 0 / 0 | **97.0 / 98.0** | **100 / 100** |
+  | coordinator-49, own log | 76.2 / 89.1 | 96.9 / 99.7 | 99.0 / 99.3 |
+  | coordinator-49, shared log | 76.2 / 89.1 | 95.6 / 99.0 | 99.3 / 100 |
+
+  Novel-10 with the `no` base was 39 / 83 (own) and 34 / 73 (shared) for games 2 and 3, so borrowing is a large gain. Coordinator-49 is identical to the previous run (a KB thing's cells are untouched), so nothing regressed. Full `kb:bench` unchanged: 99.9% truthful by 20, 92.8% noisy by 25. Caveat: the sheet player gives the same answers every game, which is kind to anything learned from one game.
+- **K on the novel sheet, borrowing on (own log, games 2 and 3 by turn 20):** K=1 98 / 99, K=2 95 / 100, K=3 94 / 99. Shared log: 99 / 100, 97 / 100, 95 / 100. Lower K is a little better on game 2 again, within noise, and a real player who varies would be hurt by a low K. Kept K=2.
+- **Dragon, replayed in the browser:** game 1 stumped (Pterodactyl, Komodo dragon, Boa, and so on); I taught "a dragon" once through the box. The entry stored `near`: Komodo dragon 0.6156, boa 0.2173, pterodactyl 0.0947, condor 0.0362, raven 0.0362. **Game 2 guessed "a dragon" at turn 10 and won** (same answers as before: 15 or more Yes answers, many on questions game 1 never asked). No rank to report because it was guessed. Earlier, with the `no` base, the same dragon sat at rank 24 to 100 and was never guessed in games 2 or 3.
+- Gates: `kb:check` 0 errors, `npm test` 118, `npm run build`, full `kb:bench` meets §6, `kb:bench:players`, fit check 9 of 9.
+
 ## 2026-11-07 · Web build session 9, addendum (coordinator follow-ups, branch `v9-learning`)
 Coordinator answers to my five questions, spec commit `5577c5e`. Still not merged, pushed or deployed.
 - **Learned base is now `no` (§11.2).** Promoted my bench variant into the engine: a learned thing's `values` and `cats` hold the `no` code, so its unseen cells are the table's `no` column. The `learnedBase` option and the `--learned-base` bench flag are gone. The learned vectors were regenerated; **every non-learned vector is byte-identical** to before. `docs/VECTORS.md` updated for Android. The learned vector that guessed a thing now uses a rain-like player, because a frog-like zorp is lost among ten KB frogs.

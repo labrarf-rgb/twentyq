@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { Session } from "../../src/engine/engine";
 import { compileKB, type CompiledKB } from "../../src/engine/kb";
 import { normalizeName } from "../../src/engine/learn";
+import { nearOf } from "../../src/engine/near";
 import type { AnswerToken, EngineConstants, KB, LogGame, QuestionAnswer } from "../../src/engine/types";
 
 export const SHEETS_DIR = fileURLToPath(new URL("../../kb/player-sheets/", import.meta.url));
@@ -84,7 +85,9 @@ export function playRow(ckb: CompiledKB, row: SheetRow, seed: number, inKb: bool
   const won = r.outcome === "win";
   // Wins record the guessed thing; a stumped player picks what they meant from the stump screen.
   const actual = inKb ? { id: row.id } : { name: displayName(row.id) };
-  return { won, turn: r.turn, log: { ts: 1, kbVersion: ckb.kb.kbVersion, outcome: r.outcome, turn: r.turn, turns, actual } };
+  const log: LogGame = { ts: 1, kbVersion: ckb.kb.kbVersion, outcome: r.outcome, turn: r.turn, turns, actual };
+  if (!inKb) log.near = nearOf(ckb, s.entries); // a name the KB lacks also stores what the game looked like
+  return { won, turn: r.turn, log };
 }
 
 export interface Tally {
