@@ -182,8 +182,9 @@ export const useGame = create<GameState>((set, get) => {
     teach: (actual) => {
       const { loggedTs, view } = get();
       if (loggedTs === null || !view?.result || view.result.outcome !== "stumped") return;
-      setActual(loggedTs, actual);
-      set({ taught: true });
+      // If the log was cleared since the game ended there is nothing to attach it to: close the box.
+      if (setActual(loggedTs, actual)) set({ taught: true });
+      else set({ loggedTs: null });
     },
 
     press: (slot) => {

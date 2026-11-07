@@ -51,15 +51,16 @@ export function removeGame(ts: number): void {
 }
 
 /** Record what a stumped player was thinking of. */
-export function setActual(ts: number, actual: LogActual): void {
+export function setActual(ts: number, actual: LogActual): boolean {
   const games = loadLog();
   for (let i = games.length - 1; i >= 0; i--) {
     if (games[i].ts === ts) {
       games[i] = { ...games[i], actual };
       saveLog(games);
-      return;
+      return true;
     }
   }
+  return false; // the log was cleared since this game ended
 }
 
 export function clearLog(): void {

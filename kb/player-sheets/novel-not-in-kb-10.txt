@@ -1,0 +1,14 @@
+# Web build session, 2026-11-07: 10 everyday things the KB did not have when this sheet was written (checked by id and name
+# only, so no KB row was ever seen). They measure what repeat play is worth for a thing the KB lacks: game 1 is a certain
+# stump, and a stumped player teaches the name. If the KB later gains one of these, it plays as a normal KB thing.
+# id | category answers (Q1 Q2 Q3; y/n/m/s) | YES ids | SOMETIMES ids   (anything else: No)
+kazoo | n n y | is_manmade can_hold found_in_house is_musical makes_sound made_of_plastic is_toy | made_of_metal is_colorful sings
+lava_lamp | n n y | is_manmade found_in_house found_in_bedroom uses_electricity gives_light is_liquid is_colorful is_transparent made_of_glass is_hot is_breakable is_shiny | can_hold made_of_metal is_toy is_wet is_red
+bunk_bed | n m y | is_manmade found_in_house found_in_bedroom bigger_than_breadbox heavier_than_person made_of_wood is_furniture you_can_sit_on_it | made_of_metal is_valuable is_toy is_soft
+snow_globe | n n y | is_manmade can_hold found_in_house made_of_glass is_breakable is_transparent is_container is_white is_round is_shiny is_wet is_liquid | is_toy is_valuable made_of_plastic is_colorful falls_from_sky is_cold
+hot_tub | n n m | is_manmade found_outdoors bigger_than_breadbox heavier_than_person is_hot is_wet is_liquid is_container people_go_inside uses_electricity you_can_sit_on_it people_visit_for_fun is_valuable made_of_plastic is_round | found_in_house is_place is_cold
+cuckoo_clock | n y y | is_manmade found_in_house tells_time made_of_wood makes_sound hangs_on_a_wall has_numbers opens_and_closes is_brown is_valuable | made_of_metal is_musical sings can_hold uses_batteries
+jukebox | n n y | is_manmade bigger_than_breadbox heavier_than_person uses_electricity makes_sound is_musical has_buttons gives_light is_colorful is_shiny is_valuable people_visit_for_fun made_of_metal made_of_glass | found_in_house has_numbers is_red has_screen
+bird_feeder | n m y | is_manmade found_outdoors used_in_garden is_container made_of_wood can_hold | made_of_plastic made_of_metal made_of_glass hangs_on_a_wall is_colorful is_food
+pinata | n y n | is_manmade can_hold is_toy made_of_paper is_colorful is_container is_breakable is_round people_visit_for_fun | is_sweet is_food has_stripes_spots bigger_than_breadbox
+fidget_spinner | n n y | is_manmade can_hold is_toy made_of_plastic is_round is_colorful is_shiny makes_sound | made_of_metal is_flat found_in_house used_daily

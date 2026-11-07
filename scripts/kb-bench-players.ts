@@ -1,6 +1,6 @@
 // npm run kb:bench:players: play held-out answer sheets through the real engine (SPECS 11.5).
 // Reports win by turn 20 and 25, per thing and overall, and repeat play (game 1 against game 3)
-// against an in-memory game log. Options: --seeds N (default 6), --sheet name.txt, --set key=value,...
+// against an in-memory game log. Options: --seeds N (default 6), --sheet name.txt, --set key=value,..., --learned-base unknown|no (experiment)
 import { loadKB } from "./lib/kb-io";
 import { avgWin, loadSheets, pct, rate, runPlayerBench, unknownQuestionIds } from "./lib/playerbench";
 import type { EngineConstants } from "../src/engine/types";
@@ -29,7 +29,8 @@ if (bad.length) {
 }
 
 const t0 = Date.now();
-const res = runPlayerBench(kb, rows, { seeds: SEEDS, repeats: 3, constants });
+const learnedBase = (arg("--learned-base") as "unknown" | "no" | undefined) ?? "unknown";
+const res = runPlayerBench(kb, rows, { seeds: SEEDS, repeats: 3, constants, learnedBase });
 const e = { ...kb.engine, ...constants };
 console.log(`\n${kb.kbVersion}: ${kb.things.length} things, ${rows.length} sheet rows x ${SEEDS} seeds x 3 games (${((Date.now() - t0) / 1000).toFixed(1)}s)`);
 console.log(`constants: guessConfidence ${e.guessConfidence}, guessMinTurn ${e.guessMinTurn}, topK ${e.topK}, learnPriorStrength ${e.learnPriorStrength ?? "(default 2)"}`);

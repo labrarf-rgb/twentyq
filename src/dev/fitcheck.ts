@@ -170,7 +170,7 @@ async function runSize(w: number, h: number): Promise<SizeResult> {
   }
   // v9: the longest names a player may teach (24 characters, no word over 23) in the guess line and the
   // runner-up line. These are the shapes that wrap worst: one 23-letter word, 12 + 11, and a 3-line shape.
-  const learnedNames = ["W".repeat(23), "Wwwwwwwwwwww Wwwwwwwwwww", "a b c d e f g h i j k lm", "Ww-ww'ww-ww'ww-ww'ww-wwx", "M".repeat(11) + " " + "M".repeat(12)];
+  const learnedNames = ["W".repeat(23), "Wwwwwwwwwwww Wwwwwwwwwww", "a b c d e f g h i j k lm", "Ww-ww'ww-ww'ww-ww'ww-ww", "M".repeat(11) + " " + "M".repeat(12)];
   const lkb = compileKB(
     kb,
     learnedNames.map((name) => ({ ts: 1, kbVersion: "t", outcome: "stumped", turn: 25, turns: [], actual: { name } })),
@@ -292,7 +292,12 @@ async function runSize(w: number, h: number): Promise<SizeResult> {
     const hit = (a: DOMRect, b: DOMRect) => a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5;
     const covered: [string, Element][] = [["lcd bezel", doc.querySelector(".lcd-bezel")!], ["undo", doc.querySelector(".oval")!]];
     doc.querySelectorAll(".slot .cap").forEach((e, i) => covered.push([`button ${i}`, e]));
-    for (const [name, el] of covered) if (hit(pr, el.getBoundingClientRect())) fail("teach panel covers a device control", `${label}: ${name}`);
+    covered.push(["wordmark", doc.querySelector(".wordmark")!]);
+    doc.querySelectorAll(".slot-label, .eyebrow.tiny").forEach((e) => covered.push([`label ${e.textContent}`, e]));
+    for (const [name, el] of covered) {
+      const r = el.matches(".slot-label, .eyebrow.tiny, .wordmark") ? textRect(win, el) : el.getBoundingClientRect();
+      if (hit(pr, r)) fail("teach panel covers a device control", `${label}: ${name}`);
+    }
     const header2 = doc.querySelector(".topbar")!.getBoundingClientRect();
     if (pr.top < header2.bottom - 0.5) fail("teach panel covers the header", label);
     // the info row (narrow) or header (wide) must stay reachable

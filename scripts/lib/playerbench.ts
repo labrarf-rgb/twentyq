@@ -113,6 +113,8 @@ export interface PlayerBenchOptions {
   constants?: Partial<EngineConstants>;
   /** play only game 1 (no learning): cheap, for the constants grid */
   firstOnly?: boolean;
+  /** experiment: what a learned thing's cells are before counts (the spec says unknown) */
+  learnedBase?: "unknown" | "no";
 }
 
 export interface PlayerBenchResult {
@@ -142,7 +144,7 @@ export function runPlayerBench(kb0: KB, rows: SheetRow[], o: PlayerBenchOptions)
     rows.forEach((row, ri) => {
       const log: LogGame[] = [];
       for (let g = 0; g < G; g++) {
-        const ckb = g === 0 ? base : compileKB(kb, log);
+        const ckb = g === 0 ? base : compileKB(kb, log, { learnedBase: o.learnedBase });
         const r = playRow(ckb, row, seedFor(ri, run, g), inKb[ri]);
         add(isolated[g], r);
         if (r.won && r.turn <= 20) perRow[ri].wins20[g]++;
@@ -156,7 +158,7 @@ export function runPlayerBench(kb0: KB, rows: SheetRow[], o: PlayerBenchOptions)
     // shared: every thing once, then every thing again, then again, all on one log
     const log: LogGame[] = [];
     for (let g = 0; g < G; g++) {
-      const ckb = g === 0 ? base : compileKB(kb, log);
+      const ckb = g === 0 ? base : compileKB(kb, log, { learnedBase: o.learnedBase });
       const results = rows.map((row, ri) => playRow(ckb, row, seedFor(ri, run, g), inKb[ri])); // same compile within a round
       results.forEach((r) => {
         add(shared[g], r);
