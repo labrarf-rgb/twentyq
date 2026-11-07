@@ -2,6 +2,36 @@
 
 Newest first. One dated entry per working session.
 
+## 2026-11-07 · Web build session 9, addendum (coordinator follow-ups, branch `v9-learning`)
+Coordinator answers to my five questions, spec commit `5577c5e`. Still not merged, pushed or deployed.
+- **Learned base is now `no` (§11.2).** Promoted my bench variant into the engine: a learned thing's `values` and `cats` hold the `no` code, so its unseen cells are the table's `no` column. The `learnedBase` option and the `--learned-base` bench flag are gone. The learned vectors were regenerated; **every non-learned vector is byte-identical** to before. `docs/VECTORS.md` updated for Android. The learned vector that guessed a thing now uses a rain-like player, because a frog-like zorp is lost among ten KB frogs.
+- **Bench, same constants (0.3 / 6 / 2, K = 2):**
+
+  | | game 1 by 20 / 25 | game 2 by 20 / 25 | game 3 by 20 / 25 |
+  |---|---|---|---|
+  | coordinator-49, own log | 76.2 / 89.1 | 96.9 / 99.7 | 99.0 / 99.3 |
+  | coordinator-49, shared log | 76.2 / 89.1 | 95.6 / 99.0 | 99.3 / 100.0 |
+  | novel-10, own log | 0 / 0 | **39.0 / 60.0** | **83.0 / 96.0** |
+  | novel-10, shared log | 0 / 0 | **34.0 / 56.0** | **73.0 / 90.0** |
+
+  Nothing regressed on coordinator-49 (identical to the `unknown` run for game 1 and 2, 99.3 against 99.0 for game 3 on a shared log). Novel-10 before, with `unknown`: own log 21 / 67 for games 2 and 3 by turn 20, shared log 21 / 74. Full `kb:bench` is unchanged (99.9% truthful by 20, 92.8% noisy by 25).
+- **Dragon, replayed in the browser with "a dragon" taught once: game 2 still did NOT guess it**, and neither did game 3 after teaching game 2 as well (the earlier run with `unknown` had missed game 2 and hit game 3 at turn 16, so this is one trial each way, not a trend). I replayed game 2's answers against the log to see why: after a single game, "a dragon" ranks about 24th to 100th, because it has only the 12 or so cells game 1 asked and my dragon says Yes to 15 or more things. Every Yes on a cell game 1 never asked (`is_alive`, `lays_eggs`) costs it 0.05 against a KB thing's 0.85. The novel sheet's things have shorter, more typical profiles, which is why the bench is kinder than my dragon. Suggestions if the coordinator wants it faster: a smaller `learnPriorStrength` was slightly better in the grid, or learned things could borrow unseen cells from the nearest KB things, but I changed neither.
+- **The teach box and the recap never cover the device (§11.3).** New `src/lib/placement.ts`. A panel sits in a free corner of the page when its rectangle clears the shell circle (an overlay, D unchanged). Otherwise it is **docked into the layout**, beside the device or under it, whichever leaves the device larger, and the device shrinks to the space left (the same D formula, applied to what is left) while the panel is open. The teach box then collapses to a one-line **"What were you thinking of?"** link in the info row, and the link opens it docked, closing itself 2.2 s after "Thanks. I'll remember that." If the recap has to dock, the box docks with it, so the two never overlap. Placeholder `a dragon` and the hint "Add a, an or the if it needs one." are in; the name is kept exactly as typed.
+
+  | window | teach box | recap |
+  |---|---|---|
+  | 320x560, 375x667 | link, docked under | docked under |
+  | 390x844 | bottom-right corner | docked under |
+  | 768x1024 | link, docked under | docked under |
+  | 1024x768 | link, docked beside | docked beside |
+  | 1280x620, 1440x900 | bottom-right corner | top-right corner (340x360, 300x240) |
+  | 800x600, 900x500 | link, docked beside | docked beside |
+
+- **The recap did overlap the device, and I fixed it.** It was a fixed 420 px panel at the top right, which sat on top of the shell at every size except the very widest (the old check only tested that it stayed inside the viewport). It now uses the same placement, so at most sizes it is docked, and at 1280x620 and 1440x900 it sits in a corner, smaller than before (it scrolls inside itself).
+- **Fit check:** 9 sizes (adds 800x600 and 900x500), all PASS. Per size it asserts, with every panel closed, the teach box open in its corner or docked, with 5 suggestions, in the thanks state, and the recap alone and together with the box: page does not scroll, panel inside the viewport, panel clear of the shell circle and of the LCD, all four buttons, UNDO, NEW GAME, SOUND, labels and wordmark, recap and box clear of each other, D unchanged for an overlay and equal to the formula for a docked panel, and the info row not clipped with the extra link in it (the narrow info row got slightly smaller type to keep it to 48 px).
+- **Privacy:** `public/privacy.html` re-dated 2026-11-07. It now says the app keeps a log of finished games on the device to learn from (date, questions and answers, outcome, and what you typed if you taught it; the last 1,000 games), that nothing leaves the device unless the player uses Export, and that Forget erases it. The old line "your answers during a game are not saved at all" is gone because it was no longer true.
+- Gates: `kb:check` 0 errors, `npm test` 107, `npm run build`, full `kb:bench` meets §6, `kb:bench:players` runs, fit check 9 of 9.
+
 ## 2026-11-07 · Web build session 9 (spec v9: learning and engine, branch `v9-learning`)
 - **Not merged, not deployed.** Branch `v9-learning` cut from `main` at `d1b02ec`. In `kb/kb.json` only the `engine` block changed (one line); `kbVersion` is untouched, so the coordinator sets it at merge. Port notes for Android are in `docs/VECTORS.md`.
 - **Engine (§11.2).** `compileKB(kb, log)` turns the game log into learned things (appended after the KB things, in order of first mention) and answer probabilities `P(i,q,a)`, stored question-major so the gain loop scans contiguously. With an empty log `P` is the table value with no arithmetic: **the 19 existing vectors were regenerated before any constant changed and the file was byte-identical** (checkpoint commit `ca708b3`). Maps are only looked up, never iterated; counts live in plain arrays. `learnPriorStrength` is in the engine block (2).

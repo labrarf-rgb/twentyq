@@ -87,6 +87,7 @@ screen are always the top 3**, whatever `topK` is tuned to (the reference engine
   - a **stumped** game records `actual: null` until the player teaches it.
 - **UNDO from the end screen** removes that game's entry (the reference finds it by `ts`).
 - The log keeps the most recent 1,000 games.
+- **Teach box copy.** Placeholder `a dragon`, and a quiet hint under the field: `Add a, an or the if it needs one.` The app never adds an article.
 - **Teach box limits.** At most 24 characters; letters, digits, spaces, apostrophes and
   hyphens only (curly quotes become plain ones); at least one letter or digit; **no word longer
   than 23 characters** (the guess line puts a `.` straight after the name, so a 24-letter word
