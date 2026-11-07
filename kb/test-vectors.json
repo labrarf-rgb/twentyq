@@ -2269,7 +2269,29 @@
      ],
      "actual": {
       "name": "Zorp"
-     }
+     },
+     "near": [
+      [
+       "dew",
+       0.4574
+      ],
+      [
+       "wind",
+       0.2152
+      ],
+      [
+       "rain",
+       0.2152
+      ],
+      [
+       "breeze",
+       0.0762
+      ],
+      [
+       "frost",
+       0.0359
+      ]
+     ]
     },
     {
      "ts": 1762480122000,
@@ -2380,7 +2402,29 @@
      ],
      "actual": {
       "name": "a zorp"
-     }
+     },
+     "near": [
+      [
+       "rain",
+       0.7541
+      ],
+      [
+       "snow",
+       0.1253
+      ],
+      [
+       "dew",
+       0.0707
+      ],
+      [
+       "water",
+       0.0444
+      ],
+      [
+       "puddle",
+       0.0055
+      ]
+     ]
     }
    ],
    "answers": [
@@ -2394,10 +2438,7 @@
     "yes",
     "no",
     "yes",
-    "no",
-    "wrong",
-    "maybe",
-    "no",
+    "yes",
     "right"
    ],
    "thingCount": 995,
@@ -2436,12 +2477,12 @@
     {
      "turn": 6,
      "kind": "question",
-     "id": "is_round"
+     "id": "found_in_house"
     },
     {
      "turn": 7,
      "kind": "question",
-     "id": "found_in_house"
+     "id": "is_round"
     },
     {
      "turn": 8,
@@ -2461,45 +2502,30 @@
     {
      "turn": 11,
      "kind": "question",
-     "id": "is_white"
+     "id": "is_transparent"
     },
     {
      "turn": 12,
-     "kind": "guess",
-     "id": "rain"
-    },
-    {
-     "turn": 13,
-     "kind": "question",
-     "id": "makes_sound"
-    },
-    {
-     "turn": 14,
-     "kind": "question",
-     "id": "is_idea"
-    },
-    {
-     "turn": 15,
      "kind": "guess",
      "id": "learned:zorp"
     }
    ],
    "result": {
     "outcome": "win",
-    "turn": 15
+    "turn": 12
    },
    "finalWeightsTop3": [
     [
      "learned:zorp",
-     0.4779243386863643
+     0.43033151418258325
     ],
     [
-     "snow",
-     0.06423469291163218
+     "rain",
+     0.36692449139835437
     ],
     [
-     "lightning",
-     0.05100990319453143
+     "wind",
+     0.045865561424794296
     ]
    ]
   },
@@ -3162,7 +3188,29 @@
      ],
      "actual": {
       "name": "  Blip   Frobnitz "
-     }
+     },
+     "near": [
+      [
+       "fork",
+       0.6588
+      ],
+      [
+       "spoon",
+       0.2325
+      ],
+      [
+       "knife",
+       0.0517
+      ],
+      [
+       "faucet",
+       0.0388
+      ],
+      [
+       "key",
+       0.0182
+      ]
+     ]
     },
     {
      "ts": 1762480488000,
@@ -3273,7 +3321,29 @@
      ],
      "actual": {
       "name": "the BLIP frobnitz"
-     }
+     },
+     "near": [
+      [
+       "fork",
+       0.2875
+      ],
+      [
+       "knife",
+       0.2875
+      ],
+      [
+       "faucet",
+       0.2875
+      ],
+      [
+       "spoon",
+       0.1015
+      ],
+      [
+       "whisk",
+       0.0359
+      ]
+     ]
     },
     {
      "ts": 1762480549000,
@@ -3384,7 +3454,29 @@
      ],
      "actual": {
       "name": "Zorp"
-     }
+     },
+     "near": [
+      [
+       "rain",
+       0.9291
+      ],
+      [
+       "water",
+       0.0547
+      ],
+      [
+       "dew",
+       0.0137
+      ],
+      [
+       "puddle",
+       0.0024
+      ],
+      [
+       "ocean",
+       0.0002
+      ]
+     ]
     },
     {
      "ts": 1762480610000,
@@ -3495,7 +3587,29 @@
      ],
      "actual": {
       "name": "a blip frobnitz"
-     }
+     },
+     "near": [
+      [
+       "spoon",
+       0.851
+      ],
+      [
+       "fork",
+       0.1064
+      ],
+      [
+       "pot",
+       0.0177
+      ],
+      [
+       "knife",
+       0.0167
+      ],
+      [
+       "colander",
+       0.0083
+      ]
+     ]
     },
     {
      "ts": 1762480671000,
@@ -3606,7 +3720,29 @@
      ],
      "actual": {
       "name": "an ZORP"
-     }
+     },
+     "near": [
+      [
+       "rain",
+       0.5045
+      ],
+      [
+       "dew",
+       0.4765
+      ],
+      [
+       "mud",
+       0.0132
+      ],
+      [
+       "puddle",
+       0.0035
+      ],
+      [
+       "hail",
+       0.0023
+      ]
+     ]
     }
    ],
    "answers": [
@@ -3619,10 +3755,6 @@
     "yes",
     "yes",
     "yes",
-    "no",
-    "no",
-    "wrong",
-    "wrong",
     "right"
    ],
    "thingCount": 996,
@@ -3684,46 +3816,26 @@
     },
     {
      "turn": 10,
-     "kind": "question",
-     "id": "is_wet"
-    },
-    {
-     "turn": 11,
-     "kind": "question",
-     "id": "is_dangerous"
-    },
-    {
-     "turn": 12,
-     "kind": "guess",
-     "id": "spoon"
-    },
-    {
-     "turn": 13,
-     "kind": "guess",
-     "id": "fork"
-    },
-    {
-     "turn": 14,
      "kind": "guess",
      "id": "learned:blip frobnitz"
     }
    ],
    "result": {
     "outcome": "win",
-    "turn": 14
+    "turn": 10
    },
    "finalWeightsTop3": [
     [
      "learned:blip frobnitz",
-     0.3362804827631359
+     0.35651475933500765
     ],
     [
-     "whisk",
-     0.06420976665880525
+     "spoon",
+     0.15599293217520868
     ],
     [
-     "ladle",
-     0.06420976665880525
+     "fork",
+     0.15599293217520868
     ]
    ]
   },
@@ -4060,7 +4172,29 @@
      ],
      "actual": {
       "name": "   "
-     }
+     },
+     "near": [
+      [
+       "cat",
+       0.898
+      ],
+      [
+       "mouse",
+       0.0704
+      ],
+      [
+       "dog",
+       0.0186
+      ],
+      [
+       "rat",
+       0.0088
+      ],
+      [
+       "rabbit",
+       0.0041
+      ]
+     ]
     },
     {
      "ts": 1762480915000,
@@ -4697,6 +4831,718 @@
     [
      "lizard",
      0.03946791440492278
+    ]
+   ]
+  },
+  {
+   "name": "learned-near-with-a-stale-id",
+   "seed": 604,
+   "learned": [
+    {
+     "ts": 1762481159000,
+     "kbVersion": "kb-2026.11.02.5",
+     "outcome": "stumped",
+     "turn": 25,
+     "turns": [
+      {
+       "id": "cat:animal",
+       "a": "no"
+      },
+      {
+       "id": "cat:vegetable",
+       "a": "no"
+      },
+      {
+       "id": "cat:mineral",
+       "a": "yes"
+      },
+      {
+       "id": "found_outdoors",
+       "a": "yes"
+      },
+      {
+       "id": "is_vehicle",
+       "a": "yes"
+      },
+      {
+       "id": "people_go_inside",
+       "a": "no"
+      },
+      {
+       "id": "has_wheels",
+       "a": "yes"
+      },
+      {
+       "id": "makes_sound",
+       "a": "no"
+      },
+      {
+       "id": "has_handle",
+       "a": "yes"
+      },
+      {
+       "id": "is_toy",
+       "a": "no"
+      },
+      {
+       "id": "made_of_fabric",
+       "a": "no"
+      },
+      {
+       "id": "is_container",
+       "a": "no"
+      },
+      {
+       "id": "guess:bicycle",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:scooter",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:wheelchair",
+       "a": "wrong"
+      },
+      {
+       "id": "is_fast",
+       "a": "no"
+      },
+      {
+       "id": "guess:golf_cart",
+       "a": "wrong"
+      },
+      {
+       "id": "you_can_ride_it",
+       "a": "yes"
+      },
+      {
+       "id": "guess:tricycle",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:unicycle",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:motorcycle",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:roller_skates",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:wheelbarrow",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:lawn_mower",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:stroller",
+       "a": "wrong"
+      }
+     ],
+     "actual": {
+      "name": "Gizmo Cart"
+     },
+     "near": [
+      [
+       "thing_gone_from_the_kb",
+       0.6
+      ],
+      [
+       "wheelchair",
+       0.3975
+      ],
+      [
+       "bicycle",
+       0.2236
+      ],
+      [
+       "scooter",
+       0.2236
+      ]
+     ]
+    },
+    {
+     "ts": 1762481220000,
+     "kbVersion": "kb-2026.11.02.5",
+     "outcome": "stumped",
+     "turn": 25,
+     "turns": [
+      {
+       "id": "cat:animal",
+       "a": "no"
+      },
+      {
+       "id": "cat:vegetable",
+       "a": "no"
+      },
+      {
+       "id": "cat:mineral",
+       "a": "yes"
+      },
+      {
+       "id": "bigger_than_breadbox",
+       "a": "yes"
+      },
+      {
+       "id": "found_outdoors",
+       "a": "no"
+      },
+      {
+       "id": "makes_sound",
+       "a": "yes"
+      },
+      {
+       "id": "uses_electricity",
+       "a": "maybe"
+      },
+      {
+       "id": "is_musical",
+       "a": "yes"
+      },
+      {
+       "id": "made_of_metal",
+       "a": "no"
+      },
+      {
+       "id": "heavier_than_person",
+       "a": "yes"
+      },
+      {
+       "id": "guess:piano",
+       "a": "wrong"
+      },
+      {
+       "id": "has_buttons",
+       "a": "yes"
+      },
+      {
+       "id": "opens_and_closes",
+       "a": "maybe"
+      },
+      {
+       "id": "guess:accordion",
+       "a": "wrong"
+      },
+      {
+       "id": "is_container",
+       "a": "no"
+      },
+      {
+       "id": "is_shiny",
+       "a": "maybe"
+      },
+      {
+       "id": "is_yellow_orange",
+       "a": "no"
+      },
+      {
+       "id": "made_of_wood",
+       "a": "yes"
+      },
+      {
+       "id": "guess:clarinet",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:electric_guitar",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:record_player",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:cello",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:guitar",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:bagpipes",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:recorder",
+       "a": "wrong"
+      }
+     ],
+     "actual": {
+      "name": "Wobble Box"
+     },
+     "near": [
+      [
+       "also_gone_from_the_kb",
+       1
+      ]
+     ]
+    },
+    {
+     "ts": 1762481281000,
+     "kbVersion": "kb-2026.11.02.5",
+     "outcome": "stumped",
+     "turn": 25,
+     "turns": [
+      {
+       "id": "cat:animal",
+       "a": "no"
+      },
+      {
+       "id": "cat:vegetable",
+       "a": "no"
+      },
+      {
+       "id": "cat:mineral",
+       "a": "yes"
+      },
+      {
+       "id": "found_outdoors",
+       "a": "yes"
+      },
+      {
+       "id": "heavier_than_person",
+       "a": "no"
+      },
+      {
+       "id": "has_handle",
+       "a": "yes"
+      },
+      {
+       "id": "bigger_than_breadbox",
+       "a": "yes"
+      },
+      {
+       "id": "is_container",
+       "a": "no"
+      },
+      {
+       "id": "you_can_ride_it",
+       "a": "yes"
+      },
+      {
+       "id": "has_wheels",
+       "a": "yes"
+      },
+      {
+       "id": "is_colorful",
+       "a": "yes"
+      },
+      {
+       "id": "guess:bicycle",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:scooter",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:tricycle",
+       "a": "wrong"
+      },
+      {
+       "id": "has_an_engine",
+       "a": "no"
+      },
+      {
+       "id": "hops_jumps",
+       "a": "no"
+      },
+      {
+       "id": "guess:wheelchair",
+       "a": "wrong"
+      },
+      {
+       "id": "is_toy",
+       "a": "no"
+      },
+      {
+       "id": "guess:stroller",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:unicycle",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:motorcycle",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:surfboard",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:umbrella",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:skis",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:car",
+       "a": "wrong"
+      }
+     ],
+     "actual": {
+      "name": "gizmo cart"
+     },
+     "near": [
+      [
+       "bicycle",
+       0.7585
+      ],
+      [
+       "scooter",
+       0.126
+      ],
+      [
+       "wheelchair",
+       0.0595
+      ],
+      [
+       "tricycle",
+       0.028
+      ],
+      [
+       "stroller",
+       0.028
+      ]
+     ]
+    }
+   ],
+   "answers": [
+    "no",
+    "no",
+    "yes",
+    "yes",
+    "no",
+    "yes",
+    "no",
+    "no",
+    "yes",
+    "yes",
+    "right"
+   ],
+   "thingCount": 996,
+   "learnedThings": [
+    {
+     "id": "learned:gizmo cart",
+     "name": "Gizmo Cart"
+    },
+    {
+     "id": "learned:wobble box",
+     "name": "Wobble Box"
+    }
+   ],
+   "expect": [
+    {
+     "turn": 1,
+     "kind": "category",
+     "id": "animal"
+    },
+    {
+     "turn": 2,
+     "kind": "category",
+     "id": "vegetable"
+    },
+    {
+     "turn": 3,
+     "kind": "category",
+     "id": "mineral"
+    },
+    {
+     "turn": 4,
+     "kind": "question",
+     "id": "bigger_than_breadbox"
+    },
+    {
+     "turn": 5,
+     "kind": "question",
+     "id": "heavier_than_person"
+    },
+    {
+     "turn": 6,
+     "kind": "question",
+     "id": "has_handle"
+    },
+    {
+     "turn": 7,
+     "kind": "question",
+     "id": "is_container"
+    },
+    {
+     "turn": 8,
+     "kind": "question",
+     "id": "is_tool"
+    },
+    {
+     "turn": 9,
+     "kind": "question",
+     "id": "you_can_ride_it"
+    },
+    {
+     "turn": 10,
+     "kind": "question",
+     "id": "has_wheels"
+    },
+    {
+     "turn": 11,
+     "kind": "guess",
+     "id": "learned:gizmo cart"
+    }
+   ],
+   "result": {
+    "outcome": "win",
+    "turn": 11
+   },
+   "finalWeightsTop3": [
+    [
+     "learned:gizmo cart",
+     0.3169130122518354
+    ],
+    [
+     "bicycle",
+     0.15639874175648966
+    ],
+    [
+     "scooter",
+     0.15639874175648966
+    ]
+   ]
+  },
+  {
+   "name": "learned-borrows-from-near",
+   "seed": 702,
+   "learned": [
+    {
+     "ts": 1762481342000,
+     "kbVersion": "kb-2026.11.02.5",
+     "outcome": "stumped",
+     "turn": 25,
+     "turns": [
+      {
+       "id": "cat:animal",
+       "a": "yes"
+      },
+      {
+       "id": "lays_eggs",
+       "a": "no"
+      },
+      {
+       "id": "has_legs",
+       "a": "yes"
+      },
+      {
+       "id": "lives_in_africa",
+       "a": "yes"
+      },
+      {
+       "id": "lives_in_europe",
+       "a": "no"
+      },
+      {
+       "id": "lives_in_groups",
+       "a": "yes"
+      },
+      {
+       "id": "climbs",
+       "a": "maybe"
+      },
+      {
+       "id": "eats_meat",
+       "a": "yes"
+      },
+      {
+       "id": "is_yellow_orange",
+       "a": "yes"
+      },
+      {
+       "id": "guess:lion",
+       "a": "wrong"
+      },
+      {
+       "id": "makes_sound",
+       "a": "yes"
+      },
+      {
+       "id": "guess:cheetah",
+       "a": "wrong"
+      },
+      {
+       "id": "has_stripes_spots",
+       "a": "no"
+      },
+      {
+       "id": "lives_in_asia",
+       "a": "yes"
+      },
+      {
+       "id": "guess:mongoose",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:monkey",
+       "a": "wrong"
+      },
+      {
+       "id": "can_swim",
+       "a": "no"
+      },
+      {
+       "id": "is_nocturnal",
+       "a": "no"
+      },
+      {
+       "id": "lives_in_forest",
+       "a": "no"
+      },
+      {
+       "id": "guess:baboon",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:pig",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:gazelle",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:meerkat",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:sheep",
+       "a": "wrong"
+      },
+      {
+       "id": "guess:goat",
+       "a": "wrong"
+      }
+     ],
+     "actual": {
+      "name": "A Fire Lizard"
+     },
+     "near": [
+      [
+       "lion",
+       0.9149
+      ],
+      [
+       "mongoose",
+       0.0718
+      ],
+      [
+       "cheetah",
+       0.009
+      ],
+      [
+       "baboon",
+       0.003
+      ],
+      [
+       "pig",
+       0.0014
+      ]
+     ]
+    }
+   ],
+   "answers": [
+    "yes",
+    "yes",
+    "no",
+    "no",
+    "no",
+    "yes",
+    "yes",
+    "yes",
+    "no",
+    "right"
+   ],
+   "thingCount": 995,
+   "learnedThings": [
+    {
+     "id": "learned:fire lizard",
+     "name": "A Fire Lizard"
+    }
+   ],
+   "expect": [
+    {
+     "turn": 1,
+     "kind": "category",
+     "id": "animal"
+    },
+    {
+     "turn": 2,
+     "kind": "question",
+     "id": "has_tail"
+    },
+    {
+     "turn": 3,
+     "kind": "question",
+     "id": "lays_eggs"
+    },
+    {
+     "turn": 4,
+     "kind": "question",
+     "id": "eats_plants"
+    },
+    {
+     "turn": 5,
+     "kind": "question",
+     "id": "can_swim"
+    },
+    {
+     "turn": 6,
+     "kind": "question",
+     "id": "has_fur"
+    },
+    {
+     "turn": 7,
+     "kind": "question",
+     "id": "makes_sound"
+    },
+    {
+     "turn": 8,
+     "kind": "question",
+     "id": "lives_in_groups"
+    },
+    {
+     "turn": 9,
+     "kind": "question",
+     "id": "has_stripes_spots"
+    },
+    {
+     "turn": 10,
+     "kind": "guess",
+     "id": "learned:fire lizard"
+    }
+   ],
+   "result": {
+    "outcome": "win",
+    "turn": 10
+   },
+   "finalWeightsTop3": [
+    [
+     "learned:fire lizard",
+     0.37405756272144475
+    ],
+    [
+     "lion",
+     0.2831849517980286
+    ],
+    [
+     "mongoose",
+     0.06271223846046312
     ]
    ]
   }

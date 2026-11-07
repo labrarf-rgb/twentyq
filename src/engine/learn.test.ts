@@ -2,7 +2,9 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { replay } from "./engine";
 import { compileKB } from "./kb";
-import { normalizeName, resolveLog } from "./learn";
+import { kbThingByName, normalizeName, resolveLog } from "./learn";
+import { nearOf } from "./near";
+import { thingPhrase } from "./kb";
 import type { KB, LogGame, LogTurn } from "./types";
 
 const kb: KB = JSON.parse(readFileSync(new URL("../../kb/kb.json", import.meta.url), "utf8"));
@@ -145,3 +147,94 @@ describe("learning (SPECS 11.2)", () => {
     expect(c.things[c.tIndex.get(again.entries[again.entries.length - 1].id!)!].name).toBe("a zorp");
   });
 });
+
+describe("borrowing from look-alikes (SPECS 11.2)", () => {
+  const ix = (id: string) => kb.things.findIndex((t) => t.id === id);
+  const qx = (id: string) => kb.questions.findIndex((x) => x.id === id);
+  const named = (near: LogGame["near"], extra: Partial<LogGame> = {}) => game({ name: "Zorp" }, [], { near, ...extra });
+
+  it("the base is the near-weighted mix of the look-alikes' answers, weights renormalized", () => {
+    const c = compileKB(kb, [named([["cat", 3], ["dog", 1]])]);
+    const z = c.nKb;
+    const q = qx("has_fur");
+    for (let a = 0; a < 3; a++) {
+      const want = 0.75 * c.lik[a][c.values[ix("cat") * c.Q + q]] + 0.25 * c.lik[a][c.values[ix("dog") * c.Q + q]];
+      expect(c.P[a][q * c.N + z]).toBe(want);
+    }
+    // category cells borrow cv the same way
+    for (let a = 0; a < 3; a++) {
+      const want = 0.75 * c.lik[a][c.cats[ix("cat") * 3 + 0]] + 0.25 * c.lik[a][c.cats[ix("dog") * 3 + 0]];
+      expect(c.PC[a][0 * c.N + z]).toBe(want);
+    }
+  });
+
+  it("drops stale ids, and falls back to no when nothing usable is left", () => {
+    const stale = compileKB(kb, [named([["gone_from_kb", 0.7], ["cat", 0.3]])]);
+    const alone = compileKB(kb, [named([["cat", 1]])]);
+    const q = qx("can_fly");
+    for (let a = 0; a < 3; a++) expect(stale.P[a][q * stale.N + stale.nKb]).toBe(alone.P[a][q * alone.N + alone.nKb]);
+    for (const near of [undefined, [], [["gone_from_kb", 1]], [["cat", 0]], [["cat", -1]]] as LogGame["near"][]) {
+      const c = compileKB(kb, [named(near)]);
+      for (let a = 0; a < 3; a++) expect(c.P[a][q * c.N + c.nKb]).toBe(c.lik[a][2]); // the `no` column
+    }
+  });
+
+  it("uses the near list of the FIRST game that names the thing", () => {
+    const first = compileKB(kb, [named([["cat", 1]]), game({ name: "zorp" }, [], { near: [["dog", 1]] })]);
+    const only = compileKB(kb, [named([["cat", 1]])]);
+    const q = qx("has_fur");
+    for (let a = 0; a < 3; a++) expect(first.P[a][q * first.N + first.nKb]).toBe(only.P[a][q * only.N + only.nKb]);
+  });
+
+  it("counts apply on top of the borrowed base", () => {
+    const log = [named([["cat", 1]], { turns: [{ id: "can_fly", a: "yes" }] })];
+    const c = compileKB(kb, log);
+    const q = qx("can_fly");
+    const K = kb.engine.learnPriorStrength ?? 2;
+    const b = c.lik[0][c.values[ix("cat") * c.Q + q]];
+    expect(c.P[0][q * c.N + c.nKb]).toBe((K * b + 1) / (K + 1));
+  });
+
+  it("nearOf: top 5 KB things from category and question answers only, rounded to 4 places", () => {
+    const c = compileKB(kb);
+    const entries = [
+      { turn: 1, kind: "category" as const, id: "animal", answer: "yes" as const },
+      { turn: 2, kind: "question" as const, id: "can_fly", answer: "yes" as const },
+      { turn: 3, kind: "question" as const, id: "has_fur", answer: "skip" as const },
+      { turn: 4, kind: "guess" as const, id: "eagle", answer: "wrong" as const },
+    ];
+    const near = nearOf(c, entries);
+    expect(near).toHaveLength(5);
+    for (const [id, w] of near) {
+      expect(ix(id)).toBeGreaterThanOrEqual(0);
+      expect(w).toBe(Math.round(w * 1e4) / 1e4);
+    }
+    expect(near.reduce((s, [, w]) => s + w, 0)).toBeCloseTo(1, 3);
+    // a wrongly guessed look-alike still counts: dropping the guess entry changes nothing
+    expect(nearOf(c, entries.slice(0, 3))).toEqual(near);
+    // highest first
+    for (let i = 1; i < near.length; i++) expect(near[i - 1][1]).toBeGreaterThanOrEqual(near[i][1]);
+  });
+
+  it("kbThingByName finds a KB thing by normalized name", () => {
+    expect(kbThingByName(kb, "the CAT")).toBe(ix("cat"));
+    expect(kbThingByName(kb, "zorp")).toBe(-1);
+    expect(kbThingByName(kb, "  ")).toBe(-1);
+  });
+});
+
+describe("proper names (SPECS 3)", () => {
+  it("keeps a proper name exactly as written; everything else lowercases the first letter", () => {
+    expect(thingPhrase({ name: "Easter Bunny", article: "the", proper: true })).toBe("the Easter Bunny");
+    expect(thingPhrase({ name: "Santa Claus", article: "", proper: true })).toBe("Santa Claus");
+    expect(thingPhrase({ name: "Santa Claus", article: "" })).toBe("santa Claus");
+    expect(thingPhrase({ name: "Cat", article: "a", proper: false })).toBe("a cat");
+  });
+  it("the compiled KB carries the flag through to guess lines", () => {
+    const fixture: KB = { ...kb, things: kb.things.map((t, i) => (i === 0 ? { ...t, name: "Easter Bunny", article: "the", proper: true } : t)) };
+    const c = compileKB(fixture);
+    expect(thingPhrase(c.things[0])).toBe("the Easter Bunny");
+    expect(thingPhrase(c.things[1])).toBe(thingPhrase({ name: kb.things[1].name, article: kb.things[1].article }));
+  });
+});
+

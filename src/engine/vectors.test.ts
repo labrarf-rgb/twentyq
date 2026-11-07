@@ -42,7 +42,7 @@ describe("test-vectors.json", () => {
 
   it("has the v9 learned coverage SPECS 11.6 requires", () => {
     const learned = vectors.games.filter((g) => g.learned);
-    expect(learned.length).toBeGreaterThanOrEqual(5);
+    expect(learned.length).toBeGreaterThanOrEqual(7);
     const byName = (n: string) => vectors.games.find((g) => g.name === n)!;
     // a game that guesses a learned thing by name
     expect(byName("learned-guesses-a-learned-thing").expect.some((e: any) => e.kind === "guess" && e.id === "learned:zorp")).toBe(true);
@@ -54,6 +54,11 @@ describe("test-vectors.json", () => {
     expect(ign.learned.some((l: any) => l.actual?.id === "thing_that_is_not_in_the_kb")).toBe(true);
     expect(ign.learnedThings).toEqual([]);
     expect(ign.thingCount).toBe(kb.things.length);
+    // `near`: a taught name carries it, and one log has a stale id in it (v9 borrowing)
+    expect(byName("learned-borrows-from-near").learned.some((l: any) => Array.isArray(l.near) && l.near.length === 5)).toBe(true);
+    const stale = byName("learned-near-with-a-stale-id");
+    expect(stale.learned.some((l: any) => l.near?.some((n: [string, number]) => n[0] === "thing_gone_from_the_kb"))).toBe(true);
+    expect(stale.learned.some((l: any) => l.near?.length === 1 && l.near[0][0] === "also_gone_from_the_kb")).toBe(true);
     // learned counts change the questions asked
     const plain = replay(ckb, byName("learned-changes-the-questions").seed, []);
     expect(plain.current).toBeTruthy();

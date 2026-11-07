@@ -3,6 +3,8 @@
 import { writeFileSync } from "node:fs";
 import { applyBacks, replay } from "../src/engine/engine";
 import { compileKB } from "../src/engine/kb";
+import { kbThingByName } from "../src/engine/learn";
+import { nearOf } from "../src/engine/near";
 import { mulberry32 } from "../src/engine/rng";
 import type { AnswerToken, LogActual, LogGame } from "../src/engine/types";
 import { loadKB, VECTORS_PATH } from "./lib/kb-io";
@@ -140,7 +142,10 @@ function logGame(like: string, seed: number, actual: LogActual, opts: Partial<Pl
   }));
   const res = r.session.result!;
   tsClock += 61000;
-  return { ts: tsClock, kbVersion: kb.kbVersion, outcome: res.outcome, turn: res.turn, turns, actual };
+  const game: LogGame = { ts: tsClock, kbVersion: kb.kbVersion, outcome: res.outcome, turn: res.turn, turns, actual };
+  // SPECS 11.1: a game that teaches a name the KB does not have also stores `near`.
+  if (actual && "name" in actual && kbThingByName(kb, actual.name) < 0) game.near = nearOf(ckb, r.session.entries);
+  return game;
 }
 
 function learnedGame(name: string, like: string, seed: number, log: LogGame[], target: string | null, maybe: PlayOptions["maybe"] = "random") {
@@ -205,6 +210,26 @@ const catLog = [logGame("dog", 501, { name: "The Cat" }), logGame("dog", 502, { 
   const g5 = learnedGame("learned-name-matches-a-kb-thing", "dog", 503, catLog, "cat");
   must(g5.c.N === ckb.N, "a name that matches a KB thing adds no learned thing");
   games.push(g5.game);
+}
+
+// 6. `near` with a stale id: the first game naming the thing lists a KB thing that no longer exists. It is dropped
+// and the rest renormalized. A second thing's only near entry is stale, so its base falls back to `no`.
+{
+  const good = logGame("bicycle", 601, { name: "Gizmo Cart" });
+  must(!!good.near && good.near.length === 5, "near has 5 entries");
+  const stale: LogGame = { ...good, near: [["thing_gone_from_the_kb", 0.6], ...good.near!.slice(0, 3)] };
+  const onlyStale: LogGame = { ...logGame("piano", 602, { name: "Wobble Box" }), near: [["also_gone_from_the_kb", 1]] };
+  const logS = [stale, onlyStale, logGame("bicycle", 603, { name: "gizmo cart" })];
+  const g6 = learnedGame("learned-near-with-a-stale-id", "bicycle", 604, logS, "learned:gizmo cart");
+  must(g6.c.things.slice(g6.c.nKb).map((t) => t.id).join("|") === "learned:gizmo cart|learned:wobble box", "two learned things in the stale-near log");
+  games.push(g6.game);
+}
+// 7. A taught name with a rich profile (many Yes answers the first game never asked about): the borrowing case.
+{
+  const richLog = [logGame("lion", 701, { name: "A Fire Lizard" })];
+  must(!!richLog[0].near && richLog[0].near.length === 5, "rich near");
+  const g7 = learnedGame("learned-borrows-from-near", "lion", 702, richLog, "learned:fire lizard");
+  games.push(g7.game);
 }
 
 // Coverage assertions from SPECS §5.

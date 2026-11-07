@@ -30,6 +30,13 @@ describe("checkKB", () => {
     expect(errs({ ...base(), engine: { learnPriorStrength: 5 } })).toMatch(/learnPriorStrength/);
     expect(errs({ ...base(), engine: { learnPriorStrength: 4 } })).toBe("");
   });
+  it("accepts proper as an optional boolean (v9), and rejects anything else", () => {
+    const kb = base();
+    (kb.things[0] as Record<string, unknown>).proper = true;
+    expect(errs(kb)).toBe("");
+    (kb.things[0] as Record<string, unknown>).proper = "yes";
+    expect(errs(kb)).toMatch(/proper must be true or false/);
+  });
   it("rejects unknown question ids", () => {
     const kb = base();
     kb.things[0].yes.push("nope");

@@ -51,11 +51,11 @@ export function removeGame(ts: number): void {
 }
 
 /** Record what a stumped player was thinking of. */
-export function setActual(ts: number, actual: LogActual): boolean {
+export function setActual(ts: number, actual: LogActual, near?: [string, number][]): boolean {
   const games = loadLog();
   for (let i = games.length - 1; i >= 0; i--) {
     if (games[i].ts === ts) {
-      games[i] = { ...games[i], actual };
+      games[i] = { ...games[i], actual, ...(near && near.length ? { near } : {}) };
       saveLog(games);
       return true;
     }

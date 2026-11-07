@@ -24,6 +24,8 @@ export interface Thing {
   article: "a" | "an" | "the" | "";
   category: Category;
   altCategories?: Category[];
+  /** v9: a proper name (Santa Claus, the Easter Bunny). The guess line keeps it exactly as written. Display only. */
+  proper?: boolean;
   yes: string[];
   maybe?: string[];
   unknown?: string[];
@@ -93,4 +95,6 @@ export interface LogGame {
   turn: number;
   turns: LogTurn[];
   actual: LogActual;
+  /** v9: when `actual` is a name that matches no KB thing, the 5 KB things the game looked most like: [thing id, weight]. */
+  near?: [string, number][];
 }

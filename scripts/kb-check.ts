@@ -62,6 +62,7 @@ export function checkKB(kb: Raw): CheckResult {
       if (c === t.category) err(`${t.id}: altCategories repeats its own category "${c}"`);
     }
     if (!ARTICLES.includes(t.article)) err(`${t.id}: invalid article ${JSON.stringify(t.article)}`);
+    if ("proper" in t && typeof t.proper !== "boolean") err(`${t.id}: proper must be true or false (got ${JSON.stringify(t.proper)})`);
 
     const vals = new Map<string, string>();
     for (const list of ["yes", "maybe", "unknown"] as const) {

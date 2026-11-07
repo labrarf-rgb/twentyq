@@ -21,6 +21,8 @@ export interface LearnedThing {
   key: string;
   /** The text from the first log game that names it, trimmed. */
   name: string;
+  /** `near` from that first game: the KB things it resembles, as given (validated when compiled). */
+  near: [string, number][] | undefined;
 }
 
 export interface Counts {
@@ -60,7 +62,7 @@ export function resolveLog(kb: KB, log: readonly LogGame[]): Counts {
         let l = learnedIndex.get(key);
         if (l === undefined) {
           l = learned.length;
-          learned.push({ id: "learned:" + key, key, name: actual.name.trim() });
+          learned.push({ id: "learned:" + key, key, name: actual.name.trim(), near: Array.isArray(game.near) ? game.near : undefined });
           learnedIndex.set(key, l);
         }
         thing = nKb + l;
@@ -69,4 +71,12 @@ export function resolveLog(kb: KB, log: readonly LogGame[]): Counts {
     games.push({ thing, game });
   }
   return { learned, games };
+}
+
+/** The KB thing whose normalized name equals the normalized `name`, or -1. Lowest index wins. */
+export function kbThingByName(kb: KB, name: string): number {
+  const key = normalizeName(name);
+  if (!key) return -1;
+  for (let i = 0; i < kb.things.length; i++) if (normalizeName(kb.things[i].name) === key) return i;
+  return -1;
 }

@@ -17,6 +17,8 @@ export interface ThingInfo {
   name: string;
   article: string;
   learned: boolean;
+  /** v9: guess line keeps the name exactly as written */
+  proper?: boolean;
 }
 
 /** A KB (plus the game log's learning, v9) with everything flattened into matrices. */
@@ -50,14 +52,15 @@ export function compileKB(kb: KB, log: readonly LogGame[] = []): CompiledKB {
   const Q = kb.questions.length;
   const qIndex = new Map(kb.questions.map((q, i) => [q.id, i]));
   const { learned, games } = resolveLog(kb, log);
+  const kbIndex = new Map(kb.things.map((t, i) => [t.id, i]));
   const N = nKb + learned.length;
-  const things: ThingInfo[] = kb.things.map((t) => ({ id: t.id, name: t.name, article: t.article, learned: false }));
+  const things: ThingInfo[] = kb.things.map((t) => ({ id: t.id, name: t.name, article: t.article, learned: false, proper: t.proper === true }));
   for (const l of learned) things.push({ id: l.id, name: l.name, article: "", learned: true });
   const tIndex = new Map(things.map((t, i) => [t.id, i]));
 
   const values = new Uint8Array(N * Q).fill(V_NO);
-  // SPECS 11.2: a learned thing starts as `no` everywhere, the same convention as an unlisted KB pair,
-  // so only counts make it differ. (`values` is already filled with V_NO.)
+  // A learned row of `values` / `cats` holds the `no` code only as a placeholder: its real base is the
+  // borrowed mix computed below, and P is what the engine reads.
   const put = (i: number, ids: string[] | undefined, code: number) => {
     for (const id of ids ?? []) {
       const q = qIndex.get(id);
@@ -97,8 +100,43 @@ export function compileKB(kb: KB, log: readonly LogGame[] = []): CompiledKB {
     }
   }
   const K = kb.engine.learnPriorStrength ?? DEFAULT_LEARN_PRIOR;
+  // A learned thing's base for each cell is the near-weighted mix of the KB things it resembled when it was
+  // first taught (SPECS 11.2): b(a) = sum_k w_k * L[a][value(near_k)], in list order, weights renormalized
+  // after dropping ids the KB no longer has. With nothing usable it is `no`, like an unlisted KB pair.
+  const nearIdx: number[][] = [];
+  const nearW: number[][] = [];
+  for (const l of learned) {
+    const idx: number[] = [];
+    const ws: number[] = [];
+    if (l.near) {
+      for (const e of l.near) {
+        if (!Array.isArray(e) || typeof e[0] !== "string" || typeof e[1] !== "number" || !(e[1] > 0)) continue;
+        const k = kbIndex.get(e[0]);
+        if (k === undefined) continue; // stale id: dropped
+        idx.push(k);
+        ws.push(e[1]);
+      }
+    }
+    let sum = 0;
+    for (let j = 0; j < ws.length; j++) sum += ws[j];
+    if (!(sum > 0)) {
+      idx.length = 0;
+      ws.length = 0;
+    } else for (let j = 0; j < ws.length; j++) ws[j] = ws[j] / sum;
+    nearIdx.push(idx);
+    nearW.push(ws);
+  }
+  const base = (a: number, i: number, col: number, v: number): number => {
+    if (i < nKb) return lik[a][v];
+    const idx = nearIdx[i - nKb];
+    if (idx.length === 0) return lik[a][V_NO];
+    const ws = nearW[i - nKb];
+    let b = 0;
+    for (let j = 0; j < idx.length; j++) b += ws[j] * lik[a][col < Q ? values[idx[j] * Q + col] : cats[idx[j] * 3 + (col - Q)]];
+    return b;
+  };
   const prob = (a: number, i: number, col: number, v: number): number => {
-    const b = lik[a][v];
+    const b = base(a, i, col, v);
     const o = (i * cols + col) * 3;
     const n = counts[o] + counts[o + 1] + counts[o + 2];
     if (n === 0) return b; // nothing learned here: exactly the table value, no arithmetic
@@ -130,10 +168,11 @@ export function valueName(code: number): Value {
 }
 
 /** "I think it's " article rule from SPECS §3: only the first letter is lowercased. */
-export function thingPhrase(t: { name: string; article: string; learned?: boolean }): string {
+export function thingPhrase(t: { name: string; article: string; learned?: boolean; proper?: boolean }): string {
   // v9: a learned thing is shown exactly as the player typed it, with no article added and no lowercasing.
   if (t.learned) return t.name;
-  const name = t.name.charAt(0).toLowerCase() + t.name.slice(1);
+  // v9: a proper name keeps its capitals ("the Easter Bunny"); everything else lowercases the first letter only.
+  const name = t.proper ? t.name : t.name.charAt(0).toLowerCase() + t.name.slice(1);
   return (t.article ? t.article + " " : "") + name;
 }
 

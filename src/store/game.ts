@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { compileKB, replay, type AnswerToken, type GameView, type KB, type LogActual, type LogGame } from "@/engine";
+import { compileKB, kbThingByName, nearOf, replay, type AnswerToken, type GameView, type KB, type LogActual, type LogGame } from "@/engine";
 import { appendGame, loadLog, removeGame, setActual } from "@/lib/gameLog";
 import { play, type SfxName } from "@/audio/sfx";
 import { CONFIRM_MESSAGE, IDLE_MESSAGE, messagesFor, type Message } from "@/lib/messages";
@@ -103,7 +103,9 @@ function logGameFor(view: GameView, ts: number): LogGame {
     const t = ckb.things[ckb.tIndex.get(last.id!)!];
     actual = t.learned ? { name: t.name } : { id: t.id };
   }
-  return { ts, kbVersion: kbData.kbVersion, outcome: result.outcome, turn: result.turn, turns, actual };
+  const game: LogGame = { ts, kbVersion: kbData.kbVersion, outcome: result.outcome, turn: result.turn, turns, actual };
+  if (actual && "name" in actual && kbThingByName(kbData, actual.name) < 0) game.near = nearOf(ckb, view.entries);
+  return game;
 }
 
 export const useGame = create<GameState>((set, get) => {
@@ -183,7 +185,9 @@ export const useGame = create<GameState>((set, get) => {
       const { loggedTs, view } = get();
       if (loggedTs === null || !view?.result || view.result.outcome !== "stumped") return;
       // If the log was cleared since the game ended there is nothing to attach it to: close the box.
-      if (setActual(loggedTs, actual)) set({ taught: true });
+      // A name the KB does not have also stores which KB things this game looked like (SPECS 11.2).
+      const near = actual && "name" in actual && kbThingByName(kbData, actual.name) < 0 ? nearOf(ckb, view.entries) : undefined;
+      if (setActual(loggedTs, actual, near)) set({ taught: true });
       else set({ loggedTs: null });
     },
 
