@@ -1,8 +1,8 @@
 {
   "name": "Twenty Q",
   "short_name": "Twenty Q",
-  "description": "A twenty questions game on a handheld toy. Think of something and it tries to read your mind.",
-  "id": "./",
+  "description": "You think of something, and it tries to guess what it is in twenty questions.",
+  "id": "/twentyq/",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

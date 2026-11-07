@@ -74,3 +74,8 @@ Newest first. One dated entry per working session.
 - Repo created. Shared spec v1 written to `docs/SPECS.md` (identical in both repos).
 
 - Seed `kb/kb.json` (96 questions, 36 things) added. Prototype self-play on the seed: 100% by turn 20 truthful, 99% with 10% noise.
+
+## 2026-11-06: own PWA identity (coordinator)
+
+- The manifest's `"id": "./"` resolves against the site origin, not the folder, so Twenty Q and Estoria both had the id `https://labrarf.com/`. Chrome took Twenty Q's new icons as an Estoria update and offered to swap Estoria's icon. The id is now `/twentyq/`. Estoria keeps its id, so its existing installs are not disturbed.
+- Manifest description replaced with the projects-page wording.
