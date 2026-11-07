@@ -1,0 +1,51 @@
+# Coordinator sheet, 2026-11-07: 49 everyday things answered as a typical player, written without looking at their KB rows.
+# id | category answers (Q1 Q2 Q3; y/n/m/s) | YES ids | SOMETIMES ids   (anything else: No)
+elephant | y | is_alive bigger_than_breadbox bigger_than_car heavier_than_person found_outdoors is_mammal has_legs has_four_legs has_tail has_horns eats_plants is_wild is_dangerous lives_in_africa lives_in_asia is_tall makes_sound lives_in_groups can_swim | lives_in_forest is_brown is_slow you_can_ride_it
+cookie | n n n | is_manmade can_hold found_in_house is_food is_sweet is_cooked is_baked is_snack is_brown is_round is_flat eaten_with_hands is_breakable | is_crunchy is_soft used_in_kitchen is_breakfast
+shark | y | is_alive bigger_than_breadbox heavier_than_person is_fish has_tail eats_meat is_wild is_dangerous can_swim lives_in_water lives_in_ocean eats_fish is_fast lays_eggs | is_white is_black bigger_than_car is_food has_scales
+bicycle | n n y | is_manmade bigger_than_breadbox found_outdoors has_wheels is_vehicle made_of_metal you_can_ride_it you_can_sit_on_it used_for_sport is_colorful has_handle | found_in_house used_daily is_fast is_shiny
+toothbrush | n n y | is_manmade can_hold found_in_house found_in_bathroom used_daily made_of_plastic has_handle used_for_cleaning is_colorful | uses_electricity uses_batteries is_soft
+pencil | n n n | is_manmade can_hold found_in_house found_in_office used_for_writing made_of_wood is_sharp is_yellow_orange used_daily | is_colorful made_of_metal
+book | n n n | is_manmade can_hold found_in_house found_in_office made_of_paper opens_and_closes is_flat is_colorful has_numbers | found_in_bedroom is_valuable used_daily
+ice_cream | n n n | is_manmade can_hold found_in_house is_food is_sweet is_cold is_snack is_dairy eaten_with_a_spoon is_soft is_colorful | is_white is_brown eaten_with_hands is_wet is_liquid
+carrot | n y | can_hold is_food is_vegetable_food is_yellow_orange grows_underground is_plant is_crunchy eaten_with_hands found_in_house is_alive | is_cooked has_peel is_snack used_in_kitchen is_green
+butterfly | y | is_alive can_hold found_outdoors is_insect has_wings can_fly has_legs is_wild is_colorful in_sky lays_eggs eats_plants has_stripes_spots | lives_in_forest has_flowers
+rainbow | n n n | found_outdoors in_sky is_colorful is_weather is_idea bigger_than_car is_round | is_wet is_transparent gives_light
+airplane | n n y | is_manmade bigger_than_breadbox bigger_than_car heavier_than_person in_sky can_fly has_wings is_vehicle made_of_metal has_wheels uses_electricity carries_many_people people_go_inside you_can_ride_it you_can_sit_on_it is_fast makes_sound has_an_engine is_valuable has_screen has_buttons is_white is_container | is_dangerous found_outdoors
+spoon | n n y | is_manmade can_hold found_in_house used_in_kitchen made_of_metal used_daily is_shiny has_handle | made_of_plastic made_of_wood is_round
+lion | y | is_alive bigger_than_breadbox heavier_than_person is_mammal has_fur has_legs has_four_legs has_tail eats_meat is_wild is_dangerous lives_in_africa is_yellow_orange is_brown makes_sound lives_in_groups is_fast is_nocturnal | lives_in_asia climbs
+penguin | y | is_alive is_bird has_feathers has_wings has_legs lays_eggs is_wild can_swim lives_in_water lives_in_ocean eats_fish eats_meat lives_in_cold_places is_black is_white lives_in_groups bigger_than_breadbox | is_slow lives_in_south_america lives_in_africa lives_in_australia hops_jumps
+snake | y | is_alive is_reptile has_scales has_tail eats_meat is_wild is_dangerous lays_eggs is_poisonous found_outdoors is_green lives_in_forest climbs can_swim | is_brown has_stripes_spots lives_in_desert is_pet bigger_than_breadbox lives_in_africa lives_in_asia lives_in_australia lives_in_north_america lives_in_south_america
+bee | y | is_alive can_hold found_outdoors is_insect has_wings can_fly has_legs has_stripes_spots is_yellow_orange is_black lives_in_groups makes_sound is_dangerous in_sky is_wild has_flowers | is_poisonous lays_eggs
+computer | n n y | is_manmade uses_electricity has_screen has_buttons found_in_house found_in_office used_daily is_valuable makes_sound used_for_communication made_of_metal made_of_plastic gives_light is_black bigger_than_breadbox has_numbers | can_hold is_breakable opens_and_closes tells_time
+television | n n y | is_manmade uses_electricity has_screen found_in_house makes_sound gives_light is_valuable bigger_than_breadbox is_black is_flat made_of_plastic used_daily hangs_on_a_wall is_colorful | has_buttons heavier_than_person is_breakable found_in_bedroom
+piano | n n n | is_manmade is_musical makes_sound has_buttons bigger_than_breadbox heavier_than_person found_in_house is_furniture is_valuable is_black is_white made_of_wood has_strings | uses_electricity is_shiny opens_and_closes
+umbrella | n n y | is_manmade can_hold opens_and_closes has_handle found_outdoors is_colorful made_of_fabric made_of_metal is_wet keeps_you_warm | is_black found_in_house is_sharp
+watermelon | n y | is_food is_fruit is_sweet is_green is_red has_seeds bigger_than_breadbox is_round has_stripes_spots is_wet eaten_with_hands is_snack is_plant | has_peel is_cold
+rock | n n y | found_outdoors made_of_stone can_hold is_brown is_round | heavier_than_person is_sharp is_white is_black is_valuable is_shiny bigger_than_breadbox
+moon | n n y | in_sky is_in_space is_round is_white gives_light bigger_than_car heavier_than_person is_shiny made_of_stone | is_dark is_cold is_flat
+egg | y | is_food can_hold is_white is_round is_cooked is_breakfast is_breakable found_in_house lays_eggs used_in_kitchen | is_brown is_alive lives_on_farm
+cheese | n n n | is_manmade is_food is_dairy is_yellow_orange can_hold found_in_house is_salty is_snack eaten_with_hands is_soft | is_cooked used_in_kitchen is_white has_stripes_spots
+bread | n y | is_manmade is_food is_baked is_cooked is_brown is_soft can_hold found_in_house is_breakfast eaten_with_hands used_in_kitchen | is_white is_crunchy is_flat
+soccer_ball | n n n | is_manmade is_round used_for_sport is_toy is_black is_white bigger_than_breadbox found_outdoors is_soft floats made_of_plastic is_colorful | can_hold made_of_fabric
+shoes | n n n | is_manmade is_clothing worn_on_feet found_in_house used_daily is_colorful | made_of_fabric made_of_plastic is_black is_brown is_soft keeps_you_warm found_in_bedroom
+hamburger | n n n | is_manmade is_food is_meat is_cooked is_hot is_brown is_round eaten_with_hands can_hold | is_salty is_snack has_seeds
+frog | y | is_alive can_hold is_reptile is_green has_legs has_four_legs hops_jumps can_swim lives_in_water lays_eggs eats_insects is_wild makes_sound found_outdoors is_wet | is_poisonous lives_in_forest is_brown is_colorful is_pet is_slow
+cow | y | is_alive bigger_than_breadbox heavier_than_person is_mammal has_fur has_legs has_four_legs has_tail has_hooves eats_plants lives_on_farm found_outdoors makes_sound is_black is_white has_stripes_spots lives_in_groups is_food | has_horns is_brown is_slow
+key | n n y | is_manmade can_hold made_of_metal is_shiny used_daily found_in_house opens_and_closes has_handle | is_valuable is_sharp
+clock | n n y | is_manmade tells_time has_numbers found_in_house hangs_on_a_wall is_round uses_batteries makes_sound found_in_office found_in_bedroom | uses_electricity can_hold made_of_plastic has_screen
+candle | n n n | is_manmade can_hold gives_light is_hot found_in_house is_white | is_colorful is_round is_dangerous
+mirror | n n y | is_manmade made_of_glass is_shiny is_breakable found_in_house found_in_bathroom hangs_on_a_wall is_flat | can_hold is_round is_transparent
+lamp | n n y | is_manmade uses_electricity gives_light found_in_house found_in_bedroom | is_tall made_of_metal made_of_glass can_hold
+cloud | n n n | in_sky found_outdoors is_white is_weather is_wet bigger_than_car is_soft | is_dark falls_from_sky is_transparent
+volcano | n n y | found_outdoors bigger_than_car heavier_than_person is_hot is_dangerous made_of_stone is_tall is_place | makes_sound is_dark is_brown lives_in_asia
+beach | n n n | found_outdoors is_place is_sandy bigger_than_car people_visit_for_fun is_wet is_hot | is_yellow_orange is_white
+hospital | n n n | is_manmade is_building is_place people_go_inside bigger_than_car heavier_than_person uses_electricity is_white | is_tall
+school | n n n | is_manmade is_building is_place people_go_inside bigger_than_car heavier_than_person used_daily uses_electricity | found_in_office
+spider | y | is_alive can_hold is_insect has_legs eats_meat eats_insects is_wild climbs is_black lays_eggs found_in_house found_outdoors is_poisonous | is_dangerous is_brown is_nocturnal
+owl | y | is_alive is_bird has_feathers has_wings can_fly is_nocturnal eats_meat is_wild lives_in_forest lays_eggs makes_sound in_sky is_brown | is_white climbs
+tomato | n y | is_food is_red is_round can_hold has_seeds is_fruit is_vegetable_food is_plant is_wet used_in_kitchen | is_cooked is_sour is_green is_alive
+scissors | n n y | is_manmade can_hold is_sharp made_of_metal found_in_house found_in_office has_handle opens_and_closes is_tool is_dangerous | made_of_plastic is_shiny used_in_kitchen
+toilet | n n y | is_manmade found_in_house found_in_bathroom used_daily is_white you_can_sit_on_it is_container is_wet opens_and_closes bigger_than_breadbox | has_handle is_breakable
+fire_truck | n n y | is_manmade is_vehicle has_wheels is_red bigger_than_car heavier_than_person made_of_metal makes_sound has_an_engine you_can_ride_it uses_electricity is_fast gives_light found_outdoors carries_many_people is_tall | is_shiny people_go_inside
+backpack | n n n | is_manmade can_hold is_container made_of_fabric is_clothing worn_on_upper_body found_in_office found_in_house opens_and_closes is_colorful has_handle used_daily | found_in_bedroom

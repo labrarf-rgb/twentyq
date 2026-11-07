@@ -4,7 +4,11 @@
 > the Android app. Change it only through the coordinator session, which copies it to both
 > repos. Each repo keeps its own dated log in `docs/SESSIONS.md`.
 
-Last spec update: 2026-11-01, v8. History:
+Last spec update: 2026-11-07, v9. History:
+- **v9:** getting smarter (§11). The app learns on the device from finished games, and a
+  stumped player can tell it what they were thinking of. The KB adds the things people pick
+  most, and the most-asked questions get a full pass. A new player benchmark, and tuned guess
+  constants. **Engine change: the vectors must be regenerated and the parity tests re-run.**
 - **v8:** the knowledge base grows from 212 to about 1,000 things. The schema and engine are
   unchanged.
 - **v7:** each category question (animal, vegetable, mineral) is its own numbered question.
@@ -28,7 +32,9 @@ Twenty Q is a twenty questions game in the spirit of the 90s handheld toy.
 - **The UI is an on-screen handheld toy.** It has a round shell, a backlit dot-matrix LCD,
   chunky buttons, and beeps.
 - **One mode only.** The app is always the one guessing.
-- **Fully offline.** There is no server, API key, account, analytics, or learning.
+- **Fully offline.** There is no server, API key, account, or analytics. Since v9 it learns,
+  but only on the device, from the player's own finished games (§11). Nothing leaves the
+  device unless the player exports it.
 - **One knowledge base drives both apps.** It is the shared file `kb.json`, with one shared
   engine algorithm, so the same answers produce the same game on both platforms.
 
@@ -122,6 +128,8 @@ The whole game happens on one screen: the **device** (§7). Every step of the ga
    - Stumped (wrong at turn 25, or no candidates left): *"You win! You stumped me."*
      followed by *"Were you thinking of {a}, {b}, or {c}?"*, the top 3 runner-ups.
      These are informational only.
+   - **v9:** after a stumped game, below the device (never on it, never by changing a button),
+     the page offers *"What were you thinking of?"* so the player can teach it (§11.3).
    - Below the device, a quiet **"Show the questions"** link opens the recap: every turn's
      question or guess with your answer. On web it expands in place; on Android it opens a
      bottom sheet.
@@ -218,7 +226,13 @@ The engine is a pure module with no UI or platform imports:
 It is a function of `(kb, seed, answerHistory)`, which makes Back an exact replay.
 
 **Constants** come from `kb.engine`: `likelihood`, `guessConfidence` (0.80),
-`guessMinTurn` (8), `forceGuessTurn` (20), `maxTurns` (25), `topK` (3).
+`guessMinTurn` (8), `forceGuessTurn` (20), `maxTurns` (25), `topK` (3), and since v9
+`learnPriorStrength` (§11.2). v9 retunes `guessConfidence`, `guessMinTurn`, and `topK` (§11.5).
+
+Since v9 the engine is a function of `(kb, learned, seed, answerHistory)`, where `learned` is
+the device's game log (§11.1). With an empty log it plays exactly as below. Wherever this
+section says `L[a][v(i,q)]`, v9 reads it as the answer probability `P(i,q,a)` from §11.2,
+which equals `L[a][v(i,q)]` whenever nothing has been learned for that cell.
 
 ### State
 - `w[i]` is the weight of thing `i`, a double. It starts at `1 / N` for every thing.
@@ -584,7 +598,195 @@ Volume stays modest.
 
 ## 10. Out of scope for v1
 
-- learning from losses
+- learning from other players' games (v9 learns from this device's games only; an opt-in
+  upload to labrarf.com is a possible later step that needs Ray's go, an endpoint, and a
+  privacy page update)
 - the reverse mode, where you guess the app's thing
 - free-text questions, LLMs, and network calls
 - accounts, sync, analytics, and ads
+
+---
+
+## 11. v9: getting smarter
+
+**Why.** Ray stumps it about 8 games in 10. The coordinator's review (2026-11-07) found the
+engine sound, and three causes:
+1. **Coverage.** About a quarter of the things people pick first are missing: people of any
+   kind, body parts, make-believe creatures, and generic picks like *bird*, *fish*, *ball*,
+   *money*. Those are certain stumps.
+2. **Sparse answers.** A thing has about 9 `yes` entries out of 168 questions, and every
+   unlisted pair counts as `no`. A real player who answers Yes to a pair that was simply never
+   filled in costs the right thing a factor of 17 (0.85 vs 0.05).
+3. **No learning.** The original toy got good by learning how real people answer. This one
+   never changes.
+
+A coordinator test with 49 held-out answer sheets (written without looking at the KB) won 65%
+by turn 20 and 87% by turn 25, and tuning moved that by 5 to 15 points. So the plan is
+coverage, a KB pass, and learning first; tuning last.
+
+### 11.1 The game log (both apps)
+
+Every game that reaches the end is appended to a local **game log**: web `localStorage` key
+`twentyq.log.v1`, Android a JSON file in `filesDir` with the same content.
+
+```jsonc
+{
+  "v": 1,
+  "games": [
+    {
+      "ts": 1762480000000,               // ms since epoch, informational
+      "kbVersion": "kb-2026.11.02.5",    // informational
+      "outcome": "win",                  // win | stumped
+      "turn": 14,
+      "turns": [                         // the final history after UNDOs, from the recap entries
+        { "id": "cat:animal", "a": "yes" },   // category turns: "cat:" + category id
+        { "id": "has_fur",    "a": "no" },    // question turns: the question id
+        { "id": "guess:cat",  "a": "wrong" }  // guess turns: "guess:" + thing id
+      ],
+      "actual": { "id": "dog" }          // win: the guessed thing. stumped: see §11.3, or null
+    }
+  ]
+}
+```
+
+- `actual` is `{ "id": <KB thing id> }`, `{ "name": <text the player typed> }`, or `null`
+  (stumped and the player didn't say).
+- **UNDO from the end screen** removes that game's log entry, just as it takes back the stats.
+- The log keeps the **most recent 1,000 games**; older ones are dropped.
+- The log is separate from the stats (§2) and survives KB updates: it stores ids, not indices.
+  Ids that no longer exist in the KB are ignored when the log is read.
+
+### 11.2 Learning: answer probabilities (engine)
+
+The engine compiles the KB plus the log into an answer probability for every
+(thing, question, answer). Only games with a non-null `actual` count.
+
+**Counts.** For each such game and each of its category or question turns whose answer is
+`yes`, `maybe`, or `no` (never `skip`), add 1 to `c[actual][turnId][answer]`. Category turns
+count under `cat:animal`, `cat:vegetable`, `cat:mineral`.
+
+**Learned things.** An `actual` given as a name that matches no KB thing (§11.3) becomes a
+**learned thing**:
+- Its key is the normalized name: lowercase, trim, collapse inner spaces, and drop a leading
+  `a `, `an `, or `the `.
+- Learned things are appended after the KB things, in order of the first log game that names
+  them. Their display name is the text from that first game, trimmed.
+- Every one of their (question) and (category) values is `unknown`, so only counts make them
+  differ.
+- The guess line for a learned thing is `"I think it's " + name + ". Am I right?"`, with the
+  name exactly as typed.
+
+**Probability.** With `b = L[a][v(i,q)]` (category questions use `cv(i,c)`), counts
+`c = [c_yes, c_maybe, c_no]` and `n = c_yes + c_maybe + c_no`:
+- if `n == 0`: `P(i,q,a) = b`, taken directly with no arithmetic, so an empty log reproduces
+  pre-v9 games bit for bit
+- otherwise: `P(i,q,a) = (K · b + c_a) / (K + n)`, with `K = engine.learnPriorStrength`
+
+Each column of `L` sums to 1, so `P` stays a distribution over the three answers. The engine
+uses `P` everywhere it used `L[a][v(i,q)]`: applying answers, the category phase, and gain.
+`N` counts KB things plus learned things, and every one starts at weight `1 / N`.
+
+`learnPriorStrength` starts at **2**: one game that contradicts a KB `no` with a Yes moves
+that cell from 0.05 to 0.37. The web session may tune it in the range 1 to 4 with the player
+bench (§11.5), using simulated repeat games.
+
+### 11.3 "What were you thinking of?" (both apps)
+
+After a **stumped** game, below the device and never on it:
+- a short prompt *"What were you thinking of?"*, a single-line text field, and a quiet
+  **Teach me** button (Enter also submits)
+- as the player types, up to 5 suggestions from KB thing names and learned names
+  (case-insensitive, matching the start of any word). Choosing one records `{ "id": … }`
+  (learned names record `{ "name": … }` with their original text).
+- free text that matches no name exactly (case-insensitive, ignoring a leading article)
+  records `{ "name": <trimmed text> }`
+- after it is sent, the field gives way to *"Thanks. I'll remember that."*
+- it never blocks play: YES on the device still starts a new game, and ignoring the prompt
+  leaves `actual: null`
+
+**Limits:** at most 24 characters, letters, digits, spaces, apostrophes, and hyphens only.
+No word may be longer than one LCD line can hold, as measured by the fit check. Each app's
+fit check adds the longest allowed learned-name guess line.
+
+**Wins** record `actual` automatically. Nothing is asked.
+
+**Page controls** (in the how-to sheet, not on the device):
+- **Export my games:** web downloads `twentyq-games.json` (the log as above). Android opens
+  the share sheet with the same file. This is how Ray sends real games to the coordinator to
+  improve the shipped KB.
+- **Forget what I've learned:** asks to confirm, then clears the log. Stats are not touched.
+
+Copy follows `design-pref-rfcl`: sentence case and no em dashes.
+
+### 11.4 KB pass (web session that owns the KB)
+
+- **Coverage: about 350 new things**, chosen by how often people pick them, not by how
+  obscure they are:
+  - people and roles: person, baby, mom, dad, grandparent, teacher, doctor, nurse, police
+    officer, firefighter, chef, farmer, astronaut, king, queen, pirate, cowboy, clown
+  - body parts: hand, foot, eye, nose, ear, mouth, tooth, hair, heart, brain, bone, blood, skin
+  - make-believe: dragon, unicorn, ghost, vampire, zombie, mermaid, fairy, wizard, witch,
+    giant, monster, alien, Santa Claus, the tooth fairy, the Easter Bunny
+  - generic picks: bird, fish, bug, ball, money, toy, food, robot, game
+  - materials and stuff: glass, metal, plastic, air, oil, gas, smoke, dust
+  - tech and ideas: the internet, video game, email, app, love, time, dream, sleep, music,
+    number, color, word
+  - sports and activities: tennis, golf, chess, swimming, dancing, a party
+  - any other gaps found in everyday categories
+- **No trademarked characters or brands, and no real living people.** Folklore figures are
+  fine.
+- **New questions**, pre-approved: `is_person` *"Is it a person?"*, `is_body_part` *"Is it
+  part of your body?"*, `is_make_believe` *"Is it make-believe?"*. Mark every existing thing
+  where any of them is yes or maybe. Other new questions only if they separate things the
+  existing ones can't, and listed in SESSIONS.md for the coordinator.
+- **Column pass on the most-asked questions.** Count which questions the engine asks most in
+  self-play, take the top 40, and for each one go down **every** thing and fix missing `yes`
+  and `maybe`, answering as a typical player would. Column by column, not thing by thing,
+  because that is where the unlisted `no`s hide.
+- **Categories as players answer them.** Keep the primary `category` by the definitions
+  (§2). For anything made, processed, or mixed (bread, cookie, chair, book, pizza), add the
+  other categories a real player would plausibly pick, including `other`, to
+  `altCategories`.
+- `kb:check` and the full self-play `kb:bench` still meet §6. Report the player bench
+  (§11.5) before and after.
+
+### 11.5 Player benchmark and tuning (web)
+
+- **`npm run kb:bench:players`** plays held-out answer sheets through the real engine and
+  reports win by turn 20 and by turn 25, per thing and overall.
+- Sheets live in `kb/player-sheets/*.txt`, one thing per line:
+  `id | category answers (y/n/m/s for Q1..Q3) | YES ids | SOMETIMES ids`. Anything else is
+  No. Lines starting with `#` are comments.
+- **A sheet must be written without looking at that thing's KB row.** Otherwise it only
+  measures how well the KB agrees with itself. The coordinator's 49-thing sheet is the first:
+  `kb/player-sheets/coordinator-49.txt`. Ray may add his own.
+- It also simulates **repeat play** for learning. For each sheet thing, it plays 3 games in a
+  row, appending each finished game to an in-memory log with the true `actual`, and reports
+  game 1 against game 3.
+- **Tuning:** pick `guessConfidence`, `guessMinTurn`, and `topK` to maximise the player bench
+  by turn 20, as long as the full self-play bench still meets §6. Report the grid you tried.
+  The coordinator's quick look favoured guessing earlier (confidence 0.4 to 0.5 from turn 6)
+  and less random question picks (`topK` 1 or 2). It found that a softer `likelihood` hurt,
+  so `likelihood` stays as it is until there are real exported games to fit it to.
+
+### 11.6 Vectors and parity
+
+- Vector games gain an optional `"learned"` field: a game log `games` array (§11.1), applied
+  before the game is played. Absent means an empty log.
+- **Coverage adds:** a game where learned counts change a question choice; a game that
+  guesses a learned thing by name; a log that names the same new thing twice with different
+  spelling and case; a log with an id that is not in the KB (ignored); a log game whose
+  `actual` is null (ignored).
+- Android ports §11.1 to §11.3 and must pass every vector, including the learned ones.
+
+### 11.7 Order of work
+
+1. **Web, learning and engine** (`v9-learning` branch): §11.1 to §11.3, §11.5, §11.6, and the
+   tuned constants (only the `engine` block of `kb.json`).
+2. **Web, KB pass**, in parallel (`v9-kb` branch, its own worktree): §11.4. It touches only
+   `kb.json` content, never the `engine` block or `src/`. **It never opens
+   `kb/player-sheets/`:** a KB edited to match the sheets would make the benchmark meaningless.
+3. The coordinator merges both on Ray's go, re-tunes if needed, and regenerates the vectors.
+4. **Android** ports §11.1 to §11.3, syncs the KB and vectors, and passes parity.
+5. Ship on Ray's go: web deploy, then the Android 1.2 bundle for Play.
+
