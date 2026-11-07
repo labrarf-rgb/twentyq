@@ -375,15 +375,15 @@
    "finalWeightsTop3": [
     [
      "spoon",
-     0.8313375921352323
+     0.8313347481610363
     ],
     [
      "knife",
-     0.10391719901690404
+     0.10391684352012953
     ],
     [
      "fork",
-     0.034639066338968016
+     0.03463894784004317
     ]
    ]
   },
@@ -833,15 +833,15 @@
    "finalWeightsTop3": [
     [
      "dog",
-     0.03221928769718376
+     0.032219345542462835
     ],
     [
      "mom",
-     0.030429327269562434
+     0.030429381901214893
     ],
     [
      "dad",
-     0.030429327269562434
+     0.030429381901214893
     ]
    ]
   },
@@ -860,13 +860,13 @@
     "yes",
     "yes",
     "yes",
-    "no",
+    "maybe",
     "wrong",
     "maybe",
-    "maybe",
-    "yes",
-    "yes",
     "no",
+    "maybe",
+    "no",
+    "maybe",
     "no",
     "wrong",
     "wrong",
@@ -929,12 +929,12 @@
     {
      "turn": 11,
      "kind": "question",
-     "id": "is_soft"
+     "id": "is_pet"
     },
     {
      "turn": 12,
      "kind": "question",
-     "id": "lives_underground"
+     "id": "eats_insects"
     },
     {
      "turn": 13,
@@ -944,42 +944,42 @@
     {
      "turn": 14,
      "kind": "question",
-     "id": "is_nocturnal"
+     "id": "bigger_than_breadbox"
     },
     {
      "turn": 15,
      "kind": "question",
-     "id": "can_hold"
+     "id": "is_wild"
     },
     {
      "turn": 16,
      "kind": "question",
-     "id": "found_in_house"
+     "id": "is_black"
     },
     {
      "turn": 17,
      "kind": "question",
-     "id": "has_tail"
+     "id": "found_outdoors"
     },
     {
      "turn": 18,
      "kind": "question",
-     "id": "lives_in_forest"
+     "id": "is_nocturnal"
     },
     {
      "turn": 19,
      "kind": "question",
-     "id": "lives_on_farm"
+     "id": "lives_in_desert"
     },
     {
      "turn": 20,
      "kind": "guess",
-     "id": "hamster"
+     "id": "rabbit"
     },
     {
      "turn": 21,
      "kind": "guess",
-     "id": "rabbit"
+     "id": "hamster"
     },
     {
      "turn": 22,
@@ -989,17 +989,17 @@
     {
      "turn": 23,
      "kind": "guess",
-     "id": "kitten"
+     "id": "guinea_pig"
     },
     {
      "turn": 24,
      "kind": "guess",
-     "id": "sugar_glider"
+     "id": "kitten"
     },
     {
      "turn": 25,
      "kind": "guess",
-     "id": "ferret"
+     "id": "goat"
     }
    ],
    "result": {
@@ -1008,16 +1008,16 @@
    },
    "finalWeightsTop3": [
     [
-     "easter_bunny",
-     0.11396751233844765
+     "dog",
+     0.07459212366025436
     ],
     [
      "child",
-     0.058123431292608316
+     0.07459212366025433
     ],
     [
-     "grandparent",
-     0.058123431292608316
+     "friend",
+     0.07459212366025433
     ]
    ]
   },
@@ -1041,6 +1041,8 @@
     "skip",
     "yes",
     "yes",
+    "skip",
+    "no",
     "right"
    ],
    "expect": [
@@ -1112,7 +1114,7 @@
     {
      "turn": 14,
      "kind": "question",
-     "id": "is_snack"
+     "id": "is_brown"
     },
     {
      "turn": 15,
@@ -1122,30 +1124,40 @@
     {
      "turn": 16,
      "kind": "question",
-     "id": "is_brown"
+     "id": "is_snack"
     },
     {
      "turn": 17,
+     "kind": "question",
+     "id": "used_in_kitchen"
+    },
+    {
+     "turn": 18,
+     "kind": "question",
+     "id": "is_sticky"
+    },
+    {
+     "turn": 19,
      "kind": "guess",
      "id": "bread"
     }
    ],
    "result": {
     "outcome": "win",
-    "turn": 17
+    "turn": 19
    },
    "finalWeightsTop3": [
     [
      "bread",
-     0.8010302025822142
+     0.8450726267890083
     ],
     [
      "dinner",
-     0.06260850759038683
+     0.017544760417764885
     ],
     [
-     "coffee",
-     0.022173846438262
+     "brownie",
+     0.013158570313323662
     ]
    ]
   },
@@ -1295,15 +1307,15 @@
    "finalWeightsTop3": [
     [
      "car",
-     0.9664471711725152
+     0.9664471675210795
     ],
     [
      "train",
-     0.01894994453279441
+     0.018949944461197632
     ],
     [
      "bus",
-     0.00668821571745685
+     0.006688215692187401
     ]
    ]
   },
@@ -1438,6 +1450,8 @@
     "yes",
     "no",
     "maybe",
+    "wrong",
+    "wrong",
     "right"
    ],
    "expect": [
@@ -1524,7 +1538,7 @@
     {
      "turn": 17,
      "kind": "question",
-     "id": "is_brown"
+     "id": "is_cooked"
     },
     {
      "turn": 18,
@@ -1539,25 +1553,35 @@
     {
      "turn": 20,
      "kind": "guess",
+     "id": "turnip"
+    },
+    {
+     "turn": 21,
+     "kind": "guess",
+     "id": "garlic"
+    },
+    {
+     "turn": 22,
+     "kind": "guess",
      "id": "potato"
     }
    ],
    "result": {
     "outcome": "win",
-    "turn": 20
+    "turn": 22
    },
    "finalWeightsTop3": [
     [
      "potato",
-     0.48462569113682497
+     0.8041460151019176
     ],
     [
-     "turnip",
-     0.3432765312219177
+     "mushroom",
+     0.047302706770701045
     ],
     [
-     "garlic",
-     0.060788552403881244
+     "onion",
+     0.04730270677070104
     ]
    ]
   },
@@ -1576,14 +1600,14 @@
     "maybe",
     "yes",
     "yes",
-    "yes",
+    "no",
     "yes",
     "right",
     "back",
     "wrong",
+    "no",
+    "no",
     "maybe",
-    "no",
-    "no",
     "no",
     "no",
     "wrong",
@@ -1652,12 +1676,12 @@
     {
      "turn": 12,
      "kind": "question",
-     "id": "is_white"
+     "id": "is_hot"
     },
     {
      "turn": 13,
      "kind": "question",
-     "id": "made_of_stone"
+     "id": "gives_light"
     },
     {
      "turn": 14,
@@ -1667,7 +1691,7 @@
     {
      "turn": 15,
      "kind": "question",
-     "id": "is_yellow_orange"
+     "id": "is_valuable"
     },
     {
      "turn": 16,
@@ -1677,17 +1701,17 @@
     {
      "turn": 17,
      "kind": "question",
-     "id": "is_hot"
+     "id": "used_daily"
     },
     {
      "turn": 18,
      "kind": "question",
-     "id": "is_brown"
+     "id": "keeps_you_warm"
     },
     {
      "turn": 19,
      "kind": "question",
-     "id": "is_cold"
+     "id": "is_yellow_orange"
     },
     {
      "turn": 20,
@@ -1697,27 +1721,27 @@
     {
      "turn": 21,
      "kind": "guess",
-     "id": "planet"
+     "id": "star"
     },
     {
      "turn": 22,
      "kind": "guess",
-     "id": "star"
+     "id": "black_hole"
     },
     {
      "turn": 23,
      "kind": "guess",
-     "id": "venus"
+     "id": "comet"
     },
     {
      "turn": 24,
      "kind": "guess",
-     "id": "black_hole"
+     "id": "satellite"
     },
     {
      "turn": 25,
      "kind": "guess",
-     "id": "satellite"
+     "id": "jupiter"
     }
    ],
    "result": {
@@ -1726,16 +1750,16 @@
    },
    "finalWeightsTop3": [
     [
-     "concrete",
-     0.13048814053476449
+     "solar_system",
+     0.23809025465911116
     ],
     [
-     "comet",
-     0.1304881405347644
+     "asteroid",
+     0.10581789095960503
     ],
     [
-     "jupiter",
-     0.0690819567536988
+     "universe",
+     0.0843236318584352
     ]
    ]
   },
@@ -1823,12 +1847,12 @@
     {
      "turn": 11,
      "kind": "question",
-     "id": "is_wild"
+     "id": "is_brown"
     },
     {
      "turn": 12,
      "kind": "question",
-     "id": "is_brown"
+     "id": "is_wild"
     },
     {
      "turn": 13,
@@ -1838,7 +1862,7 @@
     {
      "turn": 14,
      "kind": "question",
-     "id": "is_white"
+     "id": "is_soft"
     },
     {
      "turn": 15,
@@ -2007,15 +2031,15 @@
    "finalWeightsTop3": [
     [
      "sun",
-     0.8936869111681139
+     0.8936775284020587
     ],
     [
      "star",
-     0.052569818304006706
+     0.0525692663765917
     ],
     [
      "moon",
-     0.02328351814156699
+     0.023283273689286295
     ]
    ]
   },
@@ -2105,15 +2129,15 @@
    "finalWeightsTop3": [
     [
      "sun",
-     0.8508504994128674
+     0.8508290153120065
     ],
     [
      "star",
-     0.050050029377227495
+     0.05004876560658862
     ],
     [
      "moon",
-     0.04710591000209646
+     0.047104720570906936
     ]
    ]
   },
@@ -2209,15 +2233,15 @@
    "finalWeightsTop3": [
     [
      "house",
-     0.9058922070290922
+     0.9058896449779342
     ],
     [
      "post_office",
-     0.01578897092861164
+     0.01578892627412522
     ],
     [
      "store",
-     0.011841728196458729
+     0.011841694705593916
     ]
    ]
   },
@@ -2485,15 +2509,15 @@
    "finalWeightsTop3": [
     [
      "bicycle",
-     0.6488065105422572
+     0.6488068955461894
     ],
     [
      "scooter",
-     0.21626883684741915
+     0.21626896518206315
     ],
     [
      "tricycle",
-     0.10813441842370954
+     0.10813448259103159
     ]
    ]
   }
