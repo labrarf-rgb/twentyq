@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Device } from "./components/Device";
 import { HowTo } from "./components/HowTo";
 import { RecapList, RecapToggle, useHasRecap } from "./components/Recap";
+import { TeachPanel } from "./components/TeachPanel";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { statsLine } from "./lib/stats";
 import { useGame, type Slot } from "./store/game";
@@ -20,6 +21,9 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey || e.repeat || howOpen) return;
+      // Typing in a field (the "What were you thinking of?" box) must never reach the device.
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
       const k = e.key.toLowerCase();
       const g = useGame.getState();
       if (k === "backspace" || k === "z") {
@@ -67,6 +71,7 @@ export default function App() {
           <RecapList />
         </div>
       )}
+      <TeachPanel />
       <HowTo open={howOpen} onClose={() => setHowOpen(false)} />
     </>
   );
