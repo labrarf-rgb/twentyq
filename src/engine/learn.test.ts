@@ -32,10 +32,12 @@ describe("learning (SPECS 11.2)", () => {
   it("with an empty log, P is exactly the likelihood table (no arithmetic)", () => {
     const c = compileKB(kb, []);
     expect(c.N).toBe(kb.things.length);
+    let bad = 0;
     for (let a = 0; a < 3; a++) {
-      for (let q = 0; q < c.Q; q++) for (let i = 0; i < c.N; i++) expect(c.P[a][q * c.N + i]).toBe(c.lik[a][c.values[i * c.Q + q]]);
-      for (let k = 0; k < 3; k++) for (let i = 0; i < c.N; i++) expect(c.PC[a][k * c.N + i]).toBe(c.lik[a][c.cats[i * 3 + k]]);
+      for (let q = 0; q < c.Q; q++) for (let i = 0; i < c.N; i++) if (c.P[a][q * c.N + i] !== c.lik[a][c.values[i * c.Q + q]]) bad++;
+      for (let k = 0; k < 3; k++) for (let i = 0; i < c.N; i++) if (c.PC[a][k * c.N + i] !== c.lik[a][c.cats[i * 3 + k]]) bad++;
     }
+    expect(bad).toBe(0);
   });
 
   it("blends counts into the prior: (K b + c_a) / (K + n)", () => {

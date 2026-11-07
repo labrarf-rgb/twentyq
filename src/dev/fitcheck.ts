@@ -84,7 +84,7 @@ async function runSize(w: number, h: number): Promise<SizeResult> {
   const doc = win.document as Document;
   const st = win.__tq;
   const dev = win.__tqDev;
-  const { ckb, messages } = dev;
+  const { ckb, messages, compileKB } = dev;
   const kb = ckb.kb;
 
   // ---- page rules
@@ -168,6 +168,18 @@ async function runSize(w: number, h: number): Promise<SizeResult> {
   for (let i = 0; i < kb.things.length; i++) {
     for (const turn of [12, 21]) for (const m of messages.messagesFor(ckb, fakeView({ turn, kind: "guess", thing: i }))) add(m.text);
   }
+  // v9: the longest names a player may teach (24 characters, no word over 23) in the guess line and the
+  // runner-up line. These are the shapes that wrap worst: one 23-letter word, 12 + 11, and a 3-line shape.
+  const learnedNames = ["W".repeat(23), "Wwwwwwwwwwww Wwwwwwwwwww", "a b c d e f g h i j k lm", "Ww-ww'ww-ww'ww-ww'ww-wwx", "M".repeat(11) + " " + "M".repeat(12)];
+  const lkb = compileKB(
+    kb,
+    learnedNames.map((name) => ({ ts: 1, kbVersion: "t", outcome: "stumped", turn: 25, turns: [], actual: { name } })),
+  );
+  learnedNames.forEach((_n, j) => {
+    for (const turn of [12, 21]) for (const m of messages.messagesFor(lkb, fakeView({ turn, kind: "guess", thing: lkb.nKb + j }))) add(m.text);
+  });
+  const learned3 = [0, 1, 2].map((j) => lkb.nKb + j);
+  for (const m of messages.messagesFor(lkb, fakeView(null, { outcome: "stumped", turn: 25 }, learned3))) add(m.text, true);
   add(messages.IDLE_MESSAGE.text);
   add(messages.CONFIRM_MESSAGE.text);
   add("I'm thinking...");
@@ -255,6 +267,58 @@ async function runSize(w: number, h: number): Promise<SizeResult> {
     if (Math.abs(dr2.width - D) > 0.5) fail("opening the recap changed D", `${D.toFixed(1)} -> ${dr2.width.toFixed(1)}`);
     const pr = (doc.querySelector(".recap-panel") as HTMLElement).getBoundingClientRect();
     if (pr.left < -0.5 || pr.top < -0.5 || pr.right > w + 0.5 || pr.bottom > h + 0.5) fail("recap panel outside viewport", JSON.stringify(pr));
+  }
+  // ---- v9: the "What were you thinking of?" panel, in its three states, on a stumped end screen.
+  // It is an overlay: D and the page rules must not change, it must stay inside the viewport,
+  // and it must never cover the buttons, the LCD or UNDO (so YES on the device always works).
+  const setInput = (el: HTMLInputElement, v: string) => {
+    const setter = Object.getOwnPropertyDescriptor((win as any).HTMLInputElement.prototype, "value")!.set!;
+    setter.call(el, v);
+    el.dispatchEvent(new (win as any).Event("input", { bubbles: true }));
+  };
+  const teachChecks = async (label: string, expectPicks: number | null) => {
+    await tick();
+    await wait(60);
+    const panel = doc.querySelector(".teach-panel") as HTMLElement | null;
+    if (!panel) return fail("teach panel missing", label);
+    pageRules(label);
+    const d3 = (doc.querySelector(".device") as HTMLElement).getBoundingClientRect();
+    if (Math.abs(d3.width - D) > 0.5) fail("the teach panel changed D", `${label}: ${D.toFixed(1)} -> ${d3.width.toFixed(1)}`);
+    const pr = panel.getBoundingClientRect();
+    if (pr.left < -0.5 || pr.top < -0.5 || pr.right > w + 0.5 || pr.bottom > h + 0.5) fail("teach panel outside viewport", `${label}: ${JSON.stringify(pr)}`);
+    const picks = doc.querySelectorAll(".teach-picks .chip").length;
+    if (expectPicks !== null && picks !== expectPicks) fail("teach suggestions", `${label}: ${picks} shown, expected ${expectPicks}`);
+    if (panel.scrollWidth > panel.clientWidth + 1) fail("teach panel clips sideways", label);
+    const hit = (a: DOMRect, b: DOMRect) => a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5;
+    const covered: [string, Element][] = [["lcd bezel", doc.querySelector(".lcd-bezel")!], ["undo", doc.querySelector(".oval")!]];
+    doc.querySelectorAll(".slot .cap").forEach((e, i) => covered.push([`button ${i}`, e]));
+    for (const [name, el] of covered) if (hit(pr, el.getBoundingClientRect())) fail("teach panel covers a device control", `${label}: ${name}`);
+    const header2 = doc.querySelector(".topbar")!.getBoundingClientRect();
+    if (pr.top < header2.bottom - 0.5) fail("teach panel covers the header", label);
+    // the info row (narrow) or header (wide) must stay reachable
+    if (narrow && hit(pr, info.getBoundingClientRect())) fail("teach panel covers the info row", label);
+  };
+  {
+    const s2 = dev.replay(ckb, 1, ["skip"]);
+    while (s2.current) s2.apply(s2.current.kind === "guess" ? "wrong" : "skip");
+    st.setState({ started: true, history: s2.entries.map((e: any) => e.answer), view: s2.view(), thinking: false, loggedTs: 1, taught: false });
+    if (toggle && doc.querySelector(".recap-panel")) toggle.click(); // close the recap first
+    await teachChecks("teach prompt", 0);
+    const input = doc.querySelector(".teach-input") as HTMLInputElement | null;
+    if (!input) fail("teach input missing", "");
+    else {
+      setInput(input, "a");
+      await teachChecks("teach with 5 suggestions", 5);
+      setInput(input, "W".repeat(30));
+      await tick();
+      if (input.value.length > 24) fail("teach input accepts more than 24 characters", `${input.value.length}`);
+      setInput(input, "<b>dr*ag!on</b>");
+      await tick();
+      if (/[^A-Za-z0-9 '-]/.test(input.value)) fail("teach input accepts a disallowed character", input.value);
+    }
+    st.setState({ taught: true });
+    await teachChecks("teach thanks", null);
+    st.setState({ loggedTs: null, taught: false });
   }
   frame.remove();
   return { size: `${w}x${h}`, pass: failures.length === 0, deviceD: Math.round(D * 10) / 10, expectedD: Math.round(expectedD * 10) / 10, fontPx: Math.round(fontPx * 100) / 100, strings: uniq.size, maxLines, failures };

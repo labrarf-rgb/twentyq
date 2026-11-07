@@ -13,6 +13,8 @@
     "kb:check": "tsx scripts/kb-check.ts",
     "kb:vectors": "tsx scripts/kb-vectors.ts",
     "kb:bench": "tsx scripts/kb-bench.ts",
+    "kb:bench:players": "tsx scripts/kb-bench-players.ts",
+    "kb:tune": "tsx scripts/kb-tune.ts",
     "kb:bench:fast": "tsx scripts/kb-bench.ts --fast",
     "kb:format": "tsx scripts/kb-format.ts",
     "deploy": "./scripts/deploy.sh"
