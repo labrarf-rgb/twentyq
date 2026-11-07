@@ -1,10 +1,11 @@
-import { categoryValue, CATEGORY_ORDER, compileKB, type CompiledKB } from "./kb";
+import { CATEGORY_ORDER, compileKB, type CompiledKB } from "./kb";
 import { mulberry32 } from "./rng";
 import type {
   AnswerToken,
   CurrentTurn,
   GameView,
   KB,
+  LogGame,
   Outcome,
   RecapEntry,
 } from "./types";
@@ -58,7 +59,9 @@ export class Session {
       const a = ANSWER_INDEX[answer];
       if (a === undefined) throw new Error(`Bad category answer "${answer}"`);
       if (a >= 0) {
-        for (let i = 0; i < ckb.N; i++) w[i] *= ckb.lik[a][categoryValue(kb, i, cur.cat)];
+        const pc = ckb.PC[a];
+        const base = cur.cat * ckb.N;
+        for (let i = 0; i < ckb.N; i++) w[i] *= pc[base + i];
         this.normalize();
       }
       this.entries.push({ turn: cur.turn, kind: "category", id: kb.categories[cur.cat], answer });
@@ -77,13 +80,15 @@ export class Session {
       else if (answer === "skip") a = -1;
       else throw new Error(`Bad question answer "${answer}"`);
       if (a >= 0) {
-        for (let i = 0; i < ckb.N; i++) w[i] *= ckb.lik[a][ckb.values[i * ckb.Q + cur.q]];
+        const pq = ckb.P[a];
+        const base = cur.q * ckb.N;
+        for (let i = 0; i < ckb.N; i++) w[i] *= pq[base + i];
         this.normalize();
       }
       this.entries.push({ turn: cur.turn, kind: "question", id: kb.questions[cur.q].id, answer });
     } else {
       if (answer !== "right" && answer !== "wrong") throw new Error(`Bad guess answer "${answer}"`);
-      this.entries.push({ turn: cur.turn, kind: "guess", id: kb.things[cur.thing].id, answer });
+      this.entries.push({ turn: cur.turn, kind: "guess", id: ckb.things[cur.thing].id, answer });
       if (answer === "right") {
         this.finish("win", cur.turn);
         return;
@@ -140,12 +145,14 @@ export class Session {
   /** Information gain of asking q, from the current weights (Skip excluded). */
   private gain(q: number, hw: number, u: Float64Array): number {
     const { ckb, w } = this;
-    const { N, Q, values, lik } = ckb;
+    const { N, P } = ckb;
+    const base = q * N;
     let e = 0;
     for (let a = 0; a < 3; a++) {
+      const pq = P[a];
       let pa = 0;
       for (let i = 0; i < N; i++) {
-        const x = w[i] * lik[a][values[i * Q + q]];
+        const x = w[i] * pq[base + i];
         u[i] = x;
         pa += x;
       }
@@ -199,7 +206,7 @@ export class Session {
       entries: this.entries,
       weights: this.w,
       guessed: this.guessed,
-      runnerUps: this.topN(this.ckb.c.topK, true),
+      runnerUps: this.topN(3, true), // SPECS 4: the top 3, whatever topK is tuned to
     };
   }
 
@@ -213,8 +220,8 @@ export class Session {
 }
 
 /** Build the state after `answers` (no `back` tokens: Back is just dropping the last answer). */
-export function replay(kb: KB | CompiledKB, seed: number, answers: readonly AnswerToken[]): Session {
-  const ckb = "values" in kb ? kb : compileKB(kb);
+export function replay(kb: KB | CompiledKB, seed: number, answers: readonly AnswerToken[], learned: readonly LogGame[] = []): Session {
+  const ckb = "values" in kb ? kb : compileKB(kb, learned);
   const s = new Session(ckb, seed);
   for (const a of answers) s.apply(a);
   return s;

@@ -8,6 +8,8 @@ export interface EngineConstants {
   forceGuessTurn: number;
   maxTurns: number;
   topK: number;
+  /** v9 (SPECS 11.2): K in P = (K * b + c) / (K + n). Absent in a pre-v9 KB; the engine then uses 2. */
+  learnPriorStrength?: number;
 }
 
 export interface Question {
@@ -74,4 +76,21 @@ export interface GameView {
   guessed: ReadonlySet<number>;
   /** Top 3 by weight among things not guessed (valid at any time, shown when stumped). */
   runnerUps: number[];
+}
+
+/** v9 (SPECS 11.1): one finished game in the local game log. */
+export interface LogTurn {
+  /** "cat:" + category id, a question id, or "guess:" + thing id */
+  id: string;
+  /** yes | no | maybe | skip for category and question turns, right | wrong for guesses */
+  a: string;
+}
+export type LogActual = { id: string } | { name: string } | null;
+export interface LogGame {
+  ts: number;
+  kbVersion: string;
+  outcome: "win" | "stumped";
+  turn: number;
+  turns: LogTurn[];
+  actual: LogActual;
 }

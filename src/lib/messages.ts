@@ -13,7 +13,7 @@ export const CATEGORY_PROMPTS = ["Is it an animal?", "Is it a vegetable?", "Is i
 
 /** "a cat, a dog, or the moon" */
 export function listPhrases(ckb: CompiledKB, idx: number[]): string {
-  const p = idx.map((i) => thingPhrase(ckb.kb.things[i]));
+  const p = idx.map((i) => thingPhrase(ckb.things[i]));
   if (p.length <= 1) return p.join("");
   if (p.length === 2) return `${p[0]} or ${p[1]}`;
   return `${p.slice(0, -1).join(", ")}, or ${p[p.length - 1]}`;
@@ -34,7 +34,7 @@ export function messagesFor(ckb: CompiledKB, view: GameView): Message[] {
   if (cur.kind === "category") return [{ text: CATEGORY_PROMPTS[cur.cat], sfx: "question" }];
   if (cur.kind === "question") return [{ text: ckb.kb.questions[cur.q].text, sfx: "question" }];
   const guess: Message = {
-    text: `I think it's ${thingPhrase(ckb.kb.things[cur.thing])}. Am I right?`,
+    text: `I think it's ${thingPhrase(ckb.things[cur.thing])}. Am I right?`,
     sfx: "guess",
   };
   // Turn 21 only follows a wrong turn-20 guess: say so once.
@@ -57,7 +57,7 @@ export function recapRows(ckb: CompiledKB, view: GameView) {
     let text = "";
     if (e.kind === "category") text = CATEGORY_PROMPTS[ckb.kb.categories.indexOf(e.id as never)];
     if (e.kind === "question") text = ckb.kb.questions[ckb.qIndex.get(e.id!)!].text;
-    if (e.kind === "guess") text = `I think it's ${thingPhrase(ckb.kb.things[ckb.tIndex.get(e.id!)!])}.`;
+    if (e.kind === "guess") text = `I think it's ${thingPhrase(ckb.things[ckb.tIndex.get(e.id!)!])}.`;
     return { turn: e.turn, text, answer: ANSWER_WORD[e.answer] ?? e.answer };
   });
 }

@@ -1,6 +1,6 @@
 // A simulated player used by kb:vectors and kb:bench (SPECS §6).
 import { replay } from "../../src/engine/engine";
-import { categoryValue, V_MAYBE, V_NO, V_UNKNOWN, V_YES, type CompiledKB } from "../../src/engine/kb";
+import { V_MAYBE, V_NO, V_UNKNOWN, V_YES, type CompiledKB } from "../../src/engine/kb";
 import type { AnswerToken, QuestionAnswer, Session } from "../../src/engine/index";
 
 export type MaybePolicy = "random" | "maybe" | "yes";
@@ -25,7 +25,7 @@ export function truthfulAnswer(ckb: CompiledKB, ti: number, q: number, rnd: () =
 
 /** v7: how that player answers category question `c` (0 animal, 1 vegetable, 2 mineral), from cv. */
 export function categoryAnswer(ckb: CompiledKB, ti: number, c: number, rnd: () => number, maybe: MaybePolicy = "random"): QuestionAnswer {
-  return answerForValue(categoryValue(ckb.kb, ti, c), rnd, maybe);
+  return answerForValue(ckb.cats[ti * 3 + c], rnd, maybe);
 }
 
 /** Replace a Yes/No/Maybe with a different random one of the three. */
