@@ -2,6 +2,11 @@
 
 Newest first. One dated entry per working session.
 
+## 2026-11-15 · v10 ship (web)
+- Merged `claude/v10-guessing-84dd0e` into main as `7cf0da6` (main had not moved; the main checkout was clean). On main: `npm test` 124 pass, `npm run build` clean, the bundle carries `kb-2026.11.15.1`. Manifest `id` is still `/twentyq/`. There is no service worker, so there is no cache version to bump: the KB is inside the hashed JS bundle, and installed copies pick it up once the CDN's cached `index.html` (max-age 600) expires.
+- **Push and deploy not done:** this session's permission check refused `git push origin main` and `npm run deploy`. They are left for Ray to run from the main checkout, or to allow here. The live site still reports `8cfcb16` (v9).
+- Spec drift check on the sections v10 touched (§3, §4, §5, §6, §11.2, §11.4, §11.5, §12): they match the code. Fixed §12.1, which still said "not yet merged". Pre-existing and left alone: §4's constants line still gives the v1 defaults (0.80, 8, 3) next to "v9 retunes"; the live values are in `kb.engine` (0.3, 6, 2).
+
 ## 2026-11-15 · v10 web: guessing fixes 1 to 3 from the guess review
 - Branch `claude/v10-guessing-84dd0e`, from main, with `claude/fable-guess-review-02ed88` merged in (the player sheets `fable-40` and `fable-novel-8`, the review lab, the sheet-like bench pass and the review's SESSIONS entry). Ray approved fixes 1 to 3; fixes 4 (two category questions) and 5 (common-thing boost) are **not** in: "Is it a mineral?" stays and there is no boost. Nothing merged to main, pushed or deployed. No `Co-Authored-By` trailer on any commit.
 - **Fix 1, data.** `engine.likelihood` is the review's L1 table, P(answer given KB value): yes .82 / .10 / .08, maybe .30 / .30 / .40, no .03 / .07 / .90, unknown 1/3 each (v9: .85 / .10 / .05, .40 / .30 / .30, .05 / .10 / .85).

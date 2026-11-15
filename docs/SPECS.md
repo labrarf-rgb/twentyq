@@ -995,8 +995,8 @@ self-play bench (§6) on `kb-2026.11.15.1`: truthful 99.4% by turn 20, 10% noise
 
 1. **Web** (`v10-guessing` branch): `kb.json` (`kb-2026.11.15.1`, the table, the two rules, the
    endgame constants), the engine (§4 endgame; the review's other prototypes removed), vectors,
-   the sheet-like bench pass (§6), `kb:check` warnings (§3), this spec. Done 2026-11-15, not yet
-   merged.
+   the sheet-like bench pass (§6), `kb:check` warnings (§3), this spec. Done 2026-11-15, and
+   merged to main as `7cf0da6` on Ray's go.
 2. The coordinator merges it to main on Ray's go and copies this SPECS.md to the Android repo.
 3. **Android** ports the §4 endgame and syncs `kb.json` and the vectors **in the same change**
    (the Kotlin parser ignores unknown keys, so a v10 `kb.json` on a v9 engine would load and play
