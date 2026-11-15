@@ -2,6 +2,30 @@
 
 Newest first. One dated entry per working session.
 
+## 2026-11-14 · Fable 5.2 guess review (interim: stopped early at a usage limit)
+- Branch `claude/fable-guess-review-02ed88`. No engine, `kb.json` or vector change yet. Nothing merged, pushed or deployed.
+- **New held-out sheets**, written before any of their KB rows were read (only the question list and thing ids), committed first and not edited since: `kb/player-sheets/fable-40.txt` (45 things in the KB, none in coordinator-49) and `fable-novel-8.txt` (pants, slime, beard, ceiling, homework, sprinkler, hairdresser, wheel).
+- **Baseline, `kb:bench:players`, 6 seeds, each sheet on its own:**
+  | sheet | game 1 by 20 / by 25 | game 2 | game 3 |
+  |---|---|---|---|
+  | fable-40 | 79.3% / 87.8% | 98.1% / 98.9% | 100% / 100% |
+  | fable-novel-8 | 0% / 0% | 95.8% / 97.9% | 100% / 100% |
+  | coordinator-49 | 67.7% / 83.7% | 98.0% / 100% | 99.7% / 100% |
+  Never won by 20 on fable-40: doctor, hammer, king, pirate. Weak: library, chair, santa_claus, teacher, baby, birthday, ghost, mermaid.
+- **How the sheets disagree with the KB** (`scripts/review/confusion.ts`, cells the engine asked): Yes on a KB no almost never (0.0% and 0.7%; the table assumes 5%), No on a KB yes 5% and 13%, and a KB maybe is answered No 39% and 51% of the time (the table assumes 30%). A game with one or two hard contradictions is usually lost: each costs a factor of 17.
+- **Measured so far** (`scripts/review/lab.ts`, 12 seeds, game 1; self-play on every 5th thing x 2 seeds, so about 2 points of noise there):
+  | likelihood table, columns P(yes, maybe, no given KB value) | fable-40 by 20 | coord-49 by 20 | self truthful by 20 | 10% flips by 25 | sheet-like by 20 |
+  |---|---|---|---|---|---|
+  | current: yes .85/.10/.05, maybe .40/.30/.30, no .05/.10/.85 | 79.4 | 69.4 | 98.7 | 89.6 | 74.9 |
+  | **L1**: yes .82/.10/.08, maybe .30/.30/.40, no .03/.07/.90 | 83.1 | 75.3 | 98.9 | 89.4 | 82.0 |
+  | L2 (raw sheet fit): yes .80/.10/.10, maybe .15/.40/.45, no .01/.05/.94 | 87.6 | 76.0 | 98.5 | 84.4 | 82.3 |
+  | symmetric soft (.10 both ways) | 70.2 | 66.0 | 96.3 | 90.7 | 69.0 |
+  L1 is the recommendation so far: data-only (the `engine.likelihood` block, vectors regenerated, no Kotlin change), about +5 on both sheets, and no cost on the SPECS 6 passes. L2 scores higher on the sheets but leans on LLM-written sheets never saying Yes to a KB no, which real players do; it costs 5 points on the 10% pass. A uniformly softer table hurts, as the coordinator found: the gain is in the asymmetry.
+- **KB finding, not applied:** the 63 people rows share a template that is YES on `climbs` (55 rows), `hops_jumps` (53) and `lives_in_groups` (58). My sheet answers those No for doctor, king, teacher and pirate, which is three hard contradictions per person. By the SPECS 3 rule they should be `maybe`. `doctor` is also YES on `worn_around_neck`, which is plainly wrong. The patch is in `scripts/review/patches.ts` (`people`), in memory only. Its gain was being measured when the session stopped, and that number will be in-sample for my sheet: coordinator-49 has no people.
+- **Other observations, not yet tested:** the three category turns give "other" things (899 of 1,343) about 0.6 bits in total; the continent questions cause most of coordinator-49's hard contradictions (cow lost on four of them); all things start at the same weight, so okapi and tapir compete evenly with cow.
+- **Bench:** `kb:bench` gains a third, target-free pass, "sheet-like": answers drawn from the measured P(answer given KB value) in `scripts/lib/player.ts` instead of 10% uniform flips. It lands near the real sheets (74.9% against 73.2% pooled). Typechecks; the full bench was not re-run after this edit.
+- **Not done:** guess timing, topK, category phase, popularity prior, per-question reliability, learning weight, a wobbly repeat-play player (the code is in the lab, unrun), the full `kb:bench` on L1, `npm test`.
+
 ## 2026-11-07 · Coordinator (v9 merge)
 - Merged `v9-learning` (8b2b2a6) and `claude/v9-kb-0ac6cb` (0c2b74d) into `main` on Ray's go. `kb.json` auto-merged (engine block from learning, content from the KB pass). SESSIONS.md kept both sides, and the vectors were regenerated on the merged KB `kb-2026.11.07.2` (1,343 things, 182 questions).
 - Gates on main: `kb:check` 0 errors, `npm test` 118, build, full `kb:bench` 98.8% truthful by 20 and 88.8% noisy by 25 (both pass), fit check ALL PASS at 9 sizes (1,543 strings).

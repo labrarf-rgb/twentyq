@@ -28,6 +28,32 @@ export function categoryAnswer(ckb: CompiledKB, ti: number, c: number, rnd: () =
   return answerForValue(ckb.cats[ti * 3 + c], rnd, maybe);
 }
 
+/**
+ * P(answer yes, maybe, no | KB value), pooled over the cells the engine asked in game 1 on two held-out player
+ * sheets written by different models (fable-40 and coordinator-49, 2026-11-14). This is how a careful player
+ * really disagrees with the KB: hardly ever Yes on a KB no, No on about one KB yes in ten, and mostly No on a
+ * KB maybe. Refit it when real exported games exist.
+ */
+export const SHEET_LIKE: Record<number, readonly [number, number, number]> = {
+  [V_YES]: [0.81, 0.1, 0.09],
+  [V_MAYBE]: [0.14, 0.4, 0.46],
+  [V_NO]: [0.004, 0.052, 0.944],
+  [V_UNKNOWN]: [0.0, 0.1, 0.9],
+};
+/** The same for the category questions: a KB "maybe" category is answered No about two times in three. */
+export const SHEET_LIKE_CATEGORY: Record<number, readonly [number, number, number]> = {
+  [V_YES]: [0.93, 0.07, 0],
+  [V_MAYBE]: [0.32, 0, 0.68],
+  [V_NO]: [0, 0, 1],
+};
+
+/** One answer of the sheet-like player (one draw from rnd). */
+export function sheetLikeAnswer(ckb: CompiledKB, ti: number, cur: { kind: "category"; cat: number } | { kind: "question"; q: number }, rnd: () => number): QuestionAnswer {
+  const p = cur.kind === "category" ? SHEET_LIKE_CATEGORY[ckb.cats[ti * 3 + cur.cat]] : SHEET_LIKE[ckb.values[ti * ckb.Q + cur.q]];
+  const r = rnd();
+  return r < p[0] ? "yes" : r < p[0] + p[1] ? "maybe" : "no";
+}
+
 /** Replace a Yes/No/Maybe with a different random one of the three. */
 export function flip(a: QuestionAnswer, rnd: () => number): QuestionAnswer {
   if (a === "skip") return a;

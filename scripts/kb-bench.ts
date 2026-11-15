@@ -8,7 +8,7 @@ import { compileKB } from "../src/engine/kb";
 import { mulberry32 } from "../src/engine/rng";
 import type { AnswerToken } from "../src/engine/types";
 import { loadKB } from "./lib/kb-io";
-import { categoryAnswer, flip, truthfulAnswer } from "./lib/player";
+import { categoryAnswer, flip, sheetLikeAnswer, truthfulAnswer } from "./lib/player";
 
 // Full run: every thing, 5 seeds. `--fast` (or --stride N --seeds N) plays every Nth thing with fewer
 // seeds, for use between KB batches; the full run is still the one that counts (SPECS section 6).
@@ -22,10 +22,14 @@ const STRIDE = argNum("--stride", FAST ? 5 : 1);
 const RUNS = argNum("--seeds", FAST ? 2 : 5);
 const NOISE = 0.1;
 const TARGET = { truthful: { rate: 0.95, byTurn: 20 }, noisy: { rate: 0.8, byTurn: 25 } };
+// A third pass, reported but with no target yet: answers drawn the way the held-out player sheets really
+// disagree with the KB (lib/player.ts, SHEET_LIKE), instead of 10% uniform flips.
+type Pass = "truthful" | "noisy" | "sheetlike";
+const PASSES: Pass[] = ["truthful", "noisy", "sheetlike"];
 
 interface GameOutcome {
   thing: number;
-  pass: "truthful" | "noisy";
+  pass: Pass;
   won: boolean;
   turn: number;
   /** thing indices the engine guessed wrongly along the way */
@@ -33,15 +37,17 @@ interface GameOutcome {
 }
 
 /** One simulated game. Pure function of (kb, thing, run, pass). */
-function simulate(ckb: ReturnType<typeof compileKB>, thing: number, run: number, pass: "truthful" | "noisy"): GameOutcome {
-  const seed = (thing * 7919 + run * 104729 + (pass === "noisy" ? 1299709 : 0)) | 0;
+function simulate(ckb: ReturnType<typeof compileKB>, thing: number, run: number, pass: Pass): GameOutcome {
+  const seed = (thing * 7919 + run * 104729 + (pass === "noisy" ? 1299709 : pass === "sheetlike" ? 2750159 : 0)) | 0;
   const rnd = mulberry32(seed ^ 0x5bd1e995);
   const s = new Session(ckb, seed);
   const wrong: number[] = [];
   while (s.current) {
     const cur = s.current;
     let a: AnswerToken;
-    if (cur.kind === "category") {
+    if (pass === "sheetlike" && cur.kind !== "guess") {
+      a = sheetLikeAnswer(ckb, thing, cur, rnd);
+    } else if (cur.kind === "category") {
       // v7: category questions are answered from cv, and noise flips them like any question
       let qa = categoryAnswer(ckb, thing, cur.cat, rnd, "random");
       if (pass === "noisy" && rnd() < NOISE) qa = flip(qa, rnd);
@@ -66,8 +72,7 @@ function runSlice(kbPath: string, lo: number, hi: number): GameOutcome[] {
   const out: GameOutcome[] = [];
   for (let t = lo; t < hi; t++) {
     if (t % STRIDE !== 0) continue;
-    for (const pass of ["truthful", "noisy"] as const)
-      for (let run = 0; run < RUNS; run++) out.push(simulate(ckb, t, run, pass));
+    for (const pass of PASSES) for (let run = 0; run < RUNS; run++) out.push(simulate(ckb, t, run, pass));
   }
   return out;
 }
@@ -99,13 +104,13 @@ async function main() {
 
 function report(kb: ReturnType<typeof loadKB>, games: GameOutcome[], secs: number) {
   const name = (i: number) => kb.things[i].id;
-  const rate = (pass: "truthful" | "noisy", byTurn: number) => {
+  const rate = (pass: Pass, byTurn: number) => {
     const g = games.filter((x) => x.pass === pass);
     return g.filter((x) => x.won && x.turn <= byTurn).length / g.length;
   };
   const rt = rate("truthful", TARGET.truthful.byTurn);
   const rn = rate("noisy", TARGET.noisy.byTurn);
-  const avgTurn = (pass: "truthful" | "noisy") => {
+  const avgTurn = (pass: Pass) => {
     const w = games.filter((x) => x.pass === pass && x.won);
     return w.reduce((a, x) => a + x.turn, 0) / Math.max(1, w.length);
   };
@@ -113,9 +118,10 @@ function report(kb: ReturnType<typeof loadKB>, games: GameOutcome[], secs: numbe
   const ok = (v: number, t: number) => (v >= t ? "PASS" : "FAIL");
 
   const subset = STRIDE > 1 ? ` (every ${STRIDE}th thing)` : "";
-  console.log(`\n${kb.kbVersion}: ${kb.things.length} things${subset} x ${RUNS} seeds x 2 passes = ${games.length} games (${secs.toFixed(1)}s)${STRIDE > 1 || RUNS < 5 ? "  [FAST: indicative only, run the full bench to sign off]" : ""}\n`);
+  console.log(`\n${kb.kbVersion}: ${kb.things.length} things${subset} x ${RUNS} seeds x ${PASSES.length} passes = ${games.length} games (${secs.toFixed(1)}s)${STRIDE > 1 || RUNS < 5 ? "  [FAST: indicative only, run the full bench to sign off]" : ""}\n`);
   console.log(`Truthful  won by turn ${TARGET.truthful.byTurn}: ${pct(rt)}   target >= ${pct(TARGET.truthful.rate)}   ${ok(rt, TARGET.truthful.rate)}   (avg win turn ${avgTurn("truthful").toFixed(1)}, won by 25: ${pct(rate("truthful", 25))})`);
   console.log(`10% noise won by turn ${TARGET.noisy.byTurn}: ${pct(rn)}   target >= ${pct(TARGET.noisy.rate)}   ${ok(rn, TARGET.noisy.rate)}   (avg win turn ${avgTurn("noisy").toFixed(1)})`);
+  console.log(`Sheet-like won by turn 20: ${pct(rate("sheetlike", 20))}   by turn 25: ${pct(rate("sheetlike", 25))}   no target yet   (avg win turn ${avgTurn("sheetlike").toFixed(1)})`);
 
   // Worst things: lowest truthful rate, then lowest noisy rate.
   const played = new Set(games.map((g) => g.thing));
@@ -139,7 +145,7 @@ function report(kb: ReturnType<typeof loadKB>, games: GameOutcome[], secs: numbe
   // Confusions: true thing -> thing guessed wrongly. Counted over both passes; the truthful-only count is shown too.
   const pairs = new Map<string, { all: number; truthful: number }>();
   for (const g of games)
-    for (const w of g.wrong) {
+    if (g.pass !== "sheetlike") for (const w of g.wrong) {
       const key = `${name(g.thing)} -> ${name(w)}`;
       const e = pairs.get(key) ?? { all: 0, truthful: 0 };
       e.all++;
