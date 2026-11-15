@@ -87,6 +87,20 @@ describe("checkKB", () => {
     kb.things[1].yes = ["is_alive"];
     expect(checkKB(kb).warnings.join("\n")).toMatch(/differs on only 1/);
   });
+  it("warns on the v10 class rules: worldwide continents, people who climb, jump or live in groups", () => {
+    const continents = ["lives_in_africa", "lives_in_asia", "lives_in_australia", "lives_in_north_america", "lives_in_south_america", "lives_in_europe"];
+    const kb = base();
+    kb.questions.push(...[...continents, "is_person", "climbs", "hops_jumps", "lives_in_groups"].map((id) => ({ id, text: id, group: "g" })));
+    kb.things.push(
+      { id: "cow", name: "Cow", article: "a", category: "animal", yes: ["is_alive", ...continents] },
+      { id: "king", name: "King", article: "a", category: "other", yes: ["is_alive", "is_person", "climbs", "lives_in_groups"] },
+      { id: "team", name: "Team", article: "a", category: "other", yes: ["is_alive", "is_person", "lives_in_groups"] },
+    );
+    const w = checkKB(kb).warnings.join("\n");
+    expect(w).toMatch(/cow is yes on all six continent questions/);
+    expect(w).toMatch(/king is a person and yes on climbs, lives_in_groups/);
+    expect(w).not.toMatch(/team is a person/);
+  });
   it("warns on things with fewer than 6 yes entries", () => {
     expect(checkKB(base()).warnings.join("\n")).toMatch(/only 2 yes entries/);
   });

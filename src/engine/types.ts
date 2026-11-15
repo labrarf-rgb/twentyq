@@ -10,6 +10,10 @@ export interface EngineConstants {
   topK: number;
   /** v9 (SPECS 11.2): K in P = (K * b + c) / (K + n). Absent in a pre-v9 KB; the engine then uses 2. */
   learnPriorStrength?: number;
+  /** v10 (SPECS §4): from this turn on, choose between asking and guessing by the chance of winning (endgame lookahead). Absent: off, as in v9. */
+  endgameFrom?: number;
+  /** v10: with endgameFrom, how much a win in overtime (after forceGuessTurn, up to maxTurns) counts against a win by forceGuessTurn. Absent: 0. */
+  endgameOvertime?: number;
 }
 
 export interface Question {

@@ -238,3 +238,37 @@ describe("proper names (SPECS 3)", () => {
   });
 });
 
+
+describe("one-game teach (v10 regression check)", () => {
+  // The KB without its dragon row, and a player who answers every question the way that row does (a KB maybe
+  // as Sometimes). Game 1 stumps; the player teaches "a dragon" once, with `near` as the teach box stores it.
+  // Game 2 should guess the taught dragon. 40 seeds, 2026-11-15: v9 30/40 by turn 20, v10 38/40.
+  const full = compileKB(kb);
+  const D = full.tIndex.get("dragon")!;
+  const kbNo: KB = { ...kb, things: kb.things.filter((t) => t.id !== "dragon") };
+  const base = compileKB(kbNo);
+  const ans = (c: ReturnType<typeof compileKB>, cur: NonNullable<ReturnType<typeof replay>["current"]>, target: number) => {
+    if (cur.kind === "guess") return cur.thing === target ? "right" : "wrong";
+    const v = cur.kind === "category" ? full.cats[D * 3 + cur.cat] : full.values[D * full.Q + full.qIndex.get(c.kb.questions[cur.q].id)!];
+    return v === 0 ? "yes" : v === 1 ? "maybe" : v === 3 ? "skip" : "no";
+  };
+  const play = (c: ReturnType<typeof compileKB>, seed: number, target: number) => {
+    const s = replay(c, seed, []);
+    while (s.current) s.apply(ans(c, s.current, target));
+    return s;
+  };
+
+  it("a dragon taught once is guessed in game 2 by turn 20 (at least 9 seeds in 10)", () => {
+    let wins = 0;
+    for (let seed = 1; seed <= 10; seed++) {
+      const g1 = play(base, seed, -1);
+      expect(g1.result?.outcome).toBe("stumped");
+      const turns = g1.entries.map((e) => ({ id: e.kind === "category" ? "cat:" + e.id : e.kind === "guess" ? "guess:" + e.id : e.id!, a: e.answer }));
+      const log = [game({ name: "a dragon" }, turns, { near: nearOf(base, g1.entries) })];
+      const c = compileKB(kbNo, log);
+      const g2 = play(c, seed + 1000, c.tIndex.get("learned:dragon")!);
+      if (g2.result?.outcome === "win" && g2.result.turn <= 20) wins++;
+    }
+    expect(wins).toBeGreaterThanOrEqual(9);
+  });
+});

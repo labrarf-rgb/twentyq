@@ -4,7 +4,11 @@
 > the Android app. Change it only through the coordinator session, which copies it to both
 > repos. Each repo keeps its own dated log in `docs/SESSIONS.md`.
 
-Last spec update: 2026-11-07, v9. History:
+Last spec update: 2026-11-15, v10. History:
+- **v10:** guessing fixes from the 2026-11-14 guess review (§12). A new `likelihood` table
+  (§11.5), two KB rules for worldwide things and people (§3, §11.4), and an endgame lookahead
+  from turn 12 (§4). The bench gains a sheet-like pass (§6). The UI and the schema are
+  unchanged. **Engine change: the vectors must be regenerated and the parity tests re-run.**
 - **v9:** getting smarter (§11). The app learns on the device from finished games, and a
   stumped player can tell it what they were thinking of. The KB adds the things people pick
   most, and the most-asked questions get a full pass. A new player benchmark, and tuned guess
@@ -184,8 +188,8 @@ by hand. A schema change needs both apps updated together, through the coordinat
   engine ignores it, and `schemaVersion` stays 2.
 - **Order is meaningful.** Question order in the array breaks ties (§4), and thing order is
   each thing's index. Don't re-sort casually: any reorder means regenerating the test vectors.
-- **Size.** It started as a seed of 96 questions and 36 things. It is now `kb-2026.11.02.5`, with
-  994 things and 168 questions. The web session expanded it
+- **Size.** It started as a seed of 96 questions and 36 things. It is now `kb-2026.11.15.1`, with
+  1,343 things and 182 questions. The web session expanded it
   to **about 200 things** (v1), and v8 grows it to **about 1,000**:
   - at 1,000: roughly 300 animal, 250 vegetable, 300 mineral, 150 other
   - everyday things a 10-year-old would think of first: dog, pizza, chair, phone, tree, car, moon
@@ -196,6 +200,22 @@ by hand. A schema change needs both apps updated together, through the coordinat
   - **maybe** when real players would honestly split (color of a cat, "does a car use electricity").
   - **unknown** only when the question barely makes sense for the thing.
   - Always mark the obvious yeses: a dog `has_tail`, a car `makes_sound`.
+- **Two class rules (v10).** Both came out of the 2026-11-14 guess review, which traced most
+  hard contradictions on held-out sheets to these two patterns.
+  - **Worldwide things are `unknown` on the continents.** A thing found on every inhabited
+    continent (cow, dog, ant, pigeon, and every person) is `unknown` on all six `lives_in_*`
+    questions, not `yes`. This is a deliberate exception to "unknown only when the question
+    barely makes sense": *"Is it found in Africa?"* cannot tell worldwide things apart, and a
+    player who answers No (or thinks only of where they live) is charged a hard contradiction
+    on each continent the engine asks, one after another. The 2026-11-02 fix pass made these
+    `yes`; the review measured that as a loss (cow was lost on four continent questions in a
+    row), so v10 reverses it. A thing found on some continents but not all keeps `yes` and `no`
+    as usual.
+  - **People are not climbers, jumpers or herd animals by default.** On an `is_person` row,
+    `climbs`, `hops_jumps` and `lives_in_groups` are `maybe`, not `yes`: a player thinking of a
+    doctor or a king answers those No or Sometimes. The exceptions are rows the question is
+    literally about (`family` and `team` keep `lives_in_groups` as `yes`; a rock climber would
+    keep `climbs`).
 
 ### Validator: `npm run kb:check` (web)
 
@@ -216,6 +236,10 @@ It fails on any of these:
 
 It warns on:
 - pairs that differ on fewer than 3 questions
+- (v10) a thing that is `yes` on all six `lives_in_*` continent questions (the worldwide rule
+  above says `unknown`)
+- (v10) an `is_person` thing that is `yes` on `climbs`, `hops_jumps` or `lives_in_groups`
+  (except `lives_in_groups` on `family` and `team`)
 - questions where 95% or more of things give the same value
 - things with fewer than 6 `yes` entries
 
@@ -232,6 +256,9 @@ It is a function of `(kb, seed, answerHistory)`, which makes Back an exact repla
 **Constants** come from `kb.engine`: `likelihood`, `guessConfidence` (0.80),
 `guessMinTurn` (8), `forceGuessTurn` (20), `maxTurns` (25), `topK` (3), and since v9
 `learnPriorStrength` (§11.2). v9 retunes `guessConfidence`, `guessMinTurn`, and `topK` (§11.5).
+v10 adds `endgameFrom` (12) and `endgameOvertime` (0.5) for the endgame lookahead below, and a
+new `likelihood` table (§11.5). Both new constants are optional: a KB without `endgameFrom`
+plays exactly as v9.
 
 Since v9 the engine is a function of `(kb, learned, seed, answerHistory)`, where `learned` is
 the device's game log (§11.1). With an empty log it plays exactly as below. Wherever this
@@ -275,12 +302,72 @@ table:
   goes to **2**.
 
 ### Deciding what turn `t` is (after the category phase)
+Check these in order; the first that applies decides the turn.
 1. Let `top` be the index of the highest `w`. Ties go to the lowest index.
 2. If `t >= forceGuessTurn`, turn `t` is a **guess of `top`**.
 3. Otherwise, if `t >= guessMinTurn` and `w[top] >= guessConfidence`, it is also a
    **guess of `top`**.
-4. Otherwise it is a **question**, chosen as below. If every question has been asked, it is a
-   guess of `top`.
+4. Otherwise, if every question has been asked, it is a **guess of `top`**.
+5. (v10) Otherwise, if `endgameFrom` is present and `t >= endgameFrom`, the **endgame
+   lookahead** (below) decides: a question, or a guess of `top`.
+6. Otherwise it is a **question**, chosen by gain as below.
+
+### Endgame lookahead (v10)
+From turn `endgameFrom` on, the engine stops asking the most informative question and asks
+instead: *does any question raise my chance of winning, compared with guessing now?* The
+chance of winning is counted as the weight it could still guess by `forceGuessTurn`, plus
+`endgameOvertime` times the weight it could guess in overtime.
+
+**Top sums.** Let `λ = endgameOvertime` (0 if absent) and
+`X = λ > 0 ? max(0, maxTurns − forceGuessTurn) : 0`. For a vector `u` of `N` values (all
+`>= 0`) and a count `m >= 1`, let `b_0 >= b_1 >= … >= b_{m+X−1}` be the `m + X` largest values
+of `u`, with repeats (so equal values each take a place), padded with zeros if `N < m + X`. Then:
+```
+A = 0;  for j in 0 .. m−1:      A = A + b_j      // largest first
+if λ > 0:
+   T = 0;  for j in m .. m+X−1:  T = T + b_j      // largest first
+   S(u, m) = A + λ · T
+else:
+   S(u, m) = A
+```
+Only the values are used, never which thing holds them, so any correct top-`n` selection gives
+the same bits. (The reference keeps a sorted array of the `m + X` best, inserting each `u_i` in
+index order, and skips `u_i` that are not above the current smallest kept value. Starting
+the kept array at zeros is fine because every `u_i >= 0`.)
+
+**The rule**, at turn `t` with `endgameFrom <= t < forceGuessTurn`:
+```
+r = forceGuessTurn − t + 1                      // turns left up to and including forceGuessTurn; r >= 2
+G = S(w, r)                                     // guess now: guess the top r in turn
+best = guess, bestV = G
+for q in 0 .. Q−1, in index order, skipping asked questions:
+   V = 0
+   for a in [yes, maybe, no]:                   // in this order
+      u_i = w[i] · P(i, q, a)   for every i     // not normalized
+      V = V + S(u, r − 1)
+   if V > bestV + 1e-9:  best = q, bestV = V
+```
+If `best` is still `guess`, turn `t` is a **guess of `top`**. Otherwise it is the **question
+`best`**, which is added to `asked` as usual.
+- **Ties** go to guessing, then to the lower question index. A question replaces the current
+  best only if it beats it by more than `1e-9`: this is a scan, not "the maximum, then the
+  lowest index within epsilon", and the two can differ when several values are within `1e-9`
+  of each other.
+- **`P(i, q, a)`** is the answer probability of §11.2 (`L[a][v(i,q)]` when nothing is learned).
+  Things guessed wrong have `w[i] = 0`, so they never count.
+- **No RNG.** Endgame turns, questions and guesses alike, never draw from the RNG. Since `t`
+  only grows, every later turn of the game is also an endgame turn or a forced guess, so the
+  RNG is never read again in that game.
+- **No `log`.** Only `+` and `·`, so no `StrictMath` function is involved. Android must not
+  use `Math.fma` or any fused multiply-add here; `A + λ · T` is a multiply, then an add.
+- **Cost.** One endgame turn is `Q · 3 · N` multiplies and top-`n` inserts, cheaper than a
+  gain turn (no `log`).
+- **Why it helps.** A gain turn ignores how few turns are left. With 2 turns left and two
+  things at 0.4 each, guessing one and then the other wins 80% of the time. A question that
+  splits them perfectly leaves one guess, worth about 0.33 + 0.04 + 0.36 = 0.73 under the v10
+  table (ignoring overtime), so the lookahead guesses where a gain turn would have asked. With
+  `endgameOvertime` 0 it gains the same by turn 20 but loses 1 to 2 points by turn 25, so
+  overtime wins count half.
 
 ### Choosing a question
 - **Entropy:** `H(p) = -Σ p_i · ln(p_i)` over `p_i > 0`, summing in index order. Android must
@@ -301,8 +388,8 @@ table:
   `|g1 − g2| < 1e-9`, and break ties by lower question index. This epsilon absorbs last-ulp
   float differences between the platforms.
 - **Pick:** `k = min(topK, count)` and `r = rng.next()`, then take the item at rank
-  `floor(r · k)`. **Draw from the RNG exactly once per question turn**, including when
-  `k == 1`, and never on guess turns or category turns.
+  `floor(r · k)`. **Draw from the RNG exactly once per question turn chosen by gain**,
+  including when `k == 1`, and never on guess turns, category turns, or endgame turns (v10).
 
 ### Applying answers
 - **Yes / Maybe / No** to question `q`: multiply each `w[i]` by `L[answer][v(i,q)]`, then normalize.
@@ -379,6 +466,9 @@ The TypeScript engine is the **reference implementation**.
   - a game with several Backs, including a Back across a guess
   - a category settled at Q1, one at Q2, one at Q3, three NOs (other), a SOMETIMES on a
     category question, and an UNKNOWN on a category question
+  - (v10) a question decided by the endgame lookahead, an endgame guess made while
+    `w[top] < guessConfidence` (the lookahead chose to guess), and an endgame question after a
+    wrong guess. `kb:vectors` fails if any of these is missing.
   - at least 12 games in total
 
 ---
@@ -401,6 +491,18 @@ to a different random answer. **Targets for the full KB:**
 |---|---|
 | Truthful | ≥ 95% won by turn 20 |
 | 10% noise | ≥ 80% won by turn 25 |
+| Sheet-like (v10) | none: reported only |
+
+**Sheet-like pass (v10).** A third pass, 5 seeds per thing like the others, where each answer
+is drawn from `P(answer | KB value)` as measured on the held-out player sheets (§11.5), instead
+of uniform flips. Questions: a KB `yes` is answered Yes / Sometimes / No with 0.81 / 0.10 /
+0.09, a `maybe` with 0.14 / 0.40 / 0.46, a `no` with 0.004 / 0.052 / 0.944, and an `unknown`
+with 0 / 0.10 / 0.90. Category questions: a `yes` category 0.93 / 0.07 / 0, a `maybe` 0.32 / 0 /
+0.68, a `no` always No. Guesses are answered truthfully. It reports won by turn 20 and by
+turn 25, and it has **no target**: it is there to show whether a change moves the way real
+players disagree with the KB, and it tracks the sheets closely (76.2% by turn 20 on
+`kb-2026.11.07.2`, against 74.6% on the sheets themselves). The table lives in
+`scripts/lib/player.ts` (`SHEET_LIKE`); refit it when there are exported games.
 
 The benchmark prints the worst-performing things and the pairs most often confused, as a list
 of fixes to make. `npm run kb:bench:fast` (every 5th thing, 2 seeds) is for quick checks between
@@ -408,7 +510,7 @@ batches. The full `kb:bench` is the sign-off. `npm run kb:format` rewrites `kb.j
 compact one-thing-per-line layout.
 
 Latest full bench (`kb-2026.11.02.5`): 98.6% truthful by turn 20, 92.7% with noise by turn 25,
-and an average win at turn 14. The coordinator signs off on the full KB using this report plus spot checks.
+and an average win at turn 14. v10 (`kb-2026.11.15.1`): see §12. The coordinator signs off on the full KB using this report plus spot checks.
 
 ---
 
@@ -704,7 +806,8 @@ uses `P` everywhere it used `L[a][v(i,q)]`: applying answers, the category phase
 `N` counts KB things plus learned things, and every one starts at weight `1 / N`.
 
 `learnPriorStrength` starts at **2**: one game that contradicts a KB `no` with a Yes moves
-that cell from 0.05 to 0.37. The web session may tune it in the range 1 to 4 with the player
+that cell from 0.03 to about 0.35 under the v10 table, (2 · 0.03 + 1) / 3 (it was 0.05 to 0.37
+under the v9 table). The web session may tune it in the range 1 to 4 with the player
 bench (§11.5), using simulated repeat games.
 
 ### 11.3 "What were you thinking of?" (both apps)
@@ -788,6 +891,11 @@ unless the player uses Export, and that Forget erases it. Re-date the page.
   - `other` in `altCategories` has no engine effect, since there is no "other" question. It is
     allowed but changes nothing.
   - the how-to sheet's category lines (§2) stay as a guide for players.
+- **The two v10 class rules (§3)** apply to every new or edited row: a thing found on every
+  inhabited continent is `unknown` on all six `lives_in_*` questions, and an `is_person` row is
+  `maybe`, not `yes`, on `climbs`, `hops_jumps` and `lives_in_groups` (except `family` and
+  `team` on groups). `kb:check` warns on breaks of either. They were applied to the whole KB in
+  `kb-2026.11.15.1`: 118 worldwide things (62 animals, 56 people) and 164 people cells.
 - `kb:check` and the full self-play `kb:bench` still meet §6. Report the player bench
   (§11.5) before and after.
 
@@ -807,8 +915,26 @@ unless the player uses Export, and that Forget erases it. Re-date the page.
 - **Tuning:** pick `guessConfidence`, `guessMinTurn`, and `topK` to maximise the player bench
   by turn 20, as long as the full self-play bench still meets §6. Report the grid you tried.
   The coordinator's quick look favoured guessing earlier (confidence 0.4 to 0.5 from turn 6)
-  and less random question picks (`topK` 1 or 2). It found that a softer `likelihood` hurt,
-  so `likelihood` stays as it is until there are real exported games to fit it to.
+  and less random question picks (`topK` 1 or 2). It found that a uniformly softer
+  `likelihood` hurt.
+- **`likelihood` (v10).** The 2026-11-14 guess review fitted the table to how two held-out
+  sheets, written by different models, really disagree with the KB. The gain is in the
+  asymmetry, not in softness: players hardly ever say Yes to a KB `no`, say No to about one
+  KB `yes` in ten, and answer a KB `maybe` No more often than Yes. v10 ships this table, as
+  `P(answer | KB value)`; each column sums to 1:
+
+  | answer \ KB value | yes | maybe | no | unknown |
+  |---|---|---|---|---|
+  | yes | 0.82 | 0.30 | 0.03 | 1/3 |
+  | maybe | 0.10 | 0.30 | 0.07 | 1/3 |
+  | no | 0.08 | 0.40 | 0.90 | 1/3 |
+
+  (v9 was yes 0.85 / 0.10 / 0.05, maybe 0.40 / 0.30 / 0.30, no 0.05 / 0.10 / 0.85.) It is
+  deliberately not the raw sheet fit (yes 0.80 / 0.10 / 0.10, maybe 0.15 / 0.40 / 0.45, no
+  0.01 / 0.05 / 0.94): that one trusts that players never say Yes to a KB `no`, which real
+  players may well do, and it drops the 10% noise pass to 84%. Refit when there are real
+  exported games. `unknown` stays uninformative: the sheets have no Unknown answers, so there
+  is no data on it yet.
 
 ### 11.6 Vectors and parity
 
@@ -831,3 +957,49 @@ unless the player uses Export, and that Forget erases it. Re-date the page.
 4. **Android** ports §11.1 to §11.3, syncs the KB and vectors, and passes parity.
 5. Ship on Ray's go: web deploy, then the Android 1.2 bundle for Play.
 
+The v10 order of work is in §12.1.
+
+
+---
+
+## 12. v10: guessing fixes
+
+**Why.** A second-opinion review of the guessing logic (Fable 5.2, 2026-11-14, SESSIONS entry
+of that date) wrote a new held-out sheet (`kb/player-sheets/fable-40.txt`, 45 things) and traced
+where games are lost. The engine's confidence is honest; games are lost when the true thing
+falls out of the top 10 after one or two hard contradictions. Ray approved three of its five
+fixes; v10 ships those:
+1. **The `likelihood` table** fitted to how players really disagree with the KB (§11.5). Data.
+2. **Two KB class rules** (§3, §11.4): worldwide things are `unknown` on the continents, and
+   people are `maybe` on climbs, jumps and groups. Data. (Also: `doctor` and `coach` lost a
+   wrong `worn_around_neck` yes.)
+3. **The endgame lookahead** from turn 12, overtime wins counted half (§4). Engine.
+
+Not approved, and not in v10: dropping *"Is it a mineral?"* (the three category questions
+stay) and a starting boost for common things.
+
+**Result** (game 1 won by turn 20 / by turn 25, the review lab, 24 seeds per sheet thing;
+pooled weights the two sheets by games):
+
+| | fable-40 | coordinator-49 | both sheets pooled |
+|---|---|---|---|
+| v9 (`kb-2026.11.07.2`) | 78.6% / 87.8% | 70.9% / 84.5% | 74.6% / 86.1% |
+| v10 (`kb-2026.11.15.1`) | 87.7% / 95.6% | 83.8% / 92.8% | 85.6% / 94.1% |
+
+With `kb:bench:players` defaults (6 seeds) the same rows read 79.3 → 87.4, 67.7 → 85.4 and
+73.2 → 86.3 by turn 20; the 24-seed figures are the ones to quote. The full
+self-play bench (§6) on `kb-2026.11.15.1`: truthful 99.4% by turn 20, 10% noise 87.6% by turn
+25, sheet-like 83.7% by turn 20 and 91.1% by turn 25 (v9: 98.8%, 88.8%, 76.2% and 87.2%).
+
+### 12.1 Order of work
+
+1. **Web** (`v10-guessing` branch): `kb.json` (`kb-2026.11.15.1`, the table, the two rules, the
+   endgame constants), the engine (§4 endgame; the review's other prototypes removed), vectors,
+   the sheet-like bench pass (§6), `kb:check` warnings (§3), this spec. Done 2026-11-15, not yet
+   merged.
+2. The coordinator merges it to main on Ray's go and copies this SPECS.md to the Android repo.
+3. **Android** ports the §4 endgame and syncs `kb.json` and the vectors **in the same change**
+   (the Kotlin parser ignores unknown keys, so a v10 `kb.json` on a v9 engine would load and play
+   wrong). The exact list is in the web repo's `docs/ANDROID-v10.md`. No UI work.
+4. Ship on Ray's go: web deploy, then the Android bundle. Shipping both close together keeps
+   a game playing the same on both devices.

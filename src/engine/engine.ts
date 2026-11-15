@@ -130,16 +130,89 @@ export class Session {
     return top;
   }
 
-  /** Decide what turn t (>= 2) is. */
+  /** Decide what turn t (>= 2) is (SPECS §4, in this order). */
   private decide(t: number): CurrentTurn {
     const { c } = this.ckb;
     const top = this.topThing();
     if (t >= c.forceGuessTurn) return { turn: t, kind: "guess", thing: top };
     if (t >= c.guessMinTurn && this.w[top] >= c.guessConfidence) return { turn: t, kind: "guess", thing: top };
     if (this.asked.size >= this.ckb.Q) return { turn: t, kind: "guess", thing: top };
+    if (c.endgameFrom !== undefined && t >= c.endgameFrom) {
+      // v10 endgame: no RNG draw on these turns. Every later turn is also an endgame turn or a forced
+      // guess, so the RNG is never read again in this game.
+      const q = this.endgameQuestion(c.forceGuessTurn - t + 1);
+      if (q < 0) return { turn: t, kind: "guess", thing: top };
+      this.asked.add(q);
+      return { turn: t, kind: "question", q };
+    }
     const q = this.chooseQuestion();
     this.asked.add(q);
     return { turn: t, kind: "question", q };
+  }
+
+  /**
+   * S(u, m) of SPECS §4 (endgame): the m largest values of u summed largest first, plus `lambda` times the
+   * next `extra` largest, also summed largest first. Only the values are used, so any correct top-n
+   * selection gives the same bits. `best` is scratch space of at least m + extra.
+   */
+  private topSum(u: Float64Array, r: number, extra: number, lambda: number, best: Float64Array): number {
+    const n = r + extra;
+    best.fill(0, 0, n);
+    for (let i = 0; i < u.length; i++) {
+      const x = u[i];
+      if (x <= best[n - 1]) continue;
+      let j = n - 1;
+      while (j > 0 && best[j - 1] < x) {
+        best[j] = best[j - 1];
+        j--;
+      }
+      best[j] = x;
+    }
+    let s = 0;
+    for (let j = 0; j < r; j++) s += best[j];
+    if (lambda > 0) {
+      let t = 0;
+      for (let j = r; j < n; j++) t += best[j];
+      s += lambda * t;
+    }
+    return s;
+  }
+
+  /**
+   * v10 endgame lookahead (SPECS §4). With r turns left up to and including forceGuessTurn, guessing r times in a
+   * row wins with the sum of the r largest weights; the overtime guesses that follow (maxTurns - forceGuessTurn of
+   * them) add the next largest, counted at `endgameOvertime` each. Asking q first leaves r - 1 guesses, so it is
+   * worth the sum over answers (yes, maybe, no, in that order) of the same score on w[i] * P(i, q, a).
+   * Selection scan in question-index order, starting from "guess now": a question displaces the current best
+   * only if its value is higher by more than TIE_EPSILON. So ties go to guessing, then to the lower index.
+   * Returns the chosen question, or -1 for a guess. Only + and *: no log, no RNG.
+   */
+  private endgameQuestion(r: number): number {
+    const { ckb, w } = this;
+    const { N, P, c } = ckb;
+    if (r <= 1) return -1;
+    const lambda = c.endgameOvertime ?? 0;
+    const extra = lambda > 0 ? Math.max(0, c.maxTurns - c.forceGuessTurn) : 0;
+    const best = new Float64Array(r + extra);
+    const u = new Float64Array(N);
+    const guessNow = this.topSum(w, r, extra, lambda, best);
+    let bestQ = -1;
+    let bestV = guessNow;
+    for (let q = 0; q < ckb.Q; q++) {
+      if (this.asked.has(q)) continue;
+      const base = q * N;
+      let v = 0;
+      for (let a = 0; a < 3; a++) {
+        const pq = P[a];
+        for (let i = 0; i < N; i++) u[i] = w[i] * pq[base + i];
+        v += this.topSum(u, r - 1, extra, lambda, best);
+      }
+      if (v > bestV + TIE_EPSILON) {
+        bestV = v;
+        bestQ = q;
+      }
+    }
+    return bestQ;
   }
 
   /** Information gain of asking q, from the current weights (Skip excluded). */
