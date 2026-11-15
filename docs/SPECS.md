@@ -188,8 +188,8 @@ by hand. A schema change needs both apps updated together, through the coordinat
   engine ignores it, and `schemaVersion` stays 2.
 - **Order is meaningful.** Question order in the array breaks ties (§4), and thing order is
   each thing's index. Don't re-sort casually: any reorder means regenerating the test vectors.
-- **Size.** It started as a seed of 96 questions and 36 things. It is now `kb-2026.11.02.5`, with
-  994 things and 168 questions. The web session expanded it
+- **Size.** It started as a seed of 96 questions and 36 things. It is now `kb-2026.11.15.1`, with
+  1,343 things and 182 questions. The web session expanded it
   to **about 200 things** (v1), and v8 grows it to **about 1,000**:
   - at 1,000: roughly 300 animal, 250 vegetable, 300 mineral, 150 other
   - everyday things a 10-year-old would think of first: dog, pizza, chair, phone, tree, car, moon
@@ -978,15 +978,16 @@ fixes; v10 ships those:
 Not approved, and not in v10: dropping *"Is it a mineral?"* (the three category questions
 stay) and a starting boost for common things.
 
-**Result** (game 1 won by turn 20 / by turn 25, `kb:bench:players` defaults, 6 seeds, each
-sheet on its own):
+**Result** (game 1 won by turn 20 / by turn 25, the review lab, 24 seeds per sheet thing;
+pooled weights the two sheets by games):
 
 | | fable-40 | coordinator-49 | both sheets pooled |
 |---|---|---|---|
-| v9 (`kb-2026.11.07.2`) | 79.3% / 87.8% | 67.7% / 83.7% | 73.2% / 85.6% |
-| v10 (`kb-2026.11.15.1`) | 87.4% / 94.8% | 85.4% / 92.5% | 86.3% / 93.6% |
+| v9 (`kb-2026.11.07.2`) | 78.6% / 87.8% | 70.9% / 84.5% | 74.6% / 86.1% |
+| v10 (`kb-2026.11.15.1`) | 87.7% / 95.6% | 83.8% / 92.8% | 85.6% / 94.1% |
 
-On the review's 24-seed lab run the pooled figure goes from 74.6% to 85.6% by turn 20. The full
+With `kb:bench:players` defaults (6 seeds) the same rows read 79.3 → 87.4, 67.7 → 85.4 and
+73.2 → 86.3 by turn 20; the 24-seed figures are the ones to quote. The full
 self-play bench (§6) on `kb-2026.11.15.1`: truthful 99.4% by turn 20, 10% noise 87.6% by turn
 25, sheet-like 83.7% by turn 20 and 91.1% by turn 25 (v9: 98.8%, 88.8%, 76.2% and 87.2%).
 
