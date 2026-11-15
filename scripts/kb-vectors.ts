@@ -1,7 +1,7 @@
 // npm run kb:vectors: regenerate kb/test-vectors.json from kb/kb.json (SPECS §5).
 // The TypeScript engine is the reference; Android replays this file in JUnit.
 import { writeFileSync } from "node:fs";
-import { applyBacks, replay } from "../src/engine/engine";
+import { applyBacks, replay, Session } from "../src/engine/engine";
 import { compileKB } from "../src/engine/kb";
 import { kbThingByName } from "../src/engine/learn";
 import { nearOf } from "../src/engine/near";
@@ -75,8 +75,39 @@ function prngVectors() {
   });
 }
 
+/** v10 (SPECS §4, §5): which endgame turns a game's final history contains. */
+interface EndgameFlags {
+  /** a question decided by the endgame lookahead (endgameFrom <= t < forceGuessTurn) */
+  question: boolean;
+  /** an endgame guess while w[top] < guessConfidence: the lookahead chose to guess */
+  earlyGuess: boolean;
+  /** an endgame question after a wrong guess earlier in the game */
+  questionAfterWrong: boolean;
+}
+const endgame = new Map<string, EndgameFlags>();
+function endgameFlags(c: ReturnType<typeof compileKB>, seed: number, history: AnswerToken[]): EndgameFlags {
+  const e = c.c;
+  const f: EndgameFlags = { question: false, earlyGuess: false, questionAfterWrong: false };
+  if (e.endgameFrom === undefined) return f;
+  const s = new Session(c, seed);
+  let wrong = false;
+  for (const a of history) {
+    const cur = s.current!;
+    const inEndgame = cur.turn >= e.endgameFrom && cur.turn < e.forceGuessTurn;
+    if (inEndgame && cur.kind === "question") {
+      f.question = true;
+      if (wrong) f.questionAfterWrong = true;
+    }
+    if (inEndgame && cur.kind === "guess" && s.w[cur.thing] < e.guessConfidence && s.asked.size < c.Q) f.earlyGuess = true;
+    if (cur.kind === "guess" && a === "wrong") wrong = true;
+    s.apply(a);
+  }
+  return f;
+}
+
 function buildGame(name: string, seed: number, tokens: (AnswerToken | "back")[], c: ReturnType<typeof compileKB> = ckb, learned?: LogGame[]) {
   const s = replay(c, seed, applyBacks(tokens));
+  endgame.set(name, endgameFlags(c, seed, applyBacks(tokens)));
   const expectTurns = s.entries.map((e) => ({ turn: e.turn, kind: e.kind, id: e.id }));
   if (s.current) {
     const cur = s.current;
@@ -260,6 +291,12 @@ must(
   "a Back across a guess",
 );
 
+// v10 (SPECS §5): the endgame lookahead must be exercised, not just reached by luck.
+const eg = [...endgame.values()];
+must(eg.some((f) => f.question), "an endgame question (turn >= endgameFrom, decided by the lookahead)");
+must(eg.some((f) => f.earlyGuess), "an endgame guess made while w[top] < guessConfidence");
+must(eg.some((f) => f.questionAfterWrong), "an endgame question after a wrong guess");
+
 const out = {
   kbVersion: kb.kbVersion,
   format: "See docs/VECTORS.md in the web repo: the optional per-game `learned` field is a game log (SPECS 11.1) applied before the game is played.",
@@ -268,4 +305,8 @@ const out = {
 };
 writeFileSync(VECTORS_PATH, JSON.stringify(out, null, 1) + "\n");
 console.log(`✓ wrote ${games.length} games for ${kb.kbVersion} to kb/test-vectors.json`);
-for (const g of games) console.log(`  ${g.name.padEnd(38)} ${g.result.outcome} @ ${g.result.turn}  (${g.answers.length} tokens)`);
+for (const g of games) {
+  const f = endgame.get(g.name)!;
+  const tags = [f.question && "endgame question", f.earlyGuess && "endgame guess", f.questionAfterWrong && "question after a wrong guess"].filter(Boolean).join(", ");
+  console.log(`  ${g.name.padEnd(38)} ${g.result.outcome} @ ${g.result.turn}  (${g.answers.length} tokens)${tags ? "  [" + tags + "]" : ""}`);
+}

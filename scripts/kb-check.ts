@@ -115,6 +115,19 @@ export function checkKB(kb: Raw): CheckResult {
     if ((t.yes ?? []).length < 6) warn(`${t.id} has only ${(t.yes ?? []).length} yes entries (< 6)`);
   }
 
+  // v10 class rules (SPECS §3): worldwide things are unknown on the continents; people are not climbers,
+  // jumpers or herd animals by default.
+  const CONTINENTS = ["lives_in_africa", "lives_in_asia", "lives_in_australia", "lives_in_north_america", "lives_in_south_america", "lives_in_europe"];
+  const GROUPS_OK = new Set(["family", "team"]);
+  for (const t of kb.things) {
+    const yes: string[] = t.yes ?? [];
+    if (CONTINENTS.every((c) => yes.includes(c))) warn(`${t.id} is yes on all six continent questions (worldwide things are unknown there)`);
+    if (yes.includes("is_person")) {
+      const bad = ["climbs", "hops_jumps", "lives_in_groups"].filter((q) => yes.includes(q) && !(q === "lives_in_groups" && GROUPS_OK.has(t.id)));
+      if (bad.length) warn(`${t.id} is a person and yes on ${bad.join(", ")} (people are maybe there)`);
+    }
+  }
+
   return { errors, warnings };
 }
 
