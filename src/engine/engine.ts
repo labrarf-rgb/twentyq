@@ -42,7 +42,7 @@ export class Session {
     readonly ckb: CompiledKB,
     seed: number,
   ) {
-    this.w = new Float64Array(ckb.N).fill(1 / ckb.N);
+    this.w = ckb.w0 ? Float64Array.from(ckb.w0) : new Float64Array(ckb.N).fill(1 / ckb.N);
     this.rng = mulberry32(seed);
     this.current = { turn: 1, kind: "category", cat: 0 };
   }
@@ -66,7 +66,7 @@ export class Session {
       }
       this.entries.push({ turn: cur.turn, kind: "category", id: kb.categories[cur.cat], answer });
       // YES settles the category and UNKNOWN stops asking; NO or SOMETIMES moves on, until mineral.
-      if (!this.result && (answer === "yes" || answer === "skip" || cur.cat + 1 >= CATEGORY_ORDER)) {
+      if (!this.result && (answer === "yes" || answer === "skip" || cur.cat + 1 >= Math.min(CATEGORY_ORDER, c.categoryQuestions ?? CATEGORY_ORDER))) {
         this.current = this.decide(cur.turn + 1);
       } else if (!this.result) {
         this.current = { turn: cur.turn + 1, kind: "category", cat: cur.cat + 1 };
@@ -135,11 +135,89 @@ export class Session {
     const { c } = this.ckb;
     const top = this.topThing();
     if (t >= c.forceGuessTurn) return { turn: t, kind: "guess", thing: top };
-    if (t >= c.guessMinTurn && this.w[top] >= c.guessConfidence) return { turn: t, kind: "guess", thing: top };
+    if (t >= c.guessMinTurn && this.w[top] >= c.guessConfidence && this.clearOfRunnerUp(top)) return { turn: t, kind: "guess", thing: top };
     if (this.asked.size >= this.ckb.Q) return { turn: t, kind: "guess", thing: top };
+    if (c.endgameFrom !== undefined && t >= c.endgameFrom) {
+      const q = this.endgameQuestion(c.forceGuessTurn - t + 1);
+      if (q < 0) return { turn: t, kind: "guess", thing: top };
+      this.rng(); // a question turn draws exactly once, as always
+      this.asked.add(q);
+      return { turn: t, kind: "question", q };
+    }
     const q = this.chooseQuestion();
     this.asked.add(q);
     return { turn: t, kind: "question", q };
+  }
+
+  /** Review prototype (guessRatio): is the top thing far enough ahead of the runner-up to be worth a guess? */
+  private clearOfRunnerUp(top: number): boolean {
+    const ratio = this.ckb.c.guessRatio;
+    if (ratio === undefined) return true;
+    let second = 0;
+    for (let i = 0; i < this.w.length; i++) if (i !== top && this.w[i] > second) second = this.w[i];
+    return this.w[top] >= ratio * second;
+  }
+
+  /**
+   * The r largest values of u summed, plus `lambda` times the next `extra` largest (r + extra is small).
+   * `best` is scratch space of at least r + extra.
+   */
+  private topSum(u: Float64Array, r: number, extra: number, lambda: number, best: Float64Array): number {
+    const n = r + extra;
+    best.fill(0, 0, n);
+    for (let i = 0; i < u.length; i++) {
+      const x = u[i];
+      if (x <= best[n - 1]) continue;
+      let j = n - 1;
+      while (j > 0 && best[j - 1] < x) {
+        best[j] = best[j - 1];
+        j--;
+      }
+      best[j] = x;
+    }
+    let s = 0;
+    for (let j = 0; j < r; j++) s += best[j];
+    if (lambda > 0) {
+      let t = 0;
+      for (let j = r; j < n; j++) t += best[j];
+      s += lambda * t;
+    }
+    return s;
+  }
+
+  /**
+   * Review prototype (endgameFrom). With r turns left up to and including forceGuessTurn, guessing r times in a
+   * row wins with the sum of the r largest weights; the overtime guesses that follow (maxTurns - forceGuessTurn of
+   * them) add the next largest, counted at `endgameOvertime` each. Asking q first leaves r - 1 guesses, so it is
+   * worth the sum over answers of the same score on w[i] * P(i, q, a). Returns the question that beats guessing
+   * now by the most (ties within TIE_EPSILON to the lower index), or -1 when none does: then guess.
+   */
+  private endgameQuestion(r: number): number {
+    const { ckb, w } = this;
+    const { N, P, c } = ckb;
+    if (r <= 1) return -1;
+    const lambda = c.endgameOvertime ?? 0;
+    const extra = lambda > 0 ? Math.max(0, c.maxTurns - c.forceGuessTurn) : 0;
+    const best = new Float64Array(r + extra);
+    const u = new Float64Array(N);
+    const guessNow = this.topSum(w, r, extra, lambda, best);
+    let bestQ = -1;
+    let bestV = guessNow;
+    for (let q = 0; q < ckb.Q; q++) {
+      if (this.asked.has(q)) continue;
+      const base = q * N;
+      let v = 0;
+      for (let a = 0; a < 3; a++) {
+        const pq = P[a];
+        for (let i = 0; i < N; i++) u[i] = w[i] * pq[base + i];
+        v += this.topSum(u, r - 1, extra, lambda, best);
+      }
+      if (v > bestV + TIE_EPSILON) {
+        bestV = v;
+        bestQ = q;
+      }
+    }
+    return bestQ;
   }
 
   /** Information gain of asking q, from the current weights (Skip excluded). */

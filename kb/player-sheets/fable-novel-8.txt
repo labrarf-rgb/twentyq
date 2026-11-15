@@ -1,0 +1,11 @@
+# Fable 5.2 review sheet, 2026-11-14: 8 everyday things the KB does not have (checked against the list of thing ids only).
+# Game 1 is a certain stump; the stumped player teaches the name, so games 2 and 3 measure learning a new thing.
+# id | category answers (Q1 Q2 Q3; y/n/m/s) | YES ids | SOMETIMES ids   (anything else: No)
+pants | n n n | is_manmade found_in_house used_daily made_of_fabric is_clothing worn_on_legs found_in_bedroom | is_soft is_colorful has_buttons keeps_you_warm is_container can_hold is_black is_brown has_legs opens_and_closes
+slime | n n n | is_manmade can_hold is_toy is_sticky is_soft is_colorful | is_wet is_green is_liquid is_cold found_in_house is_shiny is_transparent makes_sound
+beard | n n n | has_fur is_part_of_face is_male | is_body_part is_soft is_brown is_black is_white can_hold keeps_you_warm is_alive
+ceiling | n n n | is_manmade bigger_than_breadbox bigger_than_car heavier_than_person found_in_house is_flat found_in_office found_in_bedroom found_in_bathroom is_at_school | is_white is_tall made_of_wood made_of_stone used_daily is_building gives_light
+homework | n n n | is_an_activity is_at_school found_in_office | is_manmade found_in_house made_of_paper used_for_writing is_idea can_hold is_flat has_numbers used_daily is_white found_in_bedroom
+sprinkler | n n m | is_manmade found_outdoors used_in_garden is_wet | makes_sound can_hold made_of_plastic made_of_metal is_tool is_toy is_cold is_green
+hairdresser | n n n | is_alive bigger_than_breadbox is_person is_a_job has_legs makes_sound is_mammal lives_in_africa lives_in_asia lives_in_australia lives_in_north_america lives_in_south_america lives_in_europe | has_fur eats_meat eats_plants can_swim is_male is_female
+wheel | n n m | is_manmade is_round | bigger_than_breadbox made_of_metal made_of_plastic has_wheels is_black found_outdoors used_daily is_fast is_vehicle can_hold made_of_wood is_tool
