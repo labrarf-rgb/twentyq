@@ -10,18 +10,9 @@ export interface EngineConstants {
   topK: number;
   /** v9 (SPECS 11.2): K in P = (K * b + c) / (K + n). Absent in a pre-v9 KB; the engine then uses 2. */
   learnPriorStrength?: number;
-  // --- Review prototypes (2026-11-14). All optional; absent means today's behaviour, bit for bit. ---
-  /** How many of the fixed category questions open the game (1 to 3). Absent: 3. */
-  categoryQuestions?: number;
-  /** Starting weight of a thing flagged `common` (and of a learned thing), against 1 for the rest. Absent: 1 (uniform). */
-  commonBoost?: number;
-  /** A question flagged `soft` has its table mixed toward uniform: P = r * L + (1 - r) / 3. Absent: 1. */
-  softReliability?: number;
-  /** Guess only when the top weight is also at least this many times the runner-up's. Absent: no such test. */
-  guessRatio?: number;
-  /** From this turn on, choose between asking and guessing by the chance of winning by forceGuessTurn (see engine.ts). Absent: off. */
+  /** v10 (SPECS §4): from this turn on, choose between asking and guessing by the chance of winning (endgame lookahead). Absent: off, as in v9. */
   endgameFrom?: number;
-  /** With endgameFrom: how much a win in overtime (after forceGuessTurn, up to maxTurns) counts against a win by forceGuessTurn. Absent: 0. */
+  /** v10: with endgameFrom, how much a win in overtime (after forceGuessTurn, up to maxTurns) counts against a win by forceGuessTurn. Absent: 0. */
   endgameOvertime?: number;
 }
 
@@ -29,8 +20,6 @@ export interface Question {
   id: string;
   text: string;
   group: string;
-  /** Review prototype: a matter of opinion or scale (colours, "valuable", continents). See EngineConstants.softReliability. */
-  soft?: boolean;
 }
 
 export interface Thing {
@@ -41,8 +30,6 @@ export interface Thing {
   altCategories?: Category[];
   /** v9: a proper name (Santa Claus, the Easter Bunny). The guess line keeps it exactly as written. Display only. */
   proper?: boolean;
-  /** Review prototype: one of the things players pick most. See EngineConstants.commonBoost. */
-  common?: boolean;
   yes: string[];
   maybe?: string[];
   unknown?: string[];

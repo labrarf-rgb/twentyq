@@ -332,6 +332,116 @@ describe("guess rules", () => {
   });
 });
 
+describe("endgame lookahead (v10, SPECS §4)", () => {
+  const EG: KB["engine"] = { ...ENGINE, guessConfidence: 0.9, guessMinTurn: 2, forceGuessTurn: 9, maxTurns: 12, topK: 2, endgameFrom: 3, endgameOvertime: 0.5 };
+  /** 24 things over 10 questions with overlapping, uneven signatures, so the choice is not trivial. */
+  const kb = { ...makeKB(Array.from({ length: 24 }, (_, i) => ({ yes: Array.from({ length: 10 }, (_, q) => q).filter((q) => (i * (q + 3)) % 7 < 3).map((q) => `q${q}`), maybe: i % 5 === 0 ? ["q9"] : [] })), 10), engine: EG };
+
+  /** Reference from the spec text alone: sort, sum largest first, scan in index order from "guess now". */
+  function reference(s: Session, t: number): number {
+    const { N, Q, P, c } = s.ckb;
+    const r = c.forceGuessTurn - t + 1;
+    const lambda = c.endgameOvertime ?? 0;
+    const X = lambda > 0 ? Math.max(0, c.maxTurns - c.forceGuessTurn) : 0;
+    const S = (u: number[], m: number) => {
+      const b = [...u].sort((x, y) => y - x);
+      let a = 0;
+      for (let j = 0; j < m; j++) a += b[j];
+      if (lambda > 0) {
+        let tt = 0;
+        for (let j = m; j < m + X; j++) tt += b[j];
+        a += lambda * tt;
+      }
+      return a;
+    };
+    let best = -1;
+    let bestV = S(Array.from(s.w), r);
+    for (let q = 0; q < Q; q++) {
+      if (s.asked.has(q)) continue;
+      let v = 0;
+      for (let a = 0; a < 3; a++) v += S(Array.from({ length: N }, (_, i) => s.w[i] * P[a][q * N + i]), r - 1);
+      if (v > bestV + TIE_EPSILON) {
+        bestV = v;
+        best = q;
+      }
+    }
+    return best;
+  }
+
+  it("matches a sort-based reference on every endgame turn, and guesses top when no question beats guessing", () => {
+    let checked = 0;
+    let questions = 0;
+    let guesses = 0;
+    for (let seed = 1; seed <= 40; seed++) {
+      const rnd = mulberry32(seed);
+      const s = new Session(compileKB(kb), seed);
+      while (s.current) {
+        const cur = s.current;
+        if (cur.kind === "category") s.apply("skip");
+        else if (cur.kind === "guess") {
+          if (cur.turn >= EG.endgameFrom! && cur.turn < EG.forceGuessTurn && s.w[cur.thing] < EG.guessConfidence) guesses++;
+          s.apply(rnd() < 0.3 ? "right" : "wrong");
+        } else {
+          s.apply((["yes", "no", "maybe"] as const)[Math.floor(rnd() * 3)]);
+        }
+        const nxt = s.current;
+        if (nxt && nxt.turn >= EG.endgameFrom! && nxt.turn < EG.forceGuessTurn) {
+          const top = s.topThing();
+          if (s.w[top] >= EG.guessConfidence || s.asked.size >= s.ckb.Q) continue;
+          // the turn is already decided (and its question added to asked); undo that to re-derive it
+          const want = nxt.kind === "question" ? (s.asked.delete(nxt.q), reference(s, nxt.turn)) : reference(s, nxt.turn);
+          if (nxt.kind === "question") {
+            s.asked.add(nxt.q);
+            questions++;
+          }
+          expect(nxt.kind === "question" ? nxt.q : -1).toBe(want);
+          if (nxt.kind === "guess") expect(nxt.thing).toBe(top);
+          checked++;
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(40);
+    expect(questions).toBeGreaterThan(10);
+    expect(guesses).toBeGreaterThan(0); // the lookahead itself chose to guess at least once
+  });
+
+  it("endgame turns never read the RNG: from endgameFrom on, the game is the same for every seed", () => {
+    // Turn 2 is the only question chosen by gain (topK 2, one RNG draw); from turn 3 every turn is endgame.
+    const QA: AnswerToken[] = ["yes", "no", "maybe", "no", "yes", "no"];
+    const play = (seed: number) => {
+      const s = replay(kb, seed, ["skip"]);
+      const second = s.current!.kind === "question" ? s.current!.q : -1;
+      let n = 0;
+      while (s.current) s.apply(s.current.kind === "guess" ? "wrong" : QA[n++ % QA.length]);
+      return { second, rest: s.entries.slice(2).map((e) => `${e.turn}:${e.kind}:${e.id}:${e.answer}`).join(" ") };
+    };
+    const bySecond = new Map<number, string>();
+    for (let seed = 0; seed < 60; seed++) {
+      const g = play(seed);
+      const prev = bySecond.get(g.second);
+      if (prev !== undefined) expect(g.rest).toBe(prev);
+      else bySecond.set(g.second, g.rest);
+    }
+    expect(bySecond.size).toBe(2); // turn 2 varies by seed (topK 2); everything after it does not
+  });
+
+  it("with nothing to tell apart, guessing beats every question (ties go to guessing)", () => {
+    const flat = { ...makeKB(Array.from({ length: 30 }, () => ({ yes: [] })), 6), engine: EG };
+    const s = new Session(compileKB(flat), 5);
+    s.apply("skip");
+    expect(s.current).toMatchObject({ turn: 2, kind: "question" }); // before endgameFrom: chosen by gain
+    s.apply("skip");
+    expect(s.current).toMatchObject({ turn: 3, kind: "guess", thing: 0 });
+  });
+
+  it("is off when endgameFrom is absent (v9 behaviour)", () => {
+    const { endgameFrom: _a, endgameOvertime: _b, ...v9 } = EG;
+    const flat = { ...makeKB(Array.from({ length: 30 }, () => ({ yes: [] })), 6), engine: v9 };
+    const s = replay(flat, 5, ["skip", "skip"]);
+    expect(s.current).toMatchObject({ turn: 3, kind: "question" });
+  });
+});
+
 describe("replay and Back", () => {
   const kb = makeKB(
     Array.from({ length: 16 }, (_, i) => ({

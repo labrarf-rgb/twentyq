@@ -1,4 +1,4 @@
-// Write one lab config into kb/kb.json. Not run during the review: kb.json on this branch is untouched.
+// Write one lab config into kb/kb.json. v10 ran it once: "3 +endgame 12/.5" --write kb-2026.11.15.1 (on kb-2026.11.07.2).
 //   tsx scripts/review/apply.ts "<config name in configs-final.json>"                 (dry run: prints what would change)
 //   tsx scripts/review/apply.ts "<config name>" --write kb-2026.11.xx.y               (writes, with the new kbVersion)
 // Afterwards: npm run kb:check && npm run kb:vectors && npm test && npm run kb:bench.

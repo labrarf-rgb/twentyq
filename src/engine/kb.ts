@@ -45,8 +45,6 @@ export interface CompiledKB {
   qIndex: Map<string, number>;
   /** thing id -> index, KB things and learned things ("learned:" + key). */
   tIndex: Map<string, number>;
-  /** Review prototype: starting weights (normalized), or null for uniform 1 / N. */
-  w0: Float64Array | null;
 }
 
 export function compileKB(kb: KB, log: readonly LogGame[] = []): CompiledKB {
@@ -128,20 +126,13 @@ export function compileKB(kb: KB, log: readonly LogGame[] = []): CompiledKB {
     nearIdx.push(idx);
     nearW.push(ws);
   }
-  // Review prototype: a `soft` question reads a table mixed toward uniform. With no soft questions (or r = 1)
-  // `likOf` returns `lik` itself, so nothing changes.
-  const r = kb.engine.softReliability ?? 1;
-  const likSoft = r === 1 ? lik : lik.map((row) => row.map((x) => r * x + (1 - r) / 3));
-  const softCol = kb.questions.map((q) => r !== 1 && q.soft === true);
-  const likOf = (col: number) => (col < Q && softCol[col] ? likSoft : lik);
   const base = (a: number, i: number, col: number, v: number): number => {
-    const lk = likOf(col);
-    if (i < nKb) return lk[a][v];
+    if (i < nKb) return lik[a][v];
     const idx = nearIdx[i - nKb];
-    if (idx.length === 0) return lk[a][V_NO];
+    if (idx.length === 0) return lik[a][V_NO];
     const ws = nearW[i - nKb];
     let b = 0;
-    for (let j = 0; j < idx.length; j++) b += ws[j] * lk[a][col < Q ? values[idx[j] * Q + col] : cats[idx[j] * 3 + (col - Q)]];
+    for (let j = 0; j < idx.length; j++) b += ws[j] * lik[a][col < Q ? values[idx[j] * Q + col] : cats[idx[j] * 3 + (col - Q)]];
     return b;
   };
   const prob = (a: number, i: number, col: number, v: number): number => {
@@ -157,19 +148,7 @@ export function compileKB(kb: KB, log: readonly LogGame[] = []): CompiledKB {
     for (let q = 0; q < Q; q++) for (let i = 0; i < N; i++) P[a][q * N + i] = prob(a, i, q, values[i * Q + q]);
     for (let c = 0; c < 3; c++) for (let i = 0; i < N; i++) PC[a][c * N + i] = prob(a, i, Q + c, cats[i * 3 + c]);
   }
-  // Review prototype: a non-uniform start. Common KB things and learned things (the player really picked those) get the boost.
-  let w0: Float64Array | null = null;
-  const boost = kb.engine.commonBoost ?? 1;
-  if (boost !== 1) {
-    w0 = new Float64Array(N);
-    let sum = 0;
-    for (let i = 0; i < N; i++) {
-      w0[i] = i >= nKb || kb.things[i].common === true ? boost : 1;
-      sum += w0[i];
-    }
-    for (let i = 0; i < N; i++) w0[i] = w0[i] / sum;
-  }
-  return { kb, N, nKb, Q, values, cats, lik, P, PC, things, c: kb.engine, qIndex, tIndex, w0 };
+  return { kb, N, nKb, Q, values, cats, lik, P, PC, things, c: kb.engine, qIndex, tIndex };
 }
 
 /** v7: the category questions, in the order they are asked. */

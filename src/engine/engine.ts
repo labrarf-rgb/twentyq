@@ -42,7 +42,7 @@ export class Session {
     readonly ckb: CompiledKB,
     seed: number,
   ) {
-    this.w = ckb.w0 ? Float64Array.from(ckb.w0) : new Float64Array(ckb.N).fill(1 / ckb.N);
+    this.w = new Float64Array(ckb.N).fill(1 / ckb.N);
     this.rng = mulberry32(seed);
     this.current = { turn: 1, kind: "category", cat: 0 };
   }
@@ -66,7 +66,7 @@ export class Session {
       }
       this.entries.push({ turn: cur.turn, kind: "category", id: kb.categories[cur.cat], answer });
       // YES settles the category and UNKNOWN stops asking; NO or SOMETIMES moves on, until mineral.
-      if (!this.result && (answer === "yes" || answer === "skip" || cur.cat + 1 >= Math.min(CATEGORY_ORDER, c.categoryQuestions ?? CATEGORY_ORDER))) {
+      if (!this.result && (answer === "yes" || answer === "skip" || cur.cat + 1 >= CATEGORY_ORDER)) {
         this.current = this.decide(cur.turn + 1);
       } else if (!this.result) {
         this.current = { turn: cur.turn + 1, kind: "category", cat: cur.cat + 1 };
@@ -130,17 +130,18 @@ export class Session {
     return top;
   }
 
-  /** Decide what turn t (>= 2) is. */
+  /** Decide what turn t (>= 2) is (SPECS §4, in this order). */
   private decide(t: number): CurrentTurn {
     const { c } = this.ckb;
     const top = this.topThing();
     if (t >= c.forceGuessTurn) return { turn: t, kind: "guess", thing: top };
-    if (t >= c.guessMinTurn && this.w[top] >= c.guessConfidence && this.clearOfRunnerUp(top)) return { turn: t, kind: "guess", thing: top };
+    if (t >= c.guessMinTurn && this.w[top] >= c.guessConfidence) return { turn: t, kind: "guess", thing: top };
     if (this.asked.size >= this.ckb.Q) return { turn: t, kind: "guess", thing: top };
     if (c.endgameFrom !== undefined && t >= c.endgameFrom) {
+      // v10 endgame: no RNG draw on these turns. Every later turn is also an endgame turn or a forced
+      // guess, so the RNG is never read again in this game.
       const q = this.endgameQuestion(c.forceGuessTurn - t + 1);
       if (q < 0) return { turn: t, kind: "guess", thing: top };
-      this.rng(); // a question turn draws exactly once, as always
       this.asked.add(q);
       return { turn: t, kind: "question", q };
     }
@@ -149,18 +150,10 @@ export class Session {
     return { turn: t, kind: "question", q };
   }
 
-  /** Review prototype (guessRatio): is the top thing far enough ahead of the runner-up to be worth a guess? */
-  private clearOfRunnerUp(top: number): boolean {
-    const ratio = this.ckb.c.guessRatio;
-    if (ratio === undefined) return true;
-    let second = 0;
-    for (let i = 0; i < this.w.length; i++) if (i !== top && this.w[i] > second) second = this.w[i];
-    return this.w[top] >= ratio * second;
-  }
-
   /**
-   * The r largest values of u summed, plus `lambda` times the next `extra` largest (r + extra is small).
-   * `best` is scratch space of at least r + extra.
+   * S(u, m) of SPECS §4 (endgame): the m largest values of u summed largest first, plus `lambda` times the
+   * next `extra` largest, also summed largest first. Only the values are used, so any correct top-n
+   * selection gives the same bits. `best` is scratch space of at least m + extra.
    */
   private topSum(u: Float64Array, r: number, extra: number, lambda: number, best: Float64Array): number {
     const n = r + extra;
@@ -186,11 +179,13 @@ export class Session {
   }
 
   /**
-   * Review prototype (endgameFrom). With r turns left up to and including forceGuessTurn, guessing r times in a
+   * v10 endgame lookahead (SPECS §4). With r turns left up to and including forceGuessTurn, guessing r times in a
    * row wins with the sum of the r largest weights; the overtime guesses that follow (maxTurns - forceGuessTurn of
    * them) add the next largest, counted at `endgameOvertime` each. Asking q first leaves r - 1 guesses, so it is
-   * worth the sum over answers of the same score on w[i] * P(i, q, a). Returns the question that beats guessing
-   * now by the most (ties within TIE_EPSILON to the lower index), or -1 when none does: then guess.
+   * worth the sum over answers (yes, maybe, no, in that order) of the same score on w[i] * P(i, q, a).
+   * Selection scan in question-index order, starting from "guess now": a question displaces the current best
+   * only if its value is higher by more than TIE_EPSILON. So ties go to guessing, then to the lower index.
+   * Returns the chosen question, or -1 for a guess. Only + and *: no log, no RNG.
    */
   private endgameQuestion(r: number): number {
     const { ckb, w } = this;

@@ -1,4 +1,7 @@
 // Review lab: measure engine/KB variants side by side. Never edits kb.json.
+// Since v10 the KB it loads already has the L1 table, the people and worldwide rows and the endgame, so every
+// config in configs-final.json now runs on top of v10 ("0 today" means v10). The review's own numbers reproduce
+// from commit b3e5329, where kb.json was still kb-2026.11.07.2.
 //   tsx scripts/review/lab.ts <configs.json | inline JSON array> [--seeds 12] [--stride 5] [--self-seeds 2] [--no-self] [--repeat]
 // A config is { name, engine?: partial engine constants (likelihood included), patch?: [names of KB patches below] }.
 // Per config it reports game 1 on each player sheet (won by turn 20 / 25) and, on every Nth KB thing, self-play
@@ -35,7 +38,17 @@ function draw(p: [number, number, number], r: number): QuestionAnswer {
   return r < p[0] ? "yes" : r < p[0] + p[1] ? "maybe" : "no";
 }
 
+/**
+ * Engine constants of the 2026-11-14 review prototypes that v10 took out of the shipped engine (SESSIONS
+ * 2026-11-15). The engine would silently ignore them, so a config that sets one fails here instead of printing
+ * numbers that are really the config without it. Configs 4 and 5 in configs-final.json can no longer be run.
+ */
+const REMOVED = ["categoryQuestions", "commonBoost", "softReliability", "guessRatio"];
+
 export function buildKB(cfg: Config): KB {
+  const gone = REMOVED.filter((k) => cfg.engine && k in cfg.engine);
+  if (gone.length) throw new Error(`config "${cfg.name}" sets ${gone.join(", ")}: removed from the engine in v10 (see docs/SESSIONS.md, 2026-11-15)`);
+  for (const p of cfg.patch ?? []) if (!PATCHES[p]) throw new Error(`config "${cfg.name}": no KB patch "${p}" (common and soft were removed in v10)`);
   let kb = loadKB();
   for (const p of cfg.patch ?? []) kb = PATCHES[p](kb);
   if (cfg.engine) kb = { ...kb, engine: { ...kb.engine, ...cfg.engine } as EngineConstants };
