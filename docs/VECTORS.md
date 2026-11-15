@@ -58,7 +58,7 @@ entry is stale, so it falls back to `no`), and a rich-profile thing that borrows
    - keep only entries whose id is a **KB thing id of this KB** (a learned id, an unknown id, a
      non-array entry, a non-number weight or a weight that is not above 0 is dropped)
    - `S` = the kept weights added up in list order; if nothing is kept or `S` is not above 0, the
-     thing has **no usable near** and its base for every cell is `lik[a][no]` (yes 0.05, maybe 0.3, no 0.85)
+     thing has **no usable near** and its base for every cell is `lik[a][no]` (v10: yes 0.03, maybe 0.07, no 0.90)
    - otherwise `w_k = weight_k / S` (each divided by the same `S`), and for each cell and answer
      `b(a) = Σ_k w_k * lik[a][value(near_k, cell)]`, summed in list order starting from `0.0`, where
      `value(near_k, q)` is the KB value of that KB thing for question `q` and `value(near_k, c)` is
@@ -121,3 +121,34 @@ screen are always the top 3**, whatever `topK` is tuned to (the reference engine
   exactly as typed: no article added, no lowercasing. (`thingPhrase` for learned things.)
 - The worst-case guess lines (one 23-letter word, 12 + 11, and a many-short-words shape) are in
   the web fit check; no legal name wraps to more than 3 LCD lines.
+
+## 4. v10: the endgame lookahead (SPECS §4)
+
+Only the `engine` block of `kb.json` changes shape: `endgameFrom` (12) and `endgameOvertime` (0.5).
+The exact choices the reference makes (`src/engine/engine.ts`, `decide`, `endgameQuestion`, `topSum`):
+
+- **Where it runs.** In `decide(t)`, after the force-guess rule, the confidence rule and the
+  "every question asked" rule, and only if `endgameFrom` is present and `t >= endgameFrom`.
+  Category turns never reach it. Before `endgameFrom`, questions are chosen by gain exactly as in v9.
+- **Constants as doubles and ints.** `r = forceGuessTurn - t + 1` (an int, at least 2 here);
+  `lambda = endgameOvertime ?: 0.0`; `extra = if (lambda > 0) max(0, maxTurns - forceGuessTurn) else 0`.
+- **`topSum(u, m)`.** A `DoubleArray best` of size `m + extra`, filled with `0.0`. For `i` in
+  `0 until N`: `x = u[i]`; if `x <= best[n - 1]` skip; otherwise shift smaller entries down
+  (`while (j > 0 && best[j - 1] < x)`) and insert. Then `s = 0.0; for j in 0 until m: s += best[j]`,
+  and if `lambda > 0`: `t = 0.0; for j in m until m + extra: t += best[j]; s += lambda * t`.
+  Equal values are interchangeable, so a different correct top-n gives the same bits, as long as
+  both sums run largest first.
+- **`u`.** `u[i] = w[i] * P[a][q * N + i]` for `a` in yes (0), maybe (1), no (2). Not normalized.
+  `v = 0.0; v += topSum(u_yes, r - 1); v += topSum(u_maybe, r - 1); v += topSum(u_no, r - 1)`.
+- **Scan.** `bestV = topSum(w, r)`, `bestQ = -1`. For `q` in `0 until Q`, skipping asked ones:
+  `if (v > bestV + 1e-9) { bestV = v; bestQ = q }`. `-1` means a guess of `top`; otherwise ask
+  `bestQ` and add it to `asked`.
+- **RNG.** None. Do not draw on endgame turns. (The review prototype drew once and threw the value
+  away; v10 dropped that, and the vectors were byte-identical with and without it, because no later
+  turn of the game reads the RNG.)
+- **Maths.** Only `+` and `*` on doubles. No `log`, no `Math.fma`.
+- **Vector coverage.** `kb:vectors` fails unless some game has an endgame question, an endgame guess
+  made while `w[top] < guessConfidence`, and an endgame question after a wrong guess. In the
+  `kb-2026.11.15.1` file: endgame questions in 9 games, endgame guesses in `bread-with-skips` and
+  `learned-name-matches-a-kb-thing`, questions after a wrong guess in 7.
+
